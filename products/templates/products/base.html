@@ -1,0 +1,137 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Lumivis{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'products/css/style.css' %}" />
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<!-- ═══ NAVBAR ═══ -->
+<nav class="navbar" role="navigation" aria-label="Main navigation">
+  <div class="nav-inner">
+
+    <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+
+    <a href="{% url 'home' %}" class="logo">Lumi<em>vis</em></a>
+
+    <ul class="nav-links" role="list">
+      <li><a href="{% url 'home' %}">Home</a></li>
+      <li><a href="{% url 'home' %}">Products</a></li>
+      <li><a href="#">About</a></li>
+      <li><a href="#">Contact</a></li>
+    </ul>
+
+    <div class="search-wrap">
+      <form class="search-form" method="GET" action="{% url 'home' %}" role="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input type="text" name="q" placeholder="Search products…" aria-label="Search products" />
+      </form>
+    </div>
+
+    <div class="nav-icons">
+      {% if user.is_authenticated %}
+        {% if user.is_staff %}
+          <a href="{% url 'admin_panel' %}" class="icon-btn" aria-label="Admin Panel" title="Admin Panel">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+              <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+            </svg>
+          </a>
+        {% endif %}
+        <a href="{% url 'user_panel' %}" class="icon-btn" aria-label="My account">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+          </svg>
+        </a>
+      {% else %}
+        <a href="{% url 'login' %}" class="icon-btn nav-login-btn" aria-label="Login">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/>
+          </svg>
+        </a>
+      {% endif %}
+      {% if user.is_authenticated %}
+      <a href="{% url 'wishlist' %}" class="icon-btn" aria-label="My wishlist">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+        </svg>
+      </a>
+      {% endif %}
+      <a href="{% url 'cart' %}" class="icon-btn" aria-label="Shopping cart">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+        </svg>
+        {% if cart_count %}<span class="cart-badge">{{ cart_count }}</span>{% endif %}
+      </a>
+    </div>
+
+  </div>
+</nav>
+
+<!-- ═══ MOBILE DRAWER ═══ -->
+<div class="mobile-drawer" id="mobileDrawer" aria-hidden="true">
+  <div class="m-search">
+    <form class="search-form" method="GET" action="{% url 'home' %}" role="search">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input type="text" name="q" placeholder="Search products…" aria-label="Search products" />
+    </form>
+  </div>
+  <a href="{% url 'home' %}">Home</a>
+  <a href="{% url 'home' %}">Products</a>
+  <a href="#">About</a>
+  <a href="#">Contact</a>
+  <div class="drawer-divider"></div>
+  {% if user.is_authenticated %}
+    <a href="{% url 'user_panel' %}">My Account</a>
+    <a href="{% url 'wishlist' %}">My Wishlist</a>
+    {% if user.is_staff %}<a href="{% url 'admin_panel' %}">Admin Panel</a>{% endif %}
+    <a href="{% url 'logout' %}">Logout</a>
+  {% else %}
+    <a href="{% url 'login' %}">Login</a>
+    <a href="{% url 'register' %}">Register</a>
+  {% endif %}
+</div>
+
+<!-- ═══ MESSAGES ═══ -->
+{% if messages %}
+<div class="messages-wrap">
+  {% for msg in messages %}
+  <div class="alert alert-{{ msg.tags }}">
+    {{ msg }}
+    <button class="alert-close" onclick="this.parentElement.remove()">&#x2715;</button>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- ═══ PAGE CONTENT ═══ -->
+{% block content %}{% endblock %}
+
+<!-- ═══ FOOTER ═══ -->
+<footer class="footer">
+  <div class="footer-inner">
+    <span class="logo" style="font-size:1.1rem;">Lumi<em>vis</em></span>
+    <p class="footer-copy">&copy; 2026 Lumivis. All rights reserved.</p>
+    <div class="footer-links">
+      <a href="#">Privacy</a>
+      <a href="#">Terms</a>
+      <a href="#">Contact</a>
+    </div>
+  </div>
+</footer>
+
+<script src="{% static 'products/js/main.js' %}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

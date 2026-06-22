@@ -1,0 +1,78 @@
+{% extends 'products/base.html' %}
+
+{% block title %}Checkout — Lumivis{% endblock %}
+
+{% block content %}
+<main class="main">
+  <h1 class="section-title" style="margin-bottom:28px;">Checkout</h1>
+
+  <div class="checkout-layout">
+
+    <!-- Shipping form -->
+    <form method="POST" class="checkout-form">
+      {% csrf_token %}
+
+      <div class="form-section">
+        <h2 class="form-section-title">Shipping Details</h2>
+        <div class="form-grid">
+          <div class="field">
+            <label for="full_name">Full Name</label>
+            <input type="text" id="full_name" name="full_name" placeholder="Jane Doe" required />
+          </div>
+          <div class="field">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" placeholder="jane@example.com"
+              value="{% if user.is_authenticated %}{{ user.email }}{% endif %}" required />
+          </div>
+          <div class="field">
+            <label for="phone">Phone</label>
+            <input type="tel" id="phone" name="phone" placeholder="+1 555 000 0000" required />
+          </div>
+          <div class="field field-full">
+            <label for="address">Address</label>
+            <input type="text" id="address" name="address" placeholder="123 Main St, Apt 4B" required />
+          </div>
+          <div class="field">
+            <label for="city">City</label>
+            <input type="text" id="city" name="city" placeholder="New York" required />
+          </div>
+          <div class="field">
+            <label for="pincode">PIN / ZIP</label>
+            <input type="text" id="pincode" name="pincode" placeholder="10001" required />
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h2 class="form-section-title">Payment</h2>
+        <div class="payment-placeholder">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>
+          </svg>
+          <span>Cash on Delivery — payment on arrival</span>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-dark btn-lg" style="width:100%;">Place Order</button>
+    </form>
+
+    <!-- Order summary -->
+    <aside class="cart-summary">
+      <h2 class="summary-title">Your Order</h2>
+      {% for item in items %}
+      <div class="summary-item">
+        <span class="summary-item-name">{{ item.product.name }} <em class="text-muted">×{{ item.quantity }}</em></span>
+        <span>${{ item.subtotal }}</span>
+      </div>
+      {% endfor %}
+      <div class="summary-row" style="margin-top:14px;">
+        <span>Shipping</span><span class="text-muted">Free</span>
+      </div>
+      <div class="summary-total">
+        <span>Total</span><span>${{ total }}</span>
+      </div>
+    </aside>
+
+  </div>
+</main>
+{% endblock %}

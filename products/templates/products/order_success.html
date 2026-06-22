@@ -1,0 +1,23 @@
+{% extends 'products/base.html' %}
+
+{% block title %}Order Placed — Lumivis{% endblock %}
+
+{% block content %}
+<main class="main">
+  <div class="success-card">
+    <div class="success-icon">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+    </div>
+    <h1 class="success-title">Order Placed!</h1>
+    <p class="success-msg">Thank you for shopping with Lumivis. Your order has been received and will be processed shortly.</p>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+      {% if user.is_authenticated %}
+        <a href="{% url 'profile' %}" class="btn btn-ghost btn-lg">View My Orders</a>
+      {% endif %}
+      <a href="{% url 'home' %}" class="btn btn-dark btn-lg">Continue Shopping</a>
+    </div>
+  </div>
+</main>
+{% endblock %}

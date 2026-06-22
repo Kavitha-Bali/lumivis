@@ -1,0 +1,163 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ title }} | Lumivis Admin{% endblock %}
+
+{% block branding %}
+<h1 id="site-name">
+  <a href="{% url 'admin:index' %}">
+    <span style="font-weight:800;letter-spacing:-0.3px;">Lumi<span style="color:#818cf8;">vis</span></span>
+    <span style="font-size:0.7rem;font-weight:400;opacity:0.55;margin-left:8px;letter-spacing:0.05em;text-transform:uppercase;">Admin</span>
+  </a>
+</h1>
+{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+  /* ── Lumivis Admin Theme ── */
+  :root {
+    --primary:               #4f46e5;
+    --secondary:             #1f2937;
+    --primary-fg:            #fff;
+    --header-color:          #f9fafb;
+    --header-branding-color: #e0e7ff;
+    --header-bg:             #111827;
+    --header-link-color:     #c7d2fe;
+    --breadcrumbs-fg:        #9ca3af;
+    --breadcrumbs-link-fg:   #e5e7eb;
+    --breadcrumbs-bg:        #1f2937;
+    --link-fg:               #4f46e5;
+    --link-hover-color:      #4338ca;
+    --link-selected-fg:      #4f46e5;
+    --hairline-color:        #e5e7eb;
+    --border-color:          #d1d5db;
+    --darkened-bg:           #f3f4f6;
+    --selected-bg:           #eef2ff;
+    --selected-row:          #eef2ff;
+    --button-fg:             #fff;
+    --button-bg:             #4f46e5;
+    --button-hover-bg:       #4338ca;
+    --default-button-bg:     #111827;
+    --default-button-hover-bg: #1f2937;
+    --close-button-bg:       #6b7280;
+    --close-button-hover-bg: #4b5563;
+    --delete-button-bg:      #dc2626;
+    --delete-button-hover-bg:#b91c1c;
+    --object-tools-bg:       #374151;
+    --object-tools-hover-bg: #1f2937;
+  }
+
+  /* Header */
+  #header {
+    background: #111827;
+    box-shadow: 0 1px 0 rgba(255,255,255,0.06);
+  }
+  #header a:link, #header a:visited { color: #c7d2fe; }
+  #header a:hover { color: #fff; }
+  #site-name a { color: #f9fafb; }
+
+  /* Breadcrumbs */
+  #breadcrumbs {
+    background: #1f2937;
+    color: #9ca3af;
+    border-bottom: 1px solid #374151;
+  }
+  #breadcrumbs a { color: #c7d2fe; }
+
+  /* Sidebar + nav */
+  nav#nav-sidebar { background: #fff; border-right: 1px solid #e5e7eb; }
+  nav#nav-sidebar .current-app .section:link,
+  nav#nav-sidebar .current-app .section:visited { color: #4f46e5; }
+
+  /* Module headers */
+  .module h2, .module caption, .inline-group h2 {
+    background: #1f2937;
+    color: #f9fafb;
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border-radius: 0;
+  }
+
+  /* Buttons */
+  .button, input[type=submit], input[type=button], .submit-row input, a.button {
+    border-radius: 7px;
+    font-weight: 600;
+    font-size: 0.82rem;
+    transition: background 0.18s;
+  }
+  .submit-row input.default {
+    background: #111827;
+    border-color: #111827;
+  }
+  .submit-row input.default:hover { background: #1f2937; }
+
+  /* Links */
+  a:link, a:visited { color: #4f46e5; }
+  a:hover { color: #4338ca; }
+
+  /* Change list */
+  #changelist table thead th {
+    background: #f9fafb;
+    border-bottom: 2px solid #e5e7eb;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #6b7280;
+  }
+  #changelist .results tr:hover td { background: #eef2ff; }
+  tr.selected td { background: #eef2ff; }
+
+  /* Filters */
+  #changelist-filter { border-left: 1px solid #e5e7eb; }
+  #changelist-filter h2 {
+    background: #1f2937;
+    color: #f9fafb;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  #changelist-filter h3 { color: #374151; font-size: 0.78rem; }
+  #changelist-filter li.selected a { color: #4f46e5; font-weight: 600; }
+
+  /* Search bar */
+  #changelist-search input[type="text"] {
+    border-radius: 7px;
+    border: 1.5px solid #d1d5db;
+  }
+  #changelist-search input[type="text"]:focus {
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 3px rgba(79,70,229,.1);
+    outline: none;
+  }
+
+  /* Form inputs */
+  input[type="text"], input[type="password"], input[type="email"],
+  input[type="number"], input[type="url"], textarea, select {
+    border-radius: 6px;
+    border: 1.5px solid #d1d5db;
+    padding: 7px 10px;
+    font-size: 0.875rem;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  input[type="text"]:focus, input[type="email"]:focus,
+  textarea:focus, select:focus {
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 3px rgba(79,70,229,.1);
+    outline: none;
+  }
+
+  /* Fieldsets */
+  fieldset.module { border-radius: 10px; border: 1px solid #e5e7eb; }
+
+  /* Messages */
+  .messagelist li.success { background: #d1fae5; color: #065f46; border-color: #a7f3d0; }
+  .messagelist li.warning { background: #fef3c7; color: #92400e; border-color: #fde68a; }
+  .messagelist li.error   { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
+
+  /* Dashboard app list */
+  .app-products .model-product     > td:first-child::before { color: #4f46e5; }
+  .app-products .model-transctions > td:first-child::before { color: #10b981; }
+  .app-products .model-promocode   > td:first-child::before { color: #f59e0b; }
+</style>
+{% endblock %}

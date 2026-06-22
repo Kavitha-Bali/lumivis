@@ -1,0 +1,455 @@
+{% extends 'products/base.html' %}
+{% block title %}My Account — Lumivis{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ═══════════════════════════════════════════
+   USER PANEL
+   ═══════════════════════════════════════════ */
+body { background: #f1f5f9; }
+
+.up-wrap { max-width: 1000px; margin: 0 auto; padding: 32px 20px 48px; }
+
+/* ══ Profile Header ══ */
+.up-header {
+  background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #1e40af 100%);
+  border-radius: 18px; padding: 28px 32px; margin-bottom: 24px; color: #fff;
+  display: flex; align-items: center; gap: 20px; flex-wrap: wrap; position: relative;
+  overflow: hidden;
+}
+.up-header::after {
+  content: ''; position: absolute; right: -60px; top: -60px;
+  width: 200px; height: 200px; border-radius: 50%;
+  background: rgba(99,102,241,.15); pointer-events: none;
+}
+.up-avatar {
+  width: 68px; height: 68px; border-radius: 50%;
+  background: #6366f1; color: #fff;
+  font-size: 1.7rem; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; border: 3px solid rgba(255,255,255,.2);
+}
+.up-hd-name  { font-size: 1.3rem; font-weight: 800; margin-bottom: 2px; }
+.up-hd-email { font-size: 0.84rem; color: #93c5fd; margin-bottom: 2px; }
+.up-hd-since { font-size: 0.75rem; color: #64748b; }
+.up-hd-actions { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+.up-hd-btn {
+  padding: 8px 16px; border-radius: 9px; font-size: 0.8rem; font-weight: 700;
+  text-decoration: none; cursor: pointer;
+  transition: opacity .15s;
+}
+.up-hd-btn:hover { opacity: .85; }
+.up-hd-btn-solid { background: #fff; color: #0f172a; border: none; }
+.up-hd-btn-ghost { background: rgba(255,255,255,.1); color: #fff; border: 1px solid rgba(255,255,255,.2); }
+.up-hd-btn-red   { background: rgba(239,68,68,.15); color: #fca5a5; border: 1px solid rgba(239,68,68,.25); }
+
+/* ══ Stats ══ */
+.up-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 24px; }
+@media(max-width: 500px) { .up-stats { grid-template-columns: 1fr 1fr; } }
+.up-stat {
+  background: #fff; border: 1px solid #e2e8f0; border-radius: 12px;
+  padding: 18px 20px; text-align: center;
+}
+.up-stat-val   { font-size: 1.7rem; font-weight: 800; color: #0f172a; line-height: 1; }
+.up-stat-label { font-size: 0.7rem; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; margin-top: 4px; }
+
+/* ══ Tabs ══ */
+.up-tabs {
+  display: flex; gap: 4px;
+  border-bottom: 2px solid #e2e8f0; margin-bottom: 24px;
+  overflow-x: auto; scrollbar-width: none;
+}
+.up-tabs::-webkit-scrollbar { display: none; }
+.up-tab {
+  padding: 10px 22px; text-decoration: none; color: #64748b;
+  font-weight: 600; font-size: 0.86rem;
+  border-bottom: 2px solid transparent; margin-bottom: -2px;
+  transition: color .15s, border-color .15s; white-space: nowrap;
+  display: flex; align-items: center; gap: 7px;
+}
+.up-tab:hover { color: #0f172a; }
+.up-tab.active { color: #4f46e5; border-bottom-color: #4f46e5; }
+.up-tab-badge {
+  background: #eef2ff; color: #4f46e5;
+  font-size: 0.68rem; font-weight: 800;
+  padding: 1px 7px; border-radius: 20px;
+}
+
+/* ══ Tables ══ */
+.up-table-wrap { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; overflow: hidden; }
+.up-table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+.up-table th {
+  background: #f8fafc; color: #64748b; font-weight: 700;
+  font-size: 0.7rem; text-transform: uppercase; letter-spacing: .06em;
+  padding: 12px 16px; text-align: left; border-bottom: 1px solid #e2e8f0;
+}
+.up-table td { padding: 12px 16px; border-bottom: 1px solid #f1f5f9; color: #334155; vertical-align: middle; }
+.up-table tr:last-child td { border-bottom: none; }
+.up-mono { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.78rem; }
+
+/* ══ Status badges ══ */
+.sb { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.71rem; font-weight: 700; }
+.sb.pending    { background: #fef3c7; color: #92400e; }
+.sb.processing { background: #dbeafe; color: #1e40af; }
+.sb.shipped    { background: #ede9fe; color: #5b21b6; }
+.sb.delivered  { background: #d1fae5; color: #065f46; }
+.sb.cancelled  { background: #fee2e2; color: #991b1b; }
+
+/* ══ Order tracking step ══ */
+.up-track { display: flex; align-items: flex-start; gap: 0; margin: 0 0 0; }
+.up-track-step { flex: 1; display: flex; flex-direction: column; align-items: center; position: relative; }
+.up-track-step:not(:last-child)::after {
+  content: ''; position: absolute; top: 12px; left: 50%; right: -50%;
+  height: 2px; background: #e2e8f0; z-index: 0;
+}
+.up-track-step.done:not(:last-child)::after { background: #6366f1; }
+.up-track-dot {
+  width: 24px; height: 24px; border-radius: 50%; border: 2px solid #e2e8f0;
+  background: #fff; display: flex; align-items: center; justify-content: center;
+  z-index: 1; position: relative; flex-shrink: 0;
+}
+.up-track-step.done .up-track-dot { background: #6366f1; border-color: #6366f1; }
+.up-track-step.done .up-track-dot svg { color: #fff; }
+.up-track-label { font-size: 0.68rem; color: #94a3b8; margin-top: 6px; text-align: center; font-weight: 600; white-space: nowrap; }
+.up-track-step.done .up-track-label { color: #4f46e5; }
+
+/* ══ Wishlist grid ══ */
+.up-wl-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(185px, 1fr)); gap: 16px; }
+.up-wl-card {
+  background: #fff; border: 1px solid #e2e8f0; border-radius: 14px;
+  overflow: hidden; display: flex; flex-direction: column;
+  transition: box-shadow .15s;
+}
+.up-wl-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,.08); }
+.up-wl-img { width: 100%; aspect-ratio: 1; object-fit: cover; }
+.up-wl-img-ph {
+  width: 100%; aspect-ratio: 1; background: #f8fafc;
+  display: flex; align-items: center; justify-content: center; color: #cbd5e1;
+}
+.up-wl-body { padding: 12px 14px; flex: 1; display: flex; flex-direction: column; gap: 5px; }
+.up-wl-name  { font-weight: 700; font-size: 0.86rem; color: #0f172a; text-decoration: none; }
+.up-wl-name:hover { color: #4f46e5; }
+.up-wl-price { font-weight: 800; color: #0f172a; font-size: 0.95rem; }
+.up-wl-meta  { font-size: 0.72rem; color: #94a3b8; }
+.up-wl-btns  { display: flex; gap: 6px; margin-top: auto; padding-top: 10px; }
+.up-wl-btns form { flex: 1; }
+.up-wl-btn {
+  width: 100%; padding: 7px 0; border-radius: 8px; font-size: 0.78rem; font-weight: 700;
+  text-align: center; border: none; cursor: pointer; transition: opacity .15s;
+}
+.up-wl-btn:hover { opacity: .85; }
+.up-wl-btn-cart { background: #eef2ff; color: #4f46e5; }
+.up-wl-btn-rm   { background: #fff1f2; color: #e11d48; border: 1px solid #fecdd3 !important; width:auto; padding: 7px 10px; }
+
+/* ══ Settings forms ══ */
+.up-form-card {
+  background: #fff; border: 1px solid #e2e8f0; border-radius: 14px;
+  padding: 24px 28px; margin-bottom: 18px;
+}
+.up-form-title {
+  font-size: 0.95rem; font-weight: 700; color: #0f172a;
+  margin-bottom: 18px; padding-bottom: 14px;
+  border-bottom: 1px solid #f1f5f9;
+  display: flex; align-items: center; gap: 8px;
+}
+.up-field { margin-bottom: 16px; }
+.up-label { display: block; font-size: 0.75rem; font-weight: 700; color: #374151; margin-bottom: 6px; text-transform: uppercase; letter-spacing: .04em; }
+.up-input {
+  width: 100%; padding: 10px 14px; border: 1.5px solid #e2e8f0; border-radius: 9px;
+  font-size: 0.88rem; color: #0f172a; background: #fff; outline: none;
+  transition: border-color .15s, box-shadow .15s; box-sizing: border-box;
+}
+.up-input:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.12); }
+.up-input:disabled { background: #f8fafc; color: #94a3b8; cursor: not-allowed; }
+.up-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media(max-width: 520px) { .up-row { grid-template-columns: 1fr; } }
+.up-btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 10px 22px; border-radius: 9px; font-size: 0.85rem; font-weight: 700;
+  border: none; cursor: pointer; transition: opacity .15s; text-decoration: none;
+}
+.up-btn:hover { opacity: .88; }
+.up-btn-dark   { background: #0f172a; color: #fff; }
+.up-btn-indigo { background: #6366f1; color: #fff; }
+
+/* ══ Info grid ══ */
+.up-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; font-size: 0.85rem; }
+@media(max-width: 480px) { .up-info-grid { grid-template-columns: 1fr; } }
+.up-info-item span { display: block; color: #94a3b8; font-size: 0.72rem; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 3px; }
+
+/* ══ Empty state ══ */
+.up-empty { text-align: center; padding: 48px 20px; color: #94a3b8; }
+.up-empty svg { margin-bottom: 14px; color: #cbd5e1; }
+.up-empty h3 { font-size: 1rem; color: #334155; margin-bottom: 6px; font-weight: 700; }
+.up-empty p  { font-size: 0.84rem; margin-bottom: 16px; }
+
+/* ══ Divider ══ */
+.up-hr { border: none; border-top: 1px solid #f1f5f9; margin: 20px 0; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="up-wrap">
+
+  <!-- ══ Profile Header ══ -->
+  <div class="up-header">
+    <div class="up-avatar">{{ user.username|first|upper }}</div>
+    <div>
+      <div class="up-hd-name">{{ user.get_full_name|default:user.username }}</div>
+      <div class="up-hd-email">{{ user.email|default:"No email set" }}</div>
+      <div class="up-hd-since">Member since {{ user.date_joined|date:"F Y" }}</div>
+    </div>
+    <div class="up-hd-actions">
+      <a href="{% url 'home' %}" class="up-hd-btn up-hd-btn-solid">Shop</a>
+      {% if user.is_staff %}
+        <a href="{% url 'admin_panel' %}" class="up-hd-btn up-hd-btn-ghost">Admin</a>
+      {% endif %}
+      <a href="{% url 'logout' %}" class="up-hd-btn up-hd-btn-red">Logout</a>
+    </div>
+  </div>
+
+  <!-- ══ Quick Stats ══ -->
+  <div class="up-stats">
+    <div class="up-stat">
+      <div class="up-stat-val">{{ orders|length }}</div>
+      <div class="up-stat-label">Orders</div>
+    </div>
+    <div class="up-stat">
+      <div class="up-stat-val">${{ total_spent }}</div>
+      <div class="up-stat-label">Total Spent</div>
+    </div>
+    <div class="up-stat">
+      <div class="up-stat-val">{{ wishlist|length }}</div>
+      <div class="up-stat-label">Wishlist</div>
+    </div>
+  </div>
+
+  <!-- ══ Tabs ══ -->
+  <div class="up-tabs">
+    <a href="?tab=orders" class="up-tab {% if tab == 'orders' %}active{% endif %}">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+      My Orders
+      {% if orders %}<span class="up-tab-badge">{{ orders|length }}</span>{% endif %}
+    </a>
+    <a href="?tab=wishlist" class="up-tab {% if tab == 'wishlist' %}active{% endif %}">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      Wishlist
+      {% if wishlist %}<span class="up-tab-badge">{{ wishlist|length }}</span>{% endif %}
+    </a>
+    <a href="?tab=settings" class="up-tab {% if tab == 'settings' %}active{% endif %}">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Settings
+    </a>
+  </div>
+
+  <!-- ════ ORDERS TAB ════ -->
+  {% if tab == 'orders' %}
+  {% if orders %}
+  <div class="up-table-wrap">
+    <table class="up-table">
+      <thead>
+        <tr><th>Order ID</th><th>Product</th><th>Date</th><th>Qty</th><th>Total</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        {% for o in orders %}
+        <tr>
+          <td class="up-mono" style="color:#64748b;">#{{ o.transaction_id }}</td>
+          <td>
+            <div style="display:flex;align-items:center;gap:10px;">
+              {% if o.product.image %}
+                <img src="{{ o.product.image.url }}" alt="{{ o.product.name }}"
+                     style="width:40px;height:40px;object-fit:cover;border-radius:8px;border:1px solid #e2e8f0;flex-shrink:0;" />
+              {% endif %}
+              <div>
+                <a href="{% url 'product_detail' o.product.pk %}" style="color:#0f172a;text-decoration:none;font-weight:600;font-size:0.86rem;">
+                  {{ o.product.name|truncatechars:28 }}
+                </a>
+                <div style="font-size:0.72rem;color:#94a3b8;">{{ o.product.product_type }}</div>
+              </div>
+            </div>
+          </td>
+          <td style="color:#64748b;white-space:nowrap;font-size:0.8rem;">{{ o.transaction_date|date:"d M Y" }}</td>
+          <td style="text-align:center;">{{ o.quantity }}</td>
+          <td><strong>${{ o.total_price }}</strong></td>
+          <td>
+            <span class="sb {{ o.status }}">{{ o.get_status_display }}</span>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="up-empty">
+    <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+    <h3>No orders yet</h3>
+    <p>Your order history will appear here after your first purchase.</p>
+    <a href="{% url 'home' %}" class="up-btn up-btn-indigo">Start Shopping</a>
+  </div>
+  {% endif %}
+
+
+  <!-- ════ WISHLIST TAB ════ -->
+  {% elif tab == 'wishlist' %}
+  {% if wishlist %}
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+    <span style="color:#64748b;font-size:0.84rem;">{{ wishlist|length }} saved item{% if wishlist|length != 1 %}s{% endif %}</span>
+    <form method="POST" action="{% url 'wishlist_checkout' %}">
+      {% csrf_token %}
+      <button type="submit" class="up-btn up-btn-dark">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+        Confirm All Orders
+      </button>
+    </form>
+  </div>
+
+  <div class="up-wl-grid">
+    {% for item in wishlist %}
+    <div class="up-wl-card">
+      <a href="{% url 'product_detail' item.product.pk %}">
+        {% if item.product.image %}
+          <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="up-wl-img" loading="lazy" />
+        {% else %}
+          <div class="up-wl-img-ph">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          </div>
+        {% endif %}
+      </a>
+      <div class="up-wl-body">
+        <a href="{% url 'product_detail' item.product.pk %}" class="up-wl-name">{{ item.product.name }}</a>
+        <div class="up-wl-price">${{ item.product.price }}</div>
+        <div class="up-wl-meta">{{ item.product.product_type }} · {{ item.product.product_size }}</div>
+        <div class="up-wl-meta">Saved {{ item.added_at|date:"d M Y" }}</div>
+        <div class="up-wl-btns">
+          <form method="POST" action="{% url 'add_to_cart' item.product.pk %}">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="cart" />
+            <button type="submit" class="up-wl-btn up-wl-btn-cart">Add to Cart</button>
+          </form>
+          <form method="POST" action="{% url 'toggle_wishlist' item.product.pk %}">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{% url 'user_panel' %}?tab=wishlist" />
+            <button type="submit" class="up-wl-btn up-wl-btn-rm" title="Remove from wishlist">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <div class="up-empty">
+    <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+    <h3>Your wishlist is empty</h3>
+    <p>Click the heart icon on any product to save it here.</p>
+    <a href="{% url 'home' %}" class="up-btn up-btn-indigo">Browse Products</a>
+  </div>
+  {% endif %}
+
+
+  <!-- ════ SETTINGS TAB ════ -->
+  {% elif tab == 'settings' %}
+
+  <!-- Update Profile -->
+  <div class="up-form-card">
+    <div class="up-form-title">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Profile Information
+    </div>
+    <form method="POST" action="?tab=settings">
+      {% csrf_token %}
+      <input type="hidden" name="update_profile" value="1" />
+      <div class="up-row">
+        <div class="up-field">
+          <label class="up-label">First Name</label>
+          <input type="text" name="first_name" value="{{ user.first_name }}" class="up-input" placeholder="First name" />
+        </div>
+        <div class="up-field">
+          <label class="up-label">Last Name</label>
+          <input type="text" name="last_name" value="{{ user.last_name }}" class="up-input" placeholder="Last name" />
+        </div>
+      </div>
+      <div class="up-field">
+        <label class="up-label">Email Address</label>
+        <input type="email" name="email" value="{{ user.email }}" class="up-input" placeholder="your@email.com" />
+      </div>
+      <div class="up-field">
+        <label class="up-label">Username</label>
+        <input type="text" value="{{ user.username }}" class="up-input" disabled />
+      </div>
+      <button type="submit" class="up-btn up-btn-indigo">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        Save Changes
+      </button>
+    </form>
+  </div>
+
+  <!-- Change Password -->
+  <div class="up-form-card">
+    <div class="up-form-title">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      Change Password
+    </div>
+    <form method="POST" action="?tab=settings">
+      {% csrf_token %}
+      <input type="hidden" name="change_password" value="1" />
+      <div class="up-field">
+        <label class="up-label">Current Password</label>
+        <input type="password" name="current_password" class="up-input" placeholder="Enter current password" required />
+      </div>
+      <div class="up-row">
+        <div class="up-field">
+          <label class="up-label">New Password</label>
+          <input type="password" name="new_password" class="up-input" placeholder="Min. 8 characters" required />
+        </div>
+        <div class="up-field">
+          <label class="up-label">Confirm New Password</label>
+          <input type="password" name="confirm_password" class="up-input" placeholder="Repeat new password" required />
+        </div>
+      </div>
+      <button type="submit" class="up-btn up-btn-dark">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Change Password
+      </button>
+    </form>
+  </div>
+
+  <!-- Account Info -->
+  <div class="up-form-card" style="background:#f8fafc;">
+    <div class="up-form-title">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      Account Details
+    </div>
+    <div class="up-info-grid">
+      <div class="up-info-item">
+        <span>Username</span>
+        <strong>{{ user.username }}</strong>
+      </div>
+      <div class="up-info-item">
+        <span>Member Since</span>
+        <strong>{{ user.date_joined|date:"d F Y" }}</strong>
+      </div>
+      <div class="up-info-item">
+        <span>Account Status</span>
+        <strong style="color:#059669;">Active</strong>
+      </div>
+      <div class="up-info-item">
+        <span>Role</span>
+        <strong>{% if user.is_staff %}Administrator{% else %}Customer{% endif %}</strong>
+      </div>
+    </div>
+    {% if user.is_staff %}
+    <div class="up-hr"></div>
+    <a href="{% url 'admin_panel' %}" class="up-btn up-btn-dark" style="font-size:0.8rem;">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Go to Admin Panel
+    </a>
+    {% endif %}
+  </div>
+
+  {% endif %}
+
+</div>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends 'products/base.html' %}
+
+{% block title %}Login — Lumivis{% endblock %}
+
+{% block content %}
+<main class="main">
+  <div class="auth-card">
+    <div class="auth-header">
+      <h1 class="auth-title">Welcome back</h1>
+      <p class="auth-sub">Sign in to your Lumivis account</p>
+    </div>
+
+    <form method="POST" class="auth-form">
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+      <div class="alert alert-error">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      <div class="field">
+        <label for="{{ form.username.id_for_label }}">Username</label>
+        {{ form.username }}
+        {% if form.username.errors %}
+          <p class="field-error">{{ form.username.errors.0 }}</p>
+        {% endif %}
+      </div>
+
+      <div class="field">
+        <label for="{{ form.password.id_for_label }}">Password</label>
+        {{ form.password }}
+        {% if form.password.errors %}
+          <p class="field-error">{{ form.password.errors.0 }}</p>
+        {% endif %}
+      </div>
+
+      <button type="submit" class="btn btn-dark btn-lg" style="width:100%;">Sign In</button>
+    </form>
+
+    <p class="auth-switch">
+      Don't have an account? <a href="{% url 'register' %}">Create one</a>
+    </p>
+  </div>
+</main>
+{% endblock %}
