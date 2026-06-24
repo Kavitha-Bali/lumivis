@@ -1,6 +1,6 @@
 {% extends 'products/base.html' %}
 
-{% block title %}Your Cart — Lumivis{% endblock %}
+{% block title %}Your Cart — Lumivis Pvt. Ltd.{% endblock %}
 
 {% block content %}
 <main class="main">
@@ -43,10 +43,10 @@
         </form>
 
         <!-- Unit price -->
-        <span class="cart-unit">${{ item.product.price }}</span>
+        <span class="cart-unit">₹{{ item.product.price }}</span>
 
         <!-- Subtotal -->
-        <span class="cart-sub">${{ item.subtotal }}</span>
+        <span class="cart-sub">₹{{ item.subtotal }}</span>
 
         <!-- Remove -->
         <form method="POST" action="{% url 'remove_from_cart' item.product.pk %}">
@@ -65,13 +65,13 @@
     <aside class="cart-summary">
       <h2 class="summary-title">Order Summary</h2>
       <div class="summary-row">
-        <span>Subtotal</span><span>${{ total }}</span>
+        <span>Subtotal</span><span>₹{{ total }}</span>
       </div>
       <div class="summary-row">
         <span>Shipping</span><span class="text-muted">Free</span>
       </div>
       <div class="summary-total">
-        <span>Total</span><span>${{ total }}</span>
+        <span>Total</span><span>₹{{ total }}</span>
       </div>
       <a href="{% url 'checkout' %}" class="btn btn-dark" style="width:100%;display:block;text-align:center;padding:13px;">
         Proceed to Checkout

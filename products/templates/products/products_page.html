@@ -1,0 +1,71 @@
+{% extends 'products/base.html' %}
+{% load static %}
+{% block title %}Products — Lumivis Pvt. Ltd.{% endblock %}
+
+{% block content %}
+<div class="main">
+
+  <div class="section-header" style="margin-bottom:32px;">
+    <div>
+      <h1 class="section-title" style="font-size:1.8rem;">All Products</h1>
+      <p class="section-count">{{ products|length }} item{% if products|length != 1 %}s{% endif %} available</p>
+    </div>
+    <form class="search-form" method="GET" action="{% url 'products' %}" style="max-width:320px;" role="search">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input type="text" name="q" value="{{ query }}" placeholder="Search products…" aria-label="Search products" />
+    </form>
+  </div>
+
+  {% if product_types %}
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:28px;">
+    <a href="{% url 'products' %}" class="btn btn-ghost {% if not type_filter %}btn-dark{% endif %}" style="flex:none;padding:7px 16px;">All</a>
+    {% for pt in product_types %}
+    <a href="{% url 'products' %}?type={{ pt }}" class="btn btn-ghost {% if type_filter == pt %}btn-dark{% endif %}" style="flex:none;padding:7px 16px;">{{ pt }}</a>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div class="products-grid">
+    {% for product in products %}
+    <div class="card">
+      <a href="{% url 'product_detail' product.pk %}" class="card-img-link">
+        <div class="card-img">
+          {% if product.image %}
+            <img src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy" />
+          {% else %}
+            <div class="card-placeholder">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            </div>
+          {% endif %}
+        </div>
+      </a>
+      <div class="card-body">
+        <p class="card-tag">{{ product.product_type }}</p>
+        <h3 class="card-title"><a href="{% url 'product_detail' product.pk %}">{{ product.name }}</a></h3>
+        <p class="card-price">₹{{ product.price }}</p>
+        <div class="card-actions">
+          <a href="{% url 'product_detail' product.pk %}" class="btn btn-ghost">View</a>
+          <form method="POST" action="{% url 'add_to_cart' product.pk %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-ghost">Add to Cart</button>
+          </form>
+          <form method="POST" action="{% url 'buy_now' product.pk %}" style="flex:1;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-dark" style="width:100%;">Buy Now</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="empty">
+      <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      <h3>No products found</h3>
+      <p>Try a different search term.</p>
+    </div>
+    {% endfor %}
+  </div>
+
+</div>
+{% endblock %}

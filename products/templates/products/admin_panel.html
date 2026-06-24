@@ -1,5 +1,6 @@
 {% extends 'products/base.html' %}
-{% block title %}Admin Panel — Lumivis{% endblock %}
+{% load static %}
+{% block title %}Admin Panel — Lumivis Pvt. Ltd.{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -26,13 +27,40 @@ body { background: #f1f5f9; }
 }
 
 .ap-logo {
-  padding: 22px 20px 18px;
-  font-size: 1.05rem; font-weight: 800; color: #fff;
+  padding: 20px 18px 16px;
   border-bottom: 1px solid #1e293b;
-  letter-spacing: .02em;
+  background: linear-gradient(135deg, rgba(79,70,229,.12), rgba(124,58,237,.08));
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
 }
-.ap-logo em { color: #818cf8; font-style: normal; }
-.ap-logo-sub { font-size: 0.7rem; color: #475569; font-weight: 400; margin-top: 2px; }
+.ap-logo-img {
+  height: 56px;
+  max-width: 160px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+  filter: brightness(0) invert(1);
+  transition: opacity .2s;
+}
+.ap-logo-img:hover { opacity: .85; }
+.ap-logo-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ap-logo-sub {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #818cf8;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  background: rgba(129,140,248,.12);
+  border: 1px solid rgba(129,140,248,.25);
+  padding: 3px 10px;
+  border-radius: 999px;
+}
 
 .ap-nav-group { padding: 14px 0 6px; }
 .ap-nav-label {
@@ -79,10 +107,65 @@ body { background: #f1f5f9; }
 /* ══════════════ MAIN ══════════════ */
 .ap-main { flex: 1; padding: 28px 32px; min-width: 0; }
 
+/* ── Dashboard hero header ── */
+.ap-dash-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 55%, #312e81 100%);
+  border-radius: 20px;
+  padding: 28px 32px;
+  margin-bottom: 28px;
+  position: relative;
+  overflow: hidden;
+}
+.ap-dash-hero::before {
+  content: '';
+  position: absolute;
+  top: -60px; right: -60px;
+  width: 220px; height: 220px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(99,102,241,.25), transparent 70%);
+  pointer-events: none;
+}
+.ap-dash-hero-left { z-index: 1; }
+.ap-dash-hero-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  z-index: 1;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 16px;
+  padding: 16px 24px;
+  backdrop-filter: blur(8px);
+  flex-shrink: 0;
+}
+.ap-dash-logo-img {
+  height: 60px;
+  max-width: 180px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+  filter: brightness(0) invert(1);
+}
+.ap-dash-logo-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: #a5b4fc;
+}
+
 /* ── Page header ── */
 .ap-page-hd { margin-bottom: 24px; }
 .ap-breadcrumb { font-size: 0.75rem; color: #94a3b8; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
 .ap-page-title { font-size: 1.5rem; font-weight: 800; color: #0f172a; margin: 0 0 3px; }
+.ap-dash-hero .ap-page-title { color: #fff; font-size: 1.6rem; }
+.ap-dash-hero .ap-breadcrumb { color: #818cf8; }
+.ap-dash-hero .ap-page-sub { color: rgba(255,255,255,.6); }
 .ap-page-sub   { font-size: 0.85rem; color: #64748b; margin: 0; }
 
 /* ── Stat grid ── */
@@ -296,8 +379,8 @@ body { background: #f1f5f9; }
   <!-- ════════════ SIDEBAR ════════════ -->
   <aside class="ap-sidebar" id="apSidebar">
     <div class="ap-logo">
-      Lumi<em>vis</em>
-      <div class="ap-logo-sub">Administration Panel</div>
+      <img src="{% static 'logoo.png' %}" alt="Lumivis" class="ap-logo-img" />
+      <span class="ap-logo-sub">Admin Panel</span>
     </div>
 
     <div class="ap-nav-group">
@@ -374,20 +457,26 @@ body { background: #f1f5f9; }
 
     <!-- ────────── DASHBOARD ────────── -->
     {% if section == 'dashboard' %}
-    <div class="ap-page-hd">
-      <div class="ap-breadcrumb">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-        Dashboard
+    <div class="ap-dash-hero">
+      <div class="ap-dash-hero-left">
+        <div class="ap-breadcrumb">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          Dashboard
+        </div>
+        <h1 class="ap-page-title">Welcome back, {{ user.first_name|default:user.username }}!</h1>
+        <p class="ap-page-sub">Here's a live overview of your store's performance.</p>
       </div>
-      <h1 class="ap-page-title">Welcome back, {{ user.first_name|default:user.username }}!</h1>
-      <p class="ap-page-sub">Here's an overview of your store's performance.</p>
+      <div class="ap-dash-hero-logo">
+        <img src="{% static 'logoo.png' %}" alt="Lumivis" class="ap-dash-logo-img" />
+        <span class="ap-dash-logo-label">Admin Console</span>
+      </div>
     </div>
 
     <!-- Stats -->
     <div class="ap-stats">
       <div class="ap-stat c-green">
         <div class="ap-stat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
-        <div class="ap-stat-val">${{ stats.revenue }}</div>
+        <div class="ap-stat-val">₹{{ stats.revenue }}</div>
         <div class="ap-stat-label">Total Revenue</div>
       </div>
       <div class="ap-stat c-sky">
@@ -465,7 +554,7 @@ body { background: #f1f5f9; }
                 <td class="ap-mono">#{{ o.transaction_id }}</td>
                 <td>{{ o.product.name|truncatechars:20 }}</td>
                 <td style="color:#64748b;">{{ o.user.username|default:"Guest" }}</td>
-                <td><strong>${{ o.total_price }}</strong></td>
+                <td><strong>₹{{ o.total_price }}</strong></td>
                 <td><span class="sb {{ o.status }}">{{ o.get_status_display }}</span></td>
               </tr>
               {% empty %}
@@ -537,7 +626,7 @@ body { background: #f1f5f9; }
               </div>
             </td>
             <td style="text-align:center;">{{ o.quantity }}</td>
-            <td><strong>${{ o.total_price }}</strong></td>
+            <td><strong>₹{{ o.total_price }}</strong></td>
             <td><span class="sb {{ o.status }}">{{ o.get_status_display }}</span></td>
             <td>
               <form method="POST" action="?s=orders{% if status_filter %}&status={{ status_filter }}{% endif %}" class="status-form">
@@ -595,7 +684,7 @@ body { background: #f1f5f9; }
             <td class="ap-mono" style="color:#64748b;">{{ p.product_id }}</td>
             <td>{{ p.product_type }}</td>
             <td>{{ p.product_size }}</td>
-            <td><strong>${{ p.price }}</strong></td>
+            <td><strong>₹{{ p.price }}</strong></td>
             <td style="white-space:nowrap;">
               <a href="?s=edit_product&pk={{ p.pk }}" style="color:#6366f1;font-size:0.8rem;font-weight:600;margin-right:12px;text-decoration:none;">Edit</a>
               <a href="{% url 'product_detail' p.pk %}" style="color:#64748b;font-size:0.8rem;text-decoration:none;margin-right:12px;">View</a>

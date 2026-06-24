@@ -1,6 +1,6 @@
 {% extends 'products/base.html' %}
 
-{% block title %}Checkout — Lumivis{% endblock %}
+{% block title %}Checkout — Lumivis Pvt. Ltd.{% endblock %}
 
 {% block content %}
 <main class="main">
@@ -8,71 +8,505 @@
 
   <div class="checkout-layout">
 
-    <!-- Shipping form -->
-    <form method="POST" class="checkout-form">
+    <!-- ── Shipping + Payment form ── -->
+    <form method="POST" class="checkout-form" id="checkoutForm" novalidate>
       {% csrf_token %}
 
+      <!-- Shipping Details -->
       <div class="form-section">
         <h2 class="form-section-title">Shipping Details</h2>
         <div class="form-grid">
+
           <div class="field">
             <label for="full_name">Full Name</label>
-            <input type="text" id="full_name" name="full_name" placeholder="Jane Doe" required />
+            <input type="text" id="full_name" name="full_name"
+              placeholder="Jane Doe"
+              value="{{ form_data.full_name|default:'' }}" required />
           </div>
+
           <div class="field">
             <label for="email">Email</label>
-            <input type="email" id="email" name="email" placeholder="jane@example.com"
-              value="{% if user.is_authenticated %}{{ user.email }}{% endif %}" required />
+            <input type="email" id="email" name="email"
+              placeholder="jane@example.com"
+              value="{{ form_data.email|default:user.email }}" required />
           </div>
+
+          <!-- Phone locked to +91 prefix -->
           <div class="field">
-            <label for="phone">Phone</label>
-            <input type="tel" id="phone" name="phone" placeholder="+1 555 000 0000" required />
+            <label for="phone_input">Phone Number</label>
+            <input type="tel" id="phone_input" name="phone_input"
+              autocomplete="tel"
+              maxlength="13"
+              placeholder="+91 9876543210"
+              value="{{ form_data.phone_input|default:'+91' }}"
+              required />
+            <p class="co-hint" id="phoneHint">Enter +91 followed by 10 digits</p>
           </div>
+
           <div class="field field-full">
             <label for="address">Address</label>
-            <input type="text" id="address" name="address" placeholder="123 Main St, Apt 4B" required />
+            <input type="text" id="address" name="address"
+              placeholder="House No., Street, Area"
+              value="{{ form_data.address|default:'' }}" required />
           </div>
+
           <div class="field">
             <label for="city">City</label>
-            <input type="text" id="city" name="city" placeholder="New York" required />
+            <input type="text" id="city" name="city"
+              placeholder="Hyderabad"
+              value="{{ form_data.city|default:'' }}" required />
           </div>
+
           <div class="field">
-            <label for="pincode">PIN / ZIP</label>
-            <input type="text" id="pincode" name="pincode" placeholder="10001" required />
+            <label for="pincode">PIN Code</label>
+            <input type="text" id="pincode" name="pincode"
+              placeholder="500001" maxlength="6"
+              value="{{ form_data.pincode|default:'' }}" required />
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Payment Method — Online only -->
+      <div class="form-section">
+        <h2 class="form-section-title">Payment Method</h2>
+
+        <div class="co-pay-card">
+
+          <!-- Header row -->
+          <div class="co-pay-hd">
+            <div class="co-pay-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="1" y="4" width="22" height="16" rx="2"/>
+                <line x1="1" y1="10" x2="23" y2="10"/>
+              </svg>
+            </div>
+            <div>
+              <div class="co-pay-title">Online Payment</div>
+              <div class="co-pay-sub">100% Secure &nbsp;·&nbsp; UPI &nbsp;·&nbsp; Card &nbsp;·&nbsp; Net Banking</div>
+            </div>
+            <span class="co-pay-badge">&#10003; Active</span>
+          </div>
+
+          <!-- Method tabs -->
+          <div class="co-pay-tabs">
+            <button type="button" class="co-tab co-tab-on" data-panel="upi-panel" onclick="switchTab(this)">
+              UPI
+            </button>
+            <button type="button" class="co-tab" data-panel="card-panel" onclick="switchTab(this)">
+              Debit / Credit Card
+            </button>
+            <button type="button" class="co-tab" data-panel="nb-panel" onclick="switchTab(this)">
+              Net Banking
+            </button>
+          </div>
+
+          <!-- UPI panel (default) -->
+          <div class="co-pay-panel" id="upi-panel">
+            <label class="co-pay-label">UPI ID</label>
+            <input type="text" class="co-pay-input" placeholder="yourname@upi" />
+            <p style="font-size:.72rem;color:#64748b;margin-top:6px;">e.g. name@okaxis &nbsp;·&nbsp; name@ybl &nbsp;·&nbsp; name@paytm</p>
+          </div>
+
+          <!-- Card panel -->
+          <div class="co-pay-panel" id="card-panel" style="display:none;">
+            <div class="form-grid">
+              <div class="field field-full" style="margin-bottom:14px;">
+                <label class="co-pay-label">Card Number</label>
+                <input type="text" class="co-pay-input" placeholder="1234  5678  9012  3456" maxlength="19" />
+              </div>
+              <div class="field" style="margin-bottom:0;">
+                <label class="co-pay-label">Expiry</label>
+                <input type="text" class="co-pay-input" placeholder="MM / YY" maxlength="7" />
+              </div>
+              <div class="field" style="margin-bottom:0;">
+                <label class="co-pay-label">CVV</label>
+                <input type="text" class="co-pay-input" placeholder="•••" maxlength="4" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Net Banking panel -->
+          <div class="co-pay-panel" id="nb-panel" style="display:none;">
+            <label class="co-pay-label">Select Bank</label>
+            <select class="co-pay-input">
+              <option value="">-- Choose your bank --</option>
+              <option>SBI</option>
+              <option>HDFC Bank</option>
+              <option>ICICI Bank</option>
+              <option>Axis Bank</option>
+              <option>Kotak Mahindra Bank</option>
+              <option>Punjab National Bank</option>
+              <option>Bank of Baroda</option>
+              <option>Canara Bank</option>
+            </select>
+          </div>
+
+          <input type="hidden" name="payment_method" value="online" />
+        </div>
+      </div>
+
+      <!-- Urgent Delivery -->
+      <div class="form-section">
+        <div class="ud-toggle-row">
+          <div class="ud-toggle-info">
+            <div class="ud-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+              </svg>
+            </div>
+            <div>
+              <div class="ud-title">Urgent Delivery</div>
+              <div class="ud-sub">Choose your delivery date — extra charge applies</div>
+            </div>
+          </div>
+          <label class="ud-switch">
+            <input type="checkbox" id="urgentToggle" onchange="toggleUrgent(this)">
+            <span class="ud-slider"></span>
+          </label>
+        </div>
+
+        <div class="ud-panel" id="udPanel" style="display:none;">
+          <div class="ud-date-row">
+            <div class="field" style="margin-bottom:0;flex:1;">
+              <label for="delivery_date">Preferred Delivery Date</label>
+              <input type="date" id="delivery_date" name="delivery_date"
+                     class="ud-date-input" onchange="updateUrgentCharge()" />
+            </div>
+            <div class="ud-charge-box" id="urgentChargeBox">
+              <div class="ud-charge-label">Extra Charge</div>
+              <div class="ud-charge-val" id="urgentChargeVal">—</div>
+            </div>
+          </div>
+          <div class="ud-info-row" id="udInfoRow" style="display:none;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span id="udInfoText"></span>
           </div>
         </div>
       </div>
 
-      <div class="form-section">
-        <h2 class="form-section-title">Payment</h2>
-        <div class="payment-placeholder">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>
-          </svg>
-          <span>Cash on Delivery — payment on arrival</span>
-        </div>
-      </div>
+      <input type="hidden" name="urgent_delivery" id="urgentDeliveryHidden" value="no">
+      <input type="hidden" name="urgent_charge"   id="urgentChargeHidden"   value="0">
 
-      <button type="submit" class="btn btn-dark btn-lg" style="width:100%;">Place Order</button>
+      <button type="submit" class="btn btn-dark btn-lg" style="width:100%;">
+        Place Order &nbsp;→
+      </button>
     </form>
 
-    <!-- Order summary -->
+    <!-- ── Order Summary ── -->
     <aside class="cart-summary">
       <h2 class="summary-title">Your Order</h2>
+
       {% for item in items %}
       <div class="summary-item">
-        <span class="summary-item-name">{{ item.product.name }} <em class="text-muted">×{{ item.quantity }}</em></span>
-        <span>${{ item.subtotal }}</span>
+        <span class="summary-item-name">
+          {{ item.product.name }} <em class="text-muted">×{{ item.quantity }}</em>
+        </span>
+        <span>₹{{ item.subtotal }}</span>
       </div>
       {% endfor %}
-      <div class="summary-row" style="margin-top:14px;">
-        <span>Shipping</span><span class="text-muted">Free</span>
+
+      <div class="summary-item" id="urgentChargeRow" style="display:none;">
+        <span class="summary-item-name" style="color:#f59e0b;">
+          ⚡ Urgent Delivery
+        </span>
+        <span id="summaryUrgentCharge" style="color:#f59e0b;">₹0</span>
       </div>
-      <div class="summary-total">
-        <span>Total</span><span>${{ total }}</span>
+
+      <div class="summary-total" style="margin-top:16px;">
+        <span>Total</span>
+        <span id="summaryTotal">₹{{ total }}</span>
       </div>
     </aside>
 
   </div>
 </main>
+
+<!-- ── Checkout-specific styles ── -->
+<style>
+.co-hint { font-size:.72rem; color:#64748b; margin-top:5px; }
+.co-hint.err { color:#f87171; }
+
+/* Payment card */
+.co-pay-card {
+  border: 2px solid #6366f1;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #0f172a;
+}
+.co-pay-hd {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 20px;
+  background: linear-gradient(90deg, rgba(99,102,241,.15), transparent);
+  border-bottom: 1px solid #1e2d3d;
+}
+.co-pay-icon {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  background: rgba(99,102,241,.2);
+  display: flex; align-items: center; justify-content: center;
+  color: #818cf8; flex-shrink: 0;
+}
+.co-pay-title { font-size: .95rem; font-weight: 700; color: #f1f5f9; }
+.co-pay-sub   { font-size: .73rem; color: #64748b; margin-top: 2px; }
+.co-pay-badge {
+  margin-left: auto;
+  background: rgba(52,211,153,.15);
+  color: #34d399;
+  border: 1px solid rgba(52,211,153,.3);
+  border-radius: 20px;
+  padding: 3px 12px;
+  font-size: .72rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* Method tabs */
+.co-pay-tabs {
+  display: flex;
+  gap: 10px;
+  padding: 14px 20px;
+  border-bottom: 1px solid #1e2d3d;
+  flex-wrap: wrap;
+}
+.co-tab {
+  padding: 7px 16px;
+  border: 1.5px solid #253347;
+  border-radius: 8px;
+  background: #111827;
+  color: #94a3b8;
+  font-size: .8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .15s;
+}
+.co-tab:hover    { border-color: #6366f1; color: #818cf8; }
+.co-tab-on       { background: rgba(99,102,241,.12); border-color: #6366f1; color: #818cf8; }
+
+/* Panel + inputs */
+.co-pay-panel  { padding: 16px 20px; }
+.co-pay-label  { display: block; font-size: .8rem; font-weight: 600; color: #94a3b8; margin-bottom: 6px; }
+.co-pay-input  { width: 100%; }
+
+/* Urgent Delivery */
+.ud-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+  background: rgba(245,158,11,.06);
+  border: 1.5px solid rgba(245,158,11,.25);
+  border-radius: 14px;
+}
+.ud-toggle-info { display: flex; align-items: center; gap: 12px; }
+.ud-icon {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  background: rgba(245,158,11,.15);
+  color: #f59e0b;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.ud-title { font-size: .95rem; font-weight: 700; color: #f1f5f9; }
+.ud-sub   { font-size: .72rem; color: #64748b; margin-top: 2px; }
+
+/* Toggle switch */
+.ud-switch { position: relative; display: inline-block; width: 46px; height: 26px; flex-shrink: 0; }
+.ud-switch input { opacity: 0; width: 0; height: 0; }
+.ud-slider {
+  position: absolute; cursor: pointer; inset: 0;
+  background: #253347; border-radius: 26px;
+  transition: background .2s;
+}
+.ud-slider::before {
+  content: ''; position: absolute;
+  width: 18px; height: 18px; left: 4px; bottom: 4px;
+  background: #94a3b8; border-radius: 50%;
+  transition: transform .2s, background .2s;
+}
+.ud-switch input:checked + .ud-slider { background: rgba(245,158,11,.35); }
+.ud-switch input:checked + .ud-slider::before { transform: translateX(20px); background: #f59e0b; }
+
+/* Urgent panel */
+.ud-panel {
+  margin-top: 14px;
+  padding: 16px 20px;
+  background: #0f172a;
+  border: 1px solid #1e2d3d;
+  border-radius: 12px;
+}
+.ud-date-row { display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap; }
+.ud-date-input {
+  width: 100%;
+  background: #111827;
+  border: 1.5px solid #253347;
+  border-radius: 10px;
+  color: #f1f5f9;
+  padding: 10px 14px;
+  font-size: .9rem;
+  color-scheme: dark;
+}
+.ud-date-input:focus { outline: none; border-color: #f59e0b; }
+.ud-charge-box {
+  flex-shrink: 0;
+  min-width: 110px;
+  background: rgba(245,158,11,.1);
+  border: 1.5px solid rgba(245,158,11,.3);
+  border-radius: 10px;
+  padding: 10px 16px;
+  text-align: center;
+}
+.ud-charge-label { font-size: .68rem; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; }
+.ud-charge-val   { font-size: 1.1rem; font-weight: 800; color: #f59e0b; margin-top: 2px; }
+.ud-info-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  font-size: .78rem;
+  color: #94a3b8;
+}
+</style>
+
+<!-- ── Phone + tab JS ── -->
+<script>
+/* --- Tab switcher --- */
+function switchTab(btn) {
+  document.querySelectorAll('.co-tab').forEach(function(b) { b.classList.remove('co-tab-on'); });
+  btn.classList.add('co-tab-on');
+  document.querySelectorAll('.co-pay-panel').forEach(function(p) { p.style.display = 'none'; });
+  var panel = document.getElementById(btn.getAttribute('data-panel'));
+  if (panel) panel.style.display = 'block';
+}
+
+/* --- Phone: always starts with +91 --- */
+var phoneEl   = document.getElementById('phone_input');
+var phoneHint = document.getElementById('phoneHint');
+var PFX       = '+91';
+
+function enforcePhone() {
+  if (!phoneEl.value.startsWith(PFX)) phoneEl.value = PFX;
+  var tail = phoneEl.value.slice(PFX.length).replace(/\D/g, '').slice(0, 10);
+  phoneEl.value = PFX + tail;
+  if (tail.length === 0) {
+    phoneHint.textContent = 'Enter +91 followed by 10 digits';
+    phoneHint.className = 'co-hint';
+  } else if (/^[6-9][0-9]{9}$/.test(tail)) {
+    phoneHint.textContent = '✓ Valid number';
+    phoneHint.className = 'co-hint';
+    phoneHint.style.color = '#34d399';
+  } else {
+    phoneHint.textContent = 'Must be 10 digits, starting 6–9';
+    phoneHint.className = 'co-hint err';
+    phoneHint.style.color = '';
+  }
+}
+
+if (phoneEl) {
+  phoneEl.addEventListener('input', enforcePhone);
+  phoneEl.addEventListener('keydown', function(e) {
+    if ((e.key === 'Backspace' || e.key === 'Delete') && this.selectionStart <= PFX.length) {
+      e.preventDefault();
+    }
+  });
+  phoneEl.addEventListener('click', function() {
+    if (this.selectionStart < PFX.length) this.setSelectionRange(PFX.length, PFX.length);
+  });
+  enforcePhone();
+}
+
+/* --- Form submit: inject hidden phone field --- */
+document.getElementById('checkoutForm').addEventListener('submit', function(e) {
+  var tail = phoneEl ? phoneEl.value.slice(PFX.length).replace(/\D/g, '') : '';
+  if (!/^[6-9][0-9]{9}$/.test(tail)) {
+    e.preventDefault();
+    phoneHint.textContent = '✗ Valid Indian mobile number required (+91 + 10 digits)';
+    phoneHint.className = 'co-hint err';
+    phoneHint.style.color = '';
+    phoneEl.focus();
+    return;
+  }
+  var h = document.createElement('input');
+  h.type = 'hidden'; h.name = 'phone'; h.value = PFX + tail;
+  this.appendChild(h);
+
+  /* Urgent delivery validation */
+  var toggle = document.getElementById('urgentToggle');
+  if (toggle && toggle.checked) {
+    var dv = document.getElementById('delivery_date').value;
+    if (!dv) {
+      e.preventDefault();
+      alert('Please select a delivery date for Urgent Delivery.');
+      return;
+    }
+    document.getElementById('urgentDeliveryHidden').value = 'yes';
+  }
+});
+
+/* --- Urgent delivery toggle --- */
+function toggleUrgent(cb) {
+  var panel = document.getElementById('udPanel');
+  if (!panel) return;
+  panel.style.display = cb.checked ? 'block' : 'none';
+  if (!cb.checked) {
+    document.getElementById('urgentDeliveryHidden').value = 'no';
+    document.getElementById('urgentChargeHidden').value   = '0';
+    document.getElementById('urgentChargeRow').style.display = 'none';
+    updateSummaryTotal(0);
+  } else {
+    /* Set min = tomorrow, max = 14 days */
+    var inp = document.getElementById('delivery_date');
+    var tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
+    var maxDay   = new Date(); maxDay.setDate(maxDay.getDate() + 14);
+    inp.min = tomorrow.toISOString().split('T')[0];
+    inp.max = maxDay.toISOString().split('T')[0];
+    inp.value = '';
+    document.getElementById('urgentChargeVal').textContent = '—';
+    document.getElementById('udInfoRow').style.display = 'none';
+  }
+}
+
+function updateUrgentCharge() {
+  var dv = document.getElementById('delivery_date').value;
+  if (!dv) return;
+  var today    = new Date(); today.setHours(0,0,0,0);
+  var selected = new Date(dv);
+  var diff     = Math.round((selected - today) / 86400000); /* days */
+
+  var charge = 0, label = '';
+  if (diff <= 1)      { charge = 199; label = 'Next-day delivery — ₹199 extra'; }
+  else if (diff <= 2) { charge = 149; label = '2-day delivery — ₹149 extra'; }
+  else if (diff <= 3) { charge = 99;  label = '3-day delivery — ₹99 extra'; }
+  else if (diff <= 7) { charge = 49;  label = diff + '-day delivery — ₹49 extra'; }
+  else                { charge = 0;   label = 'Standard window — no extra charge'; }
+
+  document.getElementById('urgentChargeVal').textContent = charge > 0 ? '₹' + charge : 'Free';
+  document.getElementById('urgentChargeHidden').value    = charge;
+
+  var infoRow = document.getElementById('udInfoRow');
+  document.getElementById('udInfoText').textContent = label;
+  infoRow.style.display = 'flex';
+
+  /* Update summary sidebar */
+  var row = document.getElementById('urgentChargeRow');
+  if (charge > 0) {
+    row.style.display = 'flex';
+    document.getElementById('summaryUrgentCharge').textContent = '₹' + charge;
+  } else {
+    row.style.display = 'none';
+  }
+  updateSummaryTotal(charge);
+}
+
+function updateSummaryTotal(urgentCharge) {
+  var base = parseFloat('{{ total }}') || 0;
+  document.getElementById('summaryTotal').textContent = '₹' + (base + urgentCharge).toFixed(2);
+}
+</script>
 {% endblock %}

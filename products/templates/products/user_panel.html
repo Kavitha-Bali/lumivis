@@ -1,5 +1,5 @@
 {% extends 'products/base.html' %}
-{% block title %}My Account — Lumivis{% endblock %}
+{% block title %}My Account — Lumivis Pvt. Ltd.{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -215,7 +215,7 @@ body { background: #f1f5f9; }
       <div class="up-stat-label">Orders</div>
     </div>
     <div class="up-stat">
-      <div class="up-stat-val">${{ total_spent }}</div>
+      <div class="up-stat-val">₹{{ total_spent }}</div>
       <div class="up-stat-label">Total Spent</div>
     </div>
     <div class="up-stat">
@@ -270,7 +270,7 @@ body { background: #f1f5f9; }
           </td>
           <td style="color:#64748b;white-space:nowrap;font-size:0.8rem;">{{ o.transaction_date|date:"d M Y" }}</td>
           <td style="text-align:center;">{{ o.quantity }}</td>
-          <td><strong>${{ o.total_price }}</strong></td>
+          <td><strong>₹{{ o.total_price }}</strong></td>
           <td>
             <span class="sb {{ o.status }}">{{ o.get_status_display }}</span>
           </td>
@@ -317,7 +317,7 @@ body { background: #f1f5f9; }
       </a>
       <div class="up-wl-body">
         <a href="{% url 'product_detail' item.product.pk %}" class="up-wl-name">{{ item.product.name }}</a>
-        <div class="up-wl-price">${{ item.product.price }}</div>
+        <div class="up-wl-price">₹{{ item.product.price }}</div>
         <div class="up-wl-meta">{{ item.product.product_type }} · {{ item.product.product_size }}</div>
         <div class="up-wl-meta">Saved {{ item.added_at|date:"d M Y" }}</div>
         <div class="up-wl-btns">

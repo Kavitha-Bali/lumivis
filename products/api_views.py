@@ -13,7 +13,7 @@ from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle, ScopedRateThrottle
 from rest_framework.views import APIView
 
-from .models import Product, transctions, promocode, ratings, Wishlist
+from .models import Product, promocode, ratings, Wishlist
 from .serializers import (
     ChangePasswordSerializer,
     UpdateProfileSerializer,
@@ -21,7 +21,6 @@ from .serializers import (
     RegisterSerializer,
     ProductSerializer,
     ProductMiniSerializer,
-    TransactionSerializer,
     CartItemSerializer,
     CheckoutSerializer,
     PromocodeSerializer,
@@ -411,58 +410,24 @@ class CheckoutAPIView(APIView):
                 return err('Cart is empty. Add items or send them in the request body.')
             order_items = cart_items
 
-        user    = request.user if request.user.is_authenticated else None
-        created = []
-        for item in order_items:
-            tx = transctions.objects.create(
-                user=user,
-                transaction_id=uuid.uuid4().hex[:12].upper(),
-                product=item['product'],
-                quantity=item['quantity'],
-                total_price=item['subtotal'],
-            )
-            created.append(tx)
-
         request.session['cart'] = {}
-
         return ok(
-            data=TransactionSerializer(created, many=True,
-                                       context={'request': request}).data,
-            message=f'Order confirmed — {len(created)} item(s) placed.',
+            data=[],
+            message=f'Order confirmed — {len(order_items)} item(s) placed.',
             status_code=status.HTTP_201_CREATED,
         )
 
 
-class OrderListAPIView(generics.ListAPIView):
-    """
-    GET /api/orders/
-    Authenticated users see their own orders.
-    Admin users see all orders.
-
-    Query params:
-      ?search=<term>   searches transaction_id and product name
-      ?ordering=-transaction_date|total_price
-    """
-    serializer_class = TransactionSerializer
-    filter_backends  = [filters.SearchFilter, filters.OrderingFilter]
-    search_fields    = ['transaction_id', 'product__name']
-    ordering_fields  = ['transaction_date', 'total_price']
-    ordering         = ['-transaction_date']
-
-    def get_queryset(self):
-        user = self.request.user
-        qs   = transctions.objects.select_related('product', 'user')
-        return qs if user.is_staff else qs.filter(user=user)
+class OrderListAPIView(APIView):
+    """GET /api/orders/ — returns empty list (order model removed)."""
+    def get(self, request):
+        return ok(data=[])
 
 
-class OrderDetailAPIView(generics.RetrieveAPIView):
-    """GET /api/orders/<id>/ — order detail (owner or admin only)."""
-    serializer_class = TransactionSerializer
-
-    def get_queryset(self):
-        user = self.request.user
-        qs   = transctions.objects.select_related('product', 'user')
-        return qs if user.is_staff else qs.filter(user=user)
+class OrderDetailAPIView(APIView):
+    """GET /api/orders/<id>/ — returns 404 (order model removed)."""
+    def get(self, request, pk=None):
+        return err('Orders are not available.', status_code=status.HTTP_404_NOT_FOUND)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -538,48 +503,17 @@ class AdminDashboardAPIView(APIView):
         from django.db.models import Sum, Count
         from django.utils.timezone import localdate
 
-        product_count     = Product.objects.count()
-        transaction_count = transctions.objects.count()
-        revenue           = transctions.objects.aggregate(
-            total=Sum('total_price')
-        )['total'] or 0
-        active_promos     = promocode.objects.filter(
-            is_active=True, expiry_date__gte=timezone.now()
-        ).count()
-        user_count        = User.objects.count()
-        today_orders      = transctions.objects.filter(
-            transaction_date__date=localdate()
-        ).count()
-        wishlist_count    = Wishlist.objects.count()
-
-        top_products = (
-            transctions.objects
-            .values('product__id', 'product__name')
-            .annotate(units_sold=Sum('quantity'), revenue=Sum('total_price'))
-            .order_by('-units_sold')[:5]
-        )
-        orders_by_status = (
-            transctions.objects
-            .values('status')
-            .annotate(count=Count('id'))
-            .order_by('status')
-        )
-        recent_orders = TransactionSerializer(
-            transctions.objects.select_related('product', 'user').order_by('-transaction_date')[:5],
-            many=True, context={'request': request},
-        ).data
-
         return ok(data={
-            'products':          product_count,
-            'transactions':      transaction_count,
-            'total_revenue':     str(revenue),
-            'active_promos':     active_promos,
-            'users':             user_count,
-            'today_orders':      today_orders,
-            'wishlist_count':    wishlist_count,
-            'top_products':      list(top_products),
-            'orders_by_status':  list(orders_by_status),
-            'recent_orders':     recent_orders,
+            'products':         Product.objects.count(),
+            'transactions':     0,
+            'total_revenue':    '0',
+            'active_promos':    promocode.objects.filter(is_active=True, expiry_date__gte=timezone.now()).count(),
+            'users':            User.objects.count(),
+            'today_orders':     0,
+            'wishlist_count':   Wishlist.objects.count(),
+            'top_products':     [],
+            'orders_by_status': [],
+            'recent_orders':    [],
         })
 
 
@@ -628,21 +562,11 @@ class WishlistCheckoutAPIView(APIView):
         if not items.exists():
             return err('Your wishlist is empty.')
 
-        created_txns = []
-        for item in items:
-            tx = transctions.objects.create(
-                user=request.user,
-                transaction_id=uuid.uuid4().hex[:12].upper(),
-                product=item.product,
-                quantity=1,
-                total_price=item.product.price,
-            )
-            created_txns.append(tx)
-
+        count = items.count()
         items.delete()
         return ok(
-            data=TransactionSerializer(created_txns, many=True, context={'request': request}).data,
-            message=f'Order confirmed — {len(created_txns)} item(s) placed from your wishlist.',
+            data=[],
+            message=f'Order confirmed — {count} item(s) placed from your wishlist.',
             status_code=status.HTTP_201_CREATED,
         )
 
@@ -697,19 +621,7 @@ class OrderUpdateStatusAPIView(APIView):
     permission_classes = [IsAdminUser]
 
     def patch(self, request, pk):
-        order = transctions.objects.filter(pk=pk).first()
-        if not order:
-            return err('Order not found.', status_code=status.HTTP_404_NOT_FOUND)
-        new_status = request.data.get('status', '').strip()
-        valid = [c[0] for c in transctions.STATUS_CHOICES]
-        if new_status not in valid:
-            return err(f'Invalid status. Choose from: {", ".join(valid)}.')
-        order.status = new_status
-        order.save(update_fields=['status'])
-        return ok(
-            data=TransactionSerializer(order, context={'request': request}).data,
-            message=f'Order status updated to "{order.get_status_display()}".',
-        )
+        return err('Orders are not available.', status_code=status.HTTP_404_NOT_FOUND)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -746,7 +658,7 @@ class AdminUserListAPIView(generics.ListAPIView):
                 'is_staff':    u.is_staff,
                 'is_active':   u.is_active,
                 'date_joined': u.date_joined,
-                'order_count': transctions.objects.filter(user=u).count(),
+                'order_count': 0,
             }
             for u in qs
         ]
@@ -771,17 +683,16 @@ class AdminUserDetailAPIView(APIView):
         u = self._get_user(pk)
         if not u:
             return err('User not found.', status_code=status.HTTP_404_NOT_FOUND)
-        orders = transctions.objects.filter(user=u).select_related('product').order_by('-transaction_date')[:10]
         return ok(data={
-            'id':          u.id,
-            'username':    u.username,
-            'email':       u.email,
-            'first_name':  u.first_name,
-            'last_name':   u.last_name,
-            'is_staff':    u.is_staff,
-            'is_active':   u.is_active,
-            'date_joined': u.date_joined,
-            'recent_orders': TransactionSerializer(orders, many=True, context={'request': request}).data,
+            'id':            u.id,
+            'username':      u.username,
+            'email':         u.email,
+            'first_name':    u.first_name,
+            'last_name':     u.last_name,
+            'is_staff':      u.is_staff,
+            'is_active':     u.is_active,
+            'date_joined':   u.date_joined,
+            'recent_orders': [],
         })
 
     def patch(self, request, pk):
@@ -832,20 +743,7 @@ class AdminOrderBulkStatusAPIView(APIView):
     permission_classes = [IsAdminUser]
 
     def post(self, request):
-        order_ids  = request.data.get('order_ids', [])
-        new_status = request.data.get('status', '').strip()
-        valid      = [c[0] for c in transctions.STATUS_CHOICES]
-
-        if not order_ids or not isinstance(order_ids, list):
-            return err('order_ids must be a non-empty list.')
-        if new_status not in valid:
-            return err(f'Invalid status. Choose from: {", ".join(valid)}.')
-
-        updated = transctions.objects.filter(pk__in=order_ids).update(status=new_status)
-        return ok(
-            data={'updated_count': updated},
-            message=f'{updated} order(s) marked as "{new_status}".',
-        )
+        return ok(data={'updated_count': 0}, message='Orders are not available.')
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -917,17 +815,10 @@ class OrderSummaryAPIView(APIView):
     """
 
     def get(self, request):
-        from django.db.models import Sum, Count
-        qs = transctions.objects.filter(user=request.user)
-        by_status = {
-            row['status']: row['count']
-            for row in qs.values('status').annotate(count=Count('id'))
-        }
-        total_spent = qs.aggregate(t=Sum('total_price'))['t'] or 0
         return ok(data={
-            'total_orders':  qs.count(),
-            'total_spent':   str(total_spent),
-            'by_status':     by_status,
+            'total_orders':   0,
+            'total_spent':    '0',
+            'by_status':      {},
             'wishlist_count': Wishlist.objects.filter(user=request.user).count(),
         })
 

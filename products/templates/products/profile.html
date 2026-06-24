@@ -1,6 +1,6 @@
 {% extends 'products/base.html' %}
 
-{% block title %}My Profile — Lumivis{% endblock %}
+{% block title %}My Profile — Lumivis Pvt. Ltd.{% endblock %}
 
 {% block content %}
 <main class="main">
@@ -25,7 +25,7 @@
       <span class="pstat-label">Orders</span>
     </div>
     <div class="pstat-card">
-      <span class="pstat-value">${{ total_spent }}</span>
+      <span class="pstat-value">₹{{ total_spent }}</span>
       <span class="pstat-label">Total Spent</span>
     </div>
     <div class="pstat-card">
@@ -64,7 +64,7 @@
               </div>
             </td>
             <td>{{ order.quantity }}</td>
-            <td><strong>${{ order.total_price }}</strong></td>
+            <td><strong>₹{{ order.total_price }}</strong></td>
             <td class="text-muted">{{ order.transaction_date|date:"d M Y" }}</td>
             <td><span class="status-badge status-{{ order.status }}">{{ order.get_status_display }}</span></td>
           </tr>

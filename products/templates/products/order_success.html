@@ -1,23 +1,248 @@
 {% extends 'products/base.html' %}
 
-{% block title %}Order Placed — Lumivis{% endblock %}
+{% block title %}Order Placed — Lumivis Pvt. Ltd.{% endblock %}
 
 {% block content %}
 <main class="main">
-  <div class="success-card">
+  <div class="success-card" style="max-width:560px;">
+
+    <!-- Animated check -->
     <div class="success-icon">
-      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+           stroke-linecap="round" stroke-linejoin="round">
         <polyline points="20 6 9 17 4 12"/>
       </svg>
     </div>
+
     <h1 class="success-title">Order Placed!</h1>
-    <p class="success-msg">Thank you for shopping with Lumivis. Your order has been received and will be processed shortly.</p>
-    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+    <p class="success-msg">
+      Thank you for shopping with Lumivis Pvt. Ltd. Your order has been received and will be processed shortly.
+    </p>
+
+    <!-- Order ID box -->
+    <div class="order-id-box">
+      <span class="oid-label">Order ID</span>
+      <span class="oid-value" id="orderIdVal">{{ order_id }}</span>
+      <button class="oid-copy" onclick="copyOrderId()" title="Copy order ID">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round">
+          <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+        </svg>
+        <span id="copyLabel">Copy</span>
+      </button>
+    </div>
+
+    {% if order_customer %}
+    <div class="order-details-row">
+      <span class="od-label">Customer</span>
+      <span class="od-val">{{ order_customer }}</span>
+    </div>
+    {% endif %}
+    {% if order_phone %}
+    <div class="order-details-row">
+      <span class="od-label">Phone</span>
+      <span class="od-val">{{ order_phone }}</span>
+    </div>
+    {% endif %}
+    {% if order_urgent %}
+    <div class="order-details-row">
+      <span class="od-label">Delivery Type</span>
+      <span class="od-val" style="color:#f59e0b;">
+        ⚡ Urgent Delivery
+      </span>
+    </div>
+    {% if order_delivery_date %}
+    <div class="order-details-row">
+      <span class="od-label">Delivery Date</span>
+      <span class="od-val" style="color:#f59e0b;">{{ order_delivery_date }}</span>
+    </div>
+    {% endif %}
+    {% if order_urgent_charge and order_urgent_charge != '0' %}
+    <div class="order-details-row">
+      <span class="od-label">Urgent Charge</span>
+      <span class="od-val" style="color:#f59e0b;">₹{{ order_urgent_charge }}</span>
+    </div>
+    {% endif %}
+    {% else %}
+    <div class="order-details-row">
+      <span class="od-label">Delivery Type</span>
+      <span class="od-val">Standard Delivery</span>
+    </div>
+    {% endif %}
+    <div class="order-details-row">
+      <span class="od-label">Total Paid</span>
+      <span class="od-val" style="color:#34d399;font-weight:800;">₹{{ order_total }}</span>
+    </div>
+
+    <!-- WhatsApp notice -->
+    <div class="wa-notice">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="#25d366">
+        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/>
+      </svg>
+      Opening WhatsApp to confirm your order…
+    </div>
+
+    <div class="wa-manual" id="waManual" style="display:none;">
+      <a href="#" id="waLink" class="btn-wa" target="_blank" rel="noopener">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
+          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/>
+        </svg>
+        Open WhatsApp
+      </a>
+    </div>
+
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:10px;">
       {% if user.is_authenticated %}
         <a href="{% url 'profile' %}" class="btn btn-ghost btn-lg">View My Orders</a>
       {% endif %}
       <a href="{% url 'home' %}" class="btn btn-dark btn-lg">Continue Shopping</a>
     </div>
+
   </div>
 </main>
+
+<style>
+.order-id-box {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  background:#0f172a;
+  border:1.5px solid #6366f1;
+  border-radius:12px;
+  padding:14px 18px;
+  margin:20px 0 14px;
+}
+.oid-label {
+  font-size:.72rem;
+  font-weight:700;
+  color:#64748b;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+  flex-shrink:0;
+}
+.oid-value {
+  font-size:1.15rem;
+  font-weight:900;
+  color:#818cf8;
+  letter-spacing:.06em;
+  flex:1;
+  text-align:center;
+}
+.oid-copy {
+  display:flex;
+  align-items:center;
+  gap:5px;
+  background:rgba(99,102,241,.12);
+  border:1px solid rgba(99,102,241,.3);
+  color:#818cf8;
+  border-radius:7px;
+  padding:5px 10px;
+  font-size:.75rem;
+  font-weight:600;
+  cursor:pointer;
+  flex-shrink:0;
+  transition:background .15s;
+}
+.oid-copy:hover { background:rgba(99,102,241,.25); }
+
+.order-details-row {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:8px 0;
+  border-bottom:1px solid #1e2d3d;
+  font-size:.88rem;
+}
+.od-label { color:#64748b; }
+.od-val   { color:#e2e8f0; font-weight:600; }
+
+.wa-notice {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  background:rgba(37,211,102,.08);
+  border:1px solid rgba(37,211,102,.25);
+  border-radius:10px;
+  padding:12px 16px;
+  margin-top:20px;
+  font-size:.85rem;
+  color:#4ade80;
+  font-weight:600;
+}
+.btn-wa {
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  background:#25d366;
+  color:#fff;
+  padding:11px 22px;
+  border-radius:10px;
+  font-weight:700;
+  font-size:.9rem;
+  text-decoration:none;
+  transition:background .15s;
+}
+.btn-wa:hover { background:#1fba57; }
+.wa-manual {
+  text-align:center;
+  margin-top:12px;
+}
+</style>
+
+<script>
+(function () {
+  var orderId    = "{{ order_id }}";
+  var customer   = "{{ order_customer|escapejs }}";
+  var phone      = "{{ order_phone|escapejs }}";
+  var total      = "{{ order_total }}";
+  var itemsRaw   = "{{ order_items|escapejs }}";
+
+  var isUrgent       = "{{ order_urgent|yesno:'true,false' }}" === "true";
+  var deliveryDate   = "{{ order_delivery_date|escapejs }}";
+  var urgentCharge   = "{{ order_urgent_charge|escapejs }}";
+
+  var deliveryLine = isUrgent
+    ? "Delivery  : ⚡ URGENT — " + (deliveryDate || "ASAP") + " (Extra ₹" + urgentCharge + ")\n"
+    : "Delivery  : Standard\n";
+
+  var msg =
+    "Hello Lumivis Pvt. Ltd. Team! 🛒\n\n" +
+    "I just placed an order.\n\n" +
+    "Order ID : " + orderId + "\n" +
+    "Customer : " + (customer || "—") + "\n" +
+    "Phone    : " + (phone || "—") + "\n" +
+    deliveryLine +
+    "Total    : ₹" + total + "\n\n" +
+    "Items:\n" + itemsRaw + "\n\n" +
+    "Please confirm my order. Thank you!";
+
+  var waUrl = "https://wa.me/919052337409?text=" + encodeURIComponent(msg);
+
+  /* Set manual fallback link */
+  var waLink = document.getElementById('waLink');
+  if (waLink) waLink.href = waUrl;
+
+  /* Auto-open after 1.5 s */
+  setTimeout(function () {
+    var opened = window.open(waUrl, '_blank');
+    /* If popup was blocked, show the manual button */
+    if (!opened || opened.closed || typeof opened.closed === 'undefined') {
+      document.querySelector('.wa-notice').style.display  = 'none';
+      document.getElementById('waManual').style.display   = 'block';
+    } else {
+      document.querySelector('.wa-notice').style.display  = 'none';
+      document.getElementById('waManual').style.display   = 'block';
+    }
+  }, 1500);
+
+  /* Copy order ID */
+  window.copyOrderId = function () {
+    navigator.clipboard.writeText(orderId).then(function () {
+      var lbl = document.getElementById('copyLabel');
+      lbl.textContent = 'Copied!';
+      setTimeout(function(){ lbl.textContent = 'Copy'; }, 2000);
+    }).catch(function () {});
+  };
+}());
+</script>
 {% endblock %}

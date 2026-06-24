@@ -4,8 +4,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>{% block title %}Lumivis{% endblock %}</title>
-  <link rel="stylesheet" href="{% static 'products/css/style.css' %}" />
+  <link rel="icon" type="image/png" href="{% static 'Samanyastra.png' %}"/>
+  <title>{% block title %}Lumivis Pvt. Ltd.{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Sora:wght@700;800;900&family=Cinzel+Decorative:wght@400;700;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="{% static 'products/css/style.css' %}?v=3" />
   {% block extra_css %}{% endblock %}
 </head>
 <body>
@@ -18,13 +22,15 @@
       <span></span><span></span><span></span>
     </button>
 
-    <a href="{% url 'home' %}" class="logo">Lumi<em>vis</em></a>
+    <a href="{% url 'home' %}" class="nav-brand">
+      <img src="{% static 'Samanyastra.png' %}" alt="Samanyastra" class="nav-brand-logo" />
+    </a>
 
     <ul class="nav-links" role="list">
       <li><a href="{% url 'home' %}">Home</a></li>
-      <li><a href="{% url 'home' %}">Products</a></li>
-      <li><a href="#">About</a></li>
-      <li><a href="#">Contact</a></li>
+      <li><a href="{% url 'products' %}">Products</a></li>
+      <li><a href="{% url 'about' %}">About</a></li>
+      <li><a href="{% url 'contact' %}">Contact</a></li>
     </ul>
 
     <div class="search-wrap">
@@ -88,9 +94,9 @@
     </form>
   </div>
   <a href="{% url 'home' %}">Home</a>
-  <a href="{% url 'home' %}">Products</a>
-  <a href="#">About</a>
-  <a href="#">Contact</a>
+  <a href="{% url 'products' %}">Products</a>
+  <a href="{% url 'about' %}">About</a>
+  <a href="{% url 'contact' %}">Contact</a>
   <div class="drawer-divider"></div>
   {% if user.is_authenticated %}
     <a href="{% url 'user_panel' %}">My Account</a>
@@ -120,18 +126,196 @@
 
 <!-- ═══ FOOTER ═══ -->
 <footer class="footer">
-  <div class="footer-inner">
-    <span class="logo" style="font-size:1.1rem;">Lumi<em>vis</em></span>
-    <p class="footer-copy">&copy; 2026 Lumivis. All rights reserved.</p>
-    <div class="footer-links">
-      <a href="#">Privacy</a>
-      <a href="#">Terms</a>
-      <a href="#">Contact</a>
+  <div class="footer-top">
+
+    <!-- Brand column -->
+    <div class="footer-col footer-brand">
+      <a href="{% url 'home' %}" class="footer-brand-link">
+        <img src="{% static 'Samanyastra.png' %}" alt="Samanyastra" class="footer-brand-logo" />
+      </a>
+      <p class="footer-desc">
+        Lumivis Pvt. Ltd. is your destination for premium curated products — fashion, electronics, home décor, and more. Timeless quality, honest prices, delivered to your door.
+      </p>
+      <div class="footer-social">
+        <a href="#" class="social-btn" aria-label="Instagram">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+        </a>
+        <a href="#" class="social-btn" aria-label="Facebook">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+        </a>
+        <a href="#" class="social-btn" aria-label="Twitter / X">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4l16 16M4 20L20 4"/></svg>
+        </a>
+        <a href="#" class="social-btn" aria-label="YouTube">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46A2.78 2.78 0 0 0 1.46 6.42 29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.95 1.96C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.96A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02"/></svg>
+        </a>
+        <a href="#" class="social-btn" aria-label="Pinterest">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C6.48 2 2 6.48 2 12c0 4.24 2.65 7.86 6.39 9.29-.09-.78-.17-1.98.03-2.83.19-.77 1.27-5.37 1.27-5.37s-.32-.65-.32-1.61c0-1.51.88-2.64 1.97-2.64.93 0 1.38.7 1.38 1.54 0 .94-.6 2.34-.91 3.64-.26 1.09.54 1.97 1.6 1.97 1.92 0 3.2-2.46 3.2-5.38 0-2.22-1.5-3.88-4.2-3.88-3.07 0-4.97 2.29-4.97 4.84 0 .88.26 1.5.66 1.98.18.22.21.3.14.55-.05.18-.16.62-.2.79-.06.25-.26.34-.48.25-1.35-.56-1.97-2.05-1.97-3.73 0-2.77 2.33-6.1 6.96-6.1 3.72 0 6.17 2.7 6.17 5.6 0 3.84-2.12 6.71-5.24 6.71-1.05 0-2.03-.57-2.37-1.21l-.66 2.55c-.22.84-.67 1.69-1.05 2.35.79.24 1.62.37 2.49.37 5.52 0 10-4.48 10-10S17.52 2 12 2z"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- Shop links -->
+    <div class="footer-col">
+      <h4 class="footer-col-title">Shop</h4>
+      <ul class="footer-col-links">
+        <li><a href="{% url 'products' %}">All Products</a></li>
+        <li><a href="{% url 'home' %}#categories-section">Categories</a></li>
+        <li><a href="{% url 'home' %}#products-section">New Arrivals</a></li>
+        <li><a href="{% url 'cart' %}">Shopping Cart</a></li>
+        {% if user.is_authenticated %}<li><a href="{% url 'wishlist' %}">My Wishlist</a></li>{% endif %}
+      </ul>
+    </div>
+
+    <!-- Company links -->
+    <div class="footer-col">
+      <h4 class="footer-col-title">Company</h4>
+      <ul class="footer-col-links">
+        <li><a href="{% url 'about' %}">About Us</a></li>
+        <li><a href="{% url 'contact' %}">Contact Us</a></li>
+        <li><a href="#">Privacy Policy</a></li>
+        <li><a href="#">Terms of Service</a></li>
+        <li><a href="#">Careers</a></li>
+      </ul>
+    </div>
+
+    <!-- Support links -->
+    <div class="footer-col">
+      <h4 class="footer-col-title">Support</h4>
+      <ul class="footer-col-links">
+        <li><a href="{% url 'contact' %}">Help Center</a></li>
+        <li><a href="#">Returns &amp; Refunds</a></li>
+        <li><a href="#">Shipping Info</a></li>
+        <li><a href="#">Order Tracking</a></li>
+        <li><a href="#">Size Guide</a></li>
+      </ul>
+    </div>
+
+  </div>
+
+  <div class="footer-bottom">
+    <div class="footer-bottom-inner">
+      <p class="footer-copy">&copy; 2026 Lumivis Pvt. Ltd. All rights reserved. Made with care for our customers.</p>
+      <div class="footer-payment">
+        <span class="pay-badge">VISA</span>
+        <span class="pay-badge">Mastercard</span>
+        <span class="pay-badge">PayPal</span>
+        <span class="pay-badge">Apple Pay</span>
+      </div>
     </div>
   </div>
 </footer>
 
 <script src="{% static 'products/js/main.js' %}"></script>
 {% block extra_js %}{% endblock %}
+
+<script>
+(function () {
+  'use strict';
+
+  /* Inline styles for the dropdown — works even if CSS is cached */
+  var DD_STYLE = [
+    'position:absolute',
+    'top:calc(100% + 6px)',
+    'left:0',
+    'right:0',
+    'min-width:300px',
+    'background:#111827',
+    'border:1px solid #1e2d3d',
+    'border-radius:12px',
+    'box-shadow:0 20px 60px rgba(0,0,0,.65)',
+    'z-index:99999',
+    'overflow:hidden',
+    'display:none',
+    'font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif'
+  ].join(';');
+
+  function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+  function initInstantSearch(input) {
+    var timer = null;
+    var dd = null;
+
+    function ensureDropdown() {
+      if (dd) return dd;
+      dd = document.createElement('div');
+      dd.setAttribute('style', DD_STYLE);
+      /* anchor to closest search container, or the form itself */
+      var anchor = input.closest('.search-wrap') || input.closest('.m-search') || input.closest('form');
+      if (anchor) {
+        anchor.style.position = 'relative';
+        anchor.appendChild(dd);
+      } else {
+        document.body.appendChild(dd);
+      }
+      return dd;
+    }
+
+    function hide() {
+      if (dd) dd.style.display = 'none';
+    }
+
+    function show(results, total, q) {
+      var el = ensureDropdown();
+      var html = '';
+
+      if (!results.length) {
+        html = '<div style="padding:14px 16px;color:#94a3b8;font-size:.85rem;">No results for <strong style="color:#e2e8f0">' + esc(q) + '</strong></div>';
+      } else {
+        html += '<ul style="list-style:none;margin:0;padding:6px 0;">';
+        results.forEach(function (r) {
+          var img = r.img
+            ? '<img src="' + esc(r.img) + '" style="width:44px;height:44px;border-radius:8px;object-fit:cover;flex-shrink:0;background:#0f172a;" loading="lazy" />'
+            : '<div style="width:44px;height:44px;border-radius:8px;background:#0f172a;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#334155;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><polyline points="21 15 16 10 5 21"/></svg></div>';
+          html += '<li style="border-bottom:1px solid #1a2537;">'
+            + '<a href="/product/' + r.pk + '/" style="display:flex;align-items:center;gap:12px;padding:10px 14px;text-decoration:none;transition:background .12s;" '
+            + 'onmouseover="this.style.background=\'#1a2537\'" onmouseout="this.style.background=\'transparent\'">'
+            + img
+            + '<div style="display:flex;flex-direction:column;gap:3px;min-width:0;overflow:hidden;">'
+            + '<span style="font-size:.84rem;font-weight:600;color:#e2e8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(r.name) + '</span>'
+            + '<span style="font-size:.72rem;color:#64748b;">' + esc(r.type) + ' &middot; &#8377;' + esc(r.price) + '</span>'
+            + '</div></a></li>';
+        });
+        html += '</ul>';
+        if (total > results.length) {
+          html += '<a href="/products/?q=' + encodeURIComponent(q) + '" '
+            + 'style="display:block;padding:10px 14px;font-size:.8rem;color:#818cf8;text-decoration:none;background:#0d1525;border-top:1px solid #1e2d3d;text-align:center;" '
+            + 'onmouseover="this.style.color=\'#a5b4fc\'" onmouseout="this.style.color=\'#818cf8\'">'
+            + 'See all ' + total + ' results for &ldquo;<strong>' + esc(q) + '</strong>&rdquo; &rarr;</a>';
+        }
+      }
+
+      el.innerHTML = html;
+      el.style.display = 'block';
+    }
+
+    input.addEventListener('input', function () {
+      var q = this.value.trim();
+      clearTimeout(timer);
+      if (q.length < 2) { hide(); return; }
+      timer = setTimeout(function () {
+        fetch('/search/suggest/?q=' + encodeURIComponent(q))
+          .then(function (r) { return r.json(); })
+          .then(function (data) { show(data.results || [], data.total || 0, q); })
+          .catch(function () {});
+      }, 260);
+    });
+
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') { hide(); input.blur(); }
+      /* Enter: let form submit normally, just hide dropdown */
+      if (e.key === 'Enter') hide();
+    });
+
+    document.addEventListener('click', function (e) {
+      if (!input.contains(e.target) && !(dd && dd.contains(e.target))) hide();
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.search-form input[name="q"]').forEach(initInstantSearch);
+  });
+}());
+</script>
 </body>
 </html>

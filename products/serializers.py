@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 
-from .models import Product, transctions, promocode, ratings, Wishlist
+from .models import Product, promocode, ratings, Wishlist
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -123,21 +123,6 @@ class ProductMiniSerializer(serializers.ModelSerializer):
 
     def get_image_url(self, obj):
         return _abs_image(obj, self.context.get('request'))
-
-
-# ── Transaction / Order ───────────────────────────────────────────────────────
-
-class TransactionSerializer(serializers.ModelSerializer):
-    product = ProductMiniSerializer(read_only=True)
-    user    = UserSerializer(read_only=True)
-
-    class Meta:
-        model  = transctions
-        fields = [
-            'id', 'transaction_id', 'user', 'product',
-            'quantity', 'total_price', 'transaction_date', 'status',
-        ]
-        read_only_fields = ['transaction_id', 'transaction_date']
 
 
 # ── Cart ──────────────────────────────────────────────────────────────────────

@@ -1,7 +1,7 @@
 {% extends 'products/base.html' %}
 {% load static %}
 
-{% block title %}Lumivis — Shop{% endblock %}
+{% block title %}Lumivis Pvt. Ltd. — Shop{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'products/css/home.css' %}" />
@@ -9,7 +9,7 @@
 
 {% block content %}
 
-<!-- HERO -->
+
 <section class="hero-v2">
   <div class="hero-shapes">
     <div class="shape shape-1"></div>
@@ -18,9 +18,10 @@
     <div class="shape shape-4"></div>
   </div>
   <div class="hero-content">
-    <span class="hero-badge">&#10022; New Collection 2024</span>
-    <h1 class="hero-title">Elevate Your Style<br>with <span class="hero-accent">Lumivis</span></h1>
-    <p class="hero-sub">Discover premium curated products — timeless quality, unbeatable prices, delivered to your door.</p>
+    <span class="hero-badge">&#10022; New Collection 2026</span>
+    <h1 class="hero-title">Elevate Your Style</h1>
+    <div class="hero-brand-name"><span class="hero-accent">LUMIVIS</span></div>
+    <!-- <p class="hero-sub">Discover premium curated products — timeless quality, unbeatable prices, delivered to your door.</p> -->
     <div class="hero-actions">
       <a href="#products-section" class="hero-btn hero-btn-primary">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
@@ -30,66 +31,24 @@
         Explore Categories
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
       </a>
+      <a href="{% url 'products' %}" class="hero-btn hero-btn-glow">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+        Trending Now
+       </a>
+      <!-- <a href=".promo-banner" class="hero-btn hero-btn-fire">&#128293; Flash Deals</a> --> -->
     </div>
-    <div class="hero-stats">
-      <div class="hstat">
-        <strong class="counter" data-target="10000">0</strong>
-        <span>Happy Customers</span>
-      </div>
-      <div class="hstat-div"></div>
-      <div class="hstat">
-        <strong class="counter" data-target="500">0</strong>
-        <span>Products</span>
-      </div>
-      <div class="hstat-div"></div>
-      <div class="hstat">
-        <strong>4.9 &#9733;</strong>
-        <span>Average Rating</span>
-      </div>
-      <div class="hstat-div"></div>
-      <div class="hstat">
-        <strong>30</strong>
-        <span>Day Returns</span>
-      </div>
+    <div class="hero-scroll-hint">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
     </div>
   </div>
 </section>
 
-<!-- FEATURE STRIP -->
-<section class="features-strip">
-  <div class="features-inner">
-    <div class="feat feat-animated">
-      <div class="feat-icon feat-blue">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
-      </div>
-      <div><strong>Free Shipping</strong><span>On orders over $150</span></div>
-    </div>
-    <div class="feat feat-animated">
-      <div class="feat-icon feat-green">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293A1 1 0 005.414 17H19m0 0a2 2 0 100 4 2 2 0 000-4zm-10 2a2 2 0 100 4 2 2 0 000-4z"/></svg>
-      </div>
-      <div><strong>Easy Returns</strong><span>30-day return policy</span></div>
-    </div>
-    <div class="feat feat-animated">
-      <div class="feat-icon feat-violet">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-      </div>
-      <div><strong>Secure Payment</strong><span>256-bit SSL encryption</span></div>
-    </div>
-    <div class="feat feat-animated">
-      <div class="feat-icon feat-amber">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.68A2 2 0 012 1h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 8.92a16 16 0 006.18 6.18l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
-      </div>
-      <div><strong>24/7 Support</strong><span>We are always here</span></div>
-    </div>
-  </div>
-</section>
 
-<!-- PROMO BANNER WITH COUNTDOWN -->
+
 <section class="promo-banner">
   <div class="promo-inner">
     <div class="promo-text">
-      <span class="promo-tag">&#128293; Flash Sale</span>
+      <!-- <span class="promo-tag">&#128293; Flash Sale</span> -->
       <h2>Up to <strong>40% OFF</strong> on selected items!</h2>
       <p>Hurry — this deal expires in:</p>
       <div class="countdown" id="countdown">
@@ -100,70 +59,128 @@
         <div class="cd-unit"><span class="cd-num" id="cd-s">00</span><span class="cd-label">Secs</span></div>
       </div>
     </div>
-    <a href="#products-section" class="promo-cta">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
-      Grab the Deal
-    </a>
+    <div class="promo-right">
+      <div class="promo-badge-ring">
+        <div class="promo-badge-inner">
+          <strong>40%</strong>
+          <span>OFF</span>
+        </div>
+      </div>
+      <a href="#products-section" class="promo-cta">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
+        Grab the Deal
+      </a>
+    </div>
   </div>
 </section>
 
-<!-- CATEGORIES SECTION -->
-{% if product_types %}
-<section class="categories-section" id="categories-section">
-  <div class="section-wrap">
-    <div class="section-header">
-      <div>
-        <span class="section-eyebrow">Browse by</span>
-        <h2 class="section-title">Shop by Category</h2>
-      </div>
-      <a href="#products-section" class="see-all-btn">View All &rarr;</a>
-    </div>
-    <div class="cat-grid">
-      {% for ptype in product_types %}
-      <button class="cat-card" data-filter="{{ ptype }}" onclick="jumpToProducts('{{ ptype }}')">
-        <div class="cat-icon">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
-        </div>
-        <span class="cat-label">{{ ptype }}</span>
-        <span class="cat-arrow">&rarr;</span>
-      </button>
-      {% endfor %}
-    </div>
+{% if query %}
+<div class="type-search-header">
+  <div class="type-search-inner">
+    <span class="section-eyebrow">Search results</span>
+    <h2 class="type-section-title">Results for &ldquo;{{ query }}&rdquo;</h2>
+    <a href="{% url 'home' %}" class="type-see-all">Clear &times;</a>
   </div>
-</section>
+</div>
 {% endif %}
 
-<!-- WHY LUMIVIS -->
+{% regroup products by product_type as grouped_products %}
+{% for group in grouped_products %}
+<section class="type-section">
+  <div class="type-section-inner">
+    <div class="type-section-hd">
+      <div>
+        <span class="section-eyebrow">Category</span>
+        <h2 class="type-section-title">{{ group.grouper }}</h2>
+      </div>
+      <a href="{% url 'products' %}?type={{ group.grouper }}" class="type-see-all">
+        View all {{ group.list|length }} &rarr;
+      </a>
+    </div>
+    <div class="type-row">
+      {% for product in group.list|slice:":6" %}
+      <article class="type-card">
+        <a href="{% url 'product_detail' product.pk %}" class="type-card-img-wrap">
+          {% if product.thumbnail %}
+            <img src="{{ product.thumbnail.url }}" alt="{{ product.name }}" loading="lazy" />
+          {% elif product.image %}
+            <img src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy" />
+          {% else %}
+            <div class="type-card-ph">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            </div>
+          {% endif %}
+          {% if forloop.counter <= 2 %}<span class="type-card-new">NEW</span>{% endif %}
+          <form method="POST" action="{% url 'toggle_wishlist' product.pk %}" class="type-card-wish-form">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="/" />
+            <button type="submit" class="type-card-wish {% if product.pk in wishlisted_ids %}wished{% endif %}" title="Wishlist">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="{% if product.pk in wishlisted_ids %}currentColor{% else %}none{% endif %}" stroke="currentColor" stroke-width="2.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            </button>
+          </form>
+        </a>
+        <div class="type-card-body">
+          <p class="type-card-name">{{ product.name|truncatechars:28 }}</p>
+          <div class="type-card-row">
+            <span class="type-card-price">₹{{ product.price }}</span>
+            <form method="POST" action="{% url 'add_to_cart' product.pk %}">
+              {% csrf_token %}
+              <input type="hidden" name="next" value="home" />
+              <button type="submit" class="type-card-add" title="Add to cart">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+              </button>
+            </form>
+          </div>
+        </div>
+      </article>
+      {% endfor %}
+      <a href="{% url 'products' %}?type={{ group.grouper }}" class="type-card-viewall">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        <span>View all</span>
+        <small>{{ group.list|length }} items</small>
+      </a>
+    </div>
+  </div>
+</section>
+{% empty %}
+<div class="type-empty">
+  <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+  <h3>{% if query %}No results for &ldquo;{{ query }}&rdquo;{% else %}No products yet{% endif %}</h3>
+  <p>{% if query %}Try a different keyword.{% else %}Add products via the admin panel.{% endif %}</p>
+</div>
+{% endfor %}
+
+
 <section class="why-section">
   <div class="section-wrap">
     <div class="why-header">
       <span class="section-eyebrow">Our Promise</span>
-      <h2 class="section-title">Why Choose Lumivis?</h2>
+      <h2 class="section-title">Why Choose <span class="brand-cinzel">Lumivis Pvt. Ltd.</span>?</h2>
       <p class="why-sub">We are more than a store — we are a standard of quality, trust, and style.</p>
     </div>
     <div class="why-grid">
-      <div class="why-card">
+      <div class="why-card why-card-indigo">
         <div class="why-icon why-icon-indigo">
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
         </div>
         <h3>Premium Quality</h3>
         <p>Every product is hand-selected and quality-tested before it reaches you. No compromises.</p>
       </div>
-      <div class="why-card">
+      <div class="why-card why-card-emerald">
         <div class="why-icon why-icon-emerald">
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
         </div>
         <h3>Exclusive Deals</h3>
         <p>Members get early access to flash sales, bundle discounts, and loyalty rewards every month.</p>
       </div>
-      <div class="why-card">
+      <div class="why-card why-card-amber">
         <div class="why-icon why-icon-amber">
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         </div>
         <h3>Fast Delivery</h3>
         <p>Same-day dispatch on orders placed before 2 PM. Tracking updates sent directly to your inbox.</p>
       </div>
-      <div class="why-card">
+      <div class="why-card why-card-rose">
         <div class="why-icon why-icon-rose">
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
         </div>
@@ -174,201 +191,10 @@
   </div>
 </section>
 
-<!-- ALL PRODUCTS -->
-<main class="main" id="products-section">
-
-  <div class="products-section-header">
-    <div>
-      <span class="section-eyebrow">Our Collection</span>
-      <h2 class="section-title" style="margin:0;">All Products</h2>
-    </div>
-    {% if query %}
-    <p class="search-info">Showing results for <strong>"{{ query }}"</strong></p>
-    {% endif %}
-  </div>
-
-  <div class="filter-sort-bar">
-    <div class="filter-pills" id="filterPills">
-      <button class="pill active" data-filter="all">All</button>
-      {% for ptype in product_types %}
-        <button class="pill" data-filter="{{ ptype }}">{{ ptype }}</button>
-      {% endfor %}
-    </div>
-    <div class="sort-wrap">
-      <label for="sortSelect">Sort:</label>
-      <select id="sortSelect" class="sort-select">
-        <option value="default">Featured</option>
-        <option value="price-asc">Price: Low to High</option>
-        <option value="price-desc">Price: High to Low</option>
-        <option value="name-asc">Name: A to Z</option>
-      </select>
-    </div>
-  </div>
-
-  <div class="results-bar">
-    <p class="section-count" id="resultCount">
-      <span id="visibleCount">{{ products|length }}</span> item{% if products|length != 1 %}s{% endif %} found
-    </p>
-  </div>
-
-  <div class="products-grid" id="productsGrid">
-    {% for product in products %}
-    <article class="card reveal tilt-card"
-             data-type="{{ product.product_type }}"
-             data-price="{{ product.price }}"
-             data-name="{{ product.name }}"
-             data-id="{{ product.pk }}"
-             data-img="{% if product.thumbnail %}{{ product.thumbnail.url }}{% elif product.image %}{{ product.image.url }}{% endif %}"
-             data-desc="{{ product.description|truncatechars:90 }}"
-             data-size="{{ product.product_size }}">
-
-      <div class="card-img-wrap">
-        <a href="{% url 'product_detail' product.pk %}">
-          <div class="card-img">
-            {% if product.thumbnail %}
-              <img src="{{ product.thumbnail.url }}" alt="{{ product.name }}" loading="lazy" />
-            {% elif product.image %}
-              <img src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy" />
-            {% else %}
-              <div class="card-placeholder">
-                <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
-                  <rect x="3" y="3" width="18" height="18" rx="2"/>
-                  <circle cx="8.5" cy="8.5" r="1.5"/>
-                  <polyline points="21 15 16 10 5 21"/>
-                </svg>
-              </div>
-            {% endif %}
-          </div>
-        </a>
-
-        <form method="POST" action="{% url 'toggle_wishlist' product.pk %}">
-          {% csrf_token %}
-          <input type="hidden" name="next" value="/" />
-          <button type="submit"
-                  class="wishlist-btn {% if product.pk in wishlisted_ids %}wishlisted{% endif %}"
-                  aria-label="{% if product.pk in wishlisted_ids %}Remove from wishlist{% else %}Add to wishlist{% endif %}">
-            <svg width="16" height="16" viewBox="0 0 24 24"
-                 fill="{% if product.pk in wishlisted_ids %}currentColor{% else %}none{% endif %}"
-                 stroke="currentColor" stroke-width="2">
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-            </svg>
-          </button>
-        </form>
-
-        <span class="type-badge">{{ product.product_type }}</span>
-        {% if forloop.counter <= 4 %}<span class="new-badge">NEW</span>{% endif %}
-      </div>
-
-      <div class="card-body">
-        <div class="card-stars">
-          <span style="color:#f59e0b;">&#9733;&#9733;&#9733;&#9733;</span><span style="color:#e5e7eb;">&#9733;</span>
-          <span class="card-rating-count">({{ forloop.counter|add:"42" }})</span>
-        </div>
-        <h3 class="card-title">
-          <a href="{% url 'product_detail' product.pk %}">{{ product.name }}</a>
-        </h3>
-        <div class="card-meta-row">
-          <span class="card-price">${{ product.price }}</span>
-          <span class="card-size">{{ product.product_size }}</span>
-        </div>
-        <div class="card-actions">
-          <form method="POST" action="{% url 'add_to_cart' product.pk %}" style="flex:1;">
-            {% csrf_token %}
-            <input type="hidden" name="next" value="home" />
-            <button type="submit" class="btn btn-cart">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-              Add to Cart
-            </button>
-          </form>
-          <a href="{% url 'product_detail' product.pk %}" class="btn btn-buy">Buy Now</a>
-        </div>
-      </div>
-    </article>
-    {% empty %}
-    <div class="empty" id="emptyState">
-      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
-        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-      </svg>
-      <h3>{% if query %}No results for "{{ query }}"{% else %}No products yet{% endif %}</h3>
-      <p>{% if query %}Try a different search term.{% else %}Add products via the admin panel.{% endif %}</p>
-    </div>
-    {% endfor %}
-  </div>
-
-  <div class="filter-empty hidden" id="filterEmpty">
-    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M3 6h18M7 12h10M11 18h2"/></svg>
-    <h3>No products in this category</h3>
-    <p>Try selecting a different category above.</p>
-  </div>
-
-</main>
-
-<!-- TESTIMONIALS -->
-<section class="testimonials-section">
-  <div class="section-wrap">
-    <div class="testimonials-header">
-      <span class="section-eyebrow">What Customers Say</span>
-      <h2 class="section-title">Loved by Thousands</h2>
-    </div>
-    <div class="testimonials-grid">
-      <div class="testimonial-card">
-        <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-        <p class="testimonial-text">"The quality is absolutely outstanding. I was skeptical ordering online, but Lumivis exceeded every expectation. Fast delivery, beautiful packaging!"</p>
-        <div class="testimonial-author">
-          <div class="testimonial-avatar">S</div>
-          <div>
-            <strong>Sarah M.</strong>
-            <span>Verified Buyer</span>
-          </div>
-        </div>
-      </div>
-      <div class="testimonial-card testimonial-card-featured">
-        <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-        <p class="testimonial-text">"I've ordered from Lumivis three times now and every single experience has been flawless. The customer support team is incredibly responsive!"</p>
-        <div class="testimonial-author">
-          <div class="testimonial-avatar">J</div>
-          <div>
-            <strong>James R.</strong>
-            <span>Verified Buyer</span>
-          </div>
-        </div>
-      </div>
-      <div class="testimonial-card">
-        <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-        <p class="testimonial-text">"Best shopping experience I've had online. The products are exactly as described and the flash sale prices are genuinely unbeatable."</p>
-        <div class="testimonial-author">
-          <div class="testimonial-avatar">A</div>
-          <div>
-            <strong>Anika P.</strong>
-            <span>Verified Buyer</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- NEWSLETTER -->
-<section class="newsletter">
-  <div class="newsletter-inner">
-    <div class="newsletter-text">
-      <span class="section-eyebrow" style="color:rgba(255,255,255,.6);">Stay Connected</span>
-      <h2>Get Exclusive Deals First</h2>
-      <p>Join 10,000+ shoppers and never miss a sale, new arrival, or exclusive offer.</p>
-    </div>
-    <form class="newsletter-form" onsubmit="handleNewsletter(event)">
-      <input type="email" placeholder="Enter your email address" required />
-      <button type="submit">Subscribe Free</button>
-    </form>
-  </div>
-</section>
-
-<!-- Scroll to top -->
 <button class="scroll-top" id="scrollTop" aria-label="Back to top">
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
 </button>
 
-<!-- QUICK VIEW MODAL -->
 <div class="qv-backdrop hidden" id="qvBackdrop"></div>
 <div class="qv-modal hidden" id="qvModal" role="dialog" aria-modal="true" aria-label="Quick View">
   <button class="qv-close" id="qvClose" aria-label="Close">&times;</button>

@@ -1,3 +1,4 @@
+import re
 import uuid
 
 from django.contrib import messages
@@ -5,11 +6,11 @@ from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth.models import User
-from django.db.models import Sum, Count
+from django.db.models import Q
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.utils.timezone import localdate
 
-from .models import Product, transctions, Wishlist, promocode
+from .models import Product, Wishlist, promocode
 
 
 
@@ -33,6 +34,42 @@ def _cart_items(request):
 
 # ── Storefront ────────────────────────────────────────────────────────────────
 
+def about(request):
+    return render(request, 'products/about.html')
+
+def contact(request):
+    if request.method == 'POST':
+        messages.success(request, "Thank you! We'll get back to you shortly.")
+        return redirect('contact')
+    return render(request, 'products/contact.html')
+
+def products_page(request):
+    query       = request.GET.get('q', '').strip()
+    type_filter = request.GET.get('type', '').strip()
+    products    = Product.objects.all()
+    if query:
+        products = products.filter(name__icontains=query)
+    if type_filter:
+        products = products.filter(product_type__iexact=type_filter)
+    product_types = (
+        Product.objects
+        .values_list('product_type', flat=True)
+        .distinct()
+        .order_by('product_type')
+    )
+    wishlisted_ids = set()
+    if request.user.is_authenticated:
+        wishlisted_ids = set(
+            Wishlist.objects.filter(user=request.user).values_list('product_id', flat=True)
+        )
+    return render(request, 'products/products_page.html', {
+        'products':       products,
+        'query':          query,
+        'type_filter':    type_filter,
+        'product_types':  product_types,
+        'wishlisted_ids': wishlisted_ids,
+    })
+
 def home(request):
     """
     Homepage — product grid with optional keyword search.
@@ -42,6 +79,7 @@ def home(request):
     products = Product.objects.all()
     if query:
         products = products.filter(name__icontains=query)
+    products = products.order_by('product_type', 'name')
     product_types = (
         Product.objects
         .values_list('product_type', flat=True)
@@ -110,6 +148,18 @@ def add_to_cart(request, pk):
     return redirect(request.POST.get('next') or 'home')
 
 
+def buy_now(request, pk):
+    """
+    POST /cart/buy/<pk>/  — add item to cart then go straight to checkout.
+    Replaces the old direct link that skipped adding the item.
+    """
+    get_object_or_404(Product, pk=pk)
+    cart          = request.session.get('cart', {})
+    cart[str(pk)] = cart.get(str(pk), 0) + 1
+    request.session['cart'] = cart
+    return redirect('checkout')
+
+
 def remove_from_cart(request, pk):
     """
     Remove a product entirely from the session cart.
@@ -146,7 +196,7 @@ def update_cart(request, pk):
 def checkout(request):
     """
     GET  /checkout/  — show order summary + shipping form.
-    POST /checkout/  — place order, clear cart, redirect to success page.
+    POST /checkout/  — validate, place order, store details in session, redirect to success.
     Redirects to /cart/ if cart is empty.
     """
     items, total = _cart_items(request)
@@ -155,31 +205,80 @@ def checkout(request):
         return redirect('cart')
 
     if request.method == 'POST':
-        user = request.user if request.user.is_authenticated else None
-        for item in items:
-            transctions.objects.create(
-                user=user,
-                transaction_id=uuid.uuid4().hex[:12].upper(),
-                product=item['product'],
-                quantity=item['quantity'],
-                total_price=item['subtotal'],
-            )
-        request.session['cart'] = {}
-        messages.success(request, 'Order placed successfully!')
+        phone = request.POST.get('phone', '').strip()
+
+        # Phone must be +91 followed by exactly 10 digits
+        if not re.match(r'^\+91[6-9][0-9]{9}$', phone):
+            messages.error(request, 'Phone number must start with +91 followed by 10 digits (e.g. +919876543210).')
+            return render(request, 'products/checkout.html', {
+                'items': items, 'total': total,
+                'form_data': request.POST,
+            })
+
+        # Urgent delivery
+        urgent_delivery = request.POST.get('urgent_delivery', 'no') == 'yes'
+        delivery_date   = request.POST.get('delivery_date', '').strip()
+        try:
+            urgent_charge = int(request.POST.get('urgent_charge', '0'))
+        except ValueError:
+            urgent_charge = 0
+        if urgent_charge < 0:
+            urgent_charge = 0
+
+        final_total = total + urgent_charge
+
+        # Build order summary for WhatsApp
+        order_id = 'LVP-' + uuid.uuid4().hex[:6].upper()
+        items_text = '\n'.join(
+            f"  • {i['product'].name} ×{i['quantity']} — ₹{i['subtotal']}"
+            for i in items
+        )
+
+        # Store order details in session for the success page
+        request.session['order_id']            = order_id
+        request.session['order_total']         = str(final_total)
+        request.session['order_customer']      = request.POST.get('full_name', '').strip()
+        request.session['order_phone']         = phone
+        request.session['order_items']         = items_text
+        request.session['order_urgent']        = urgent_delivery
+        request.session['order_delivery_date'] = delivery_date if urgent_delivery else ''
+        request.session['order_urgent_charge'] = str(urgent_charge) if urgent_delivery else '0'
+        request.session['cart']                = {}
+
+        messages.success(request, f'Order {order_id} placed successfully!')
         return redirect('order_success')
 
     return render(request, 'products/checkout.html', {
         'items': items,
         'total': total,
+        'form_data': {},
     })
 
 
 def order_success(request):
     """
-    Order confirmation page.
+    Order confirmation page — reads order details from session and clears them.
     GET /order-success/
     """
-    return render(request, 'products/order_success.html')
+    order_id            = request.session.pop('order_id',            'LVP-UNKNOWN')
+    order_total         = request.session.pop('order_total',         '0')
+    order_customer      = request.session.pop('order_customer',      '')
+    order_phone         = request.session.pop('order_phone',         '')
+    order_items         = request.session.pop('order_items',         '')
+    order_urgent        = request.session.pop('order_urgent',        False)
+    order_delivery_date = request.session.pop('order_delivery_date', '')
+    order_urgent_charge = request.session.pop('order_urgent_charge', '0')
+
+    return render(request, 'products/order_success.html', {
+        'order_id':            order_id,
+        'order_total':         order_total,
+        'order_customer':      order_customer,
+        'order_phone':         order_phone,
+        'order_items':         order_items,
+        'order_urgent':        order_urgent,
+        'order_delivery_date': order_delivery_date,
+        'order_urgent_charge': order_urgent_charge,
+    })
 
 
 # ── Auth ──────────────────────────────────────────────────────────────────────
@@ -235,16 +334,9 @@ def profile(request):
     GET /profile/  — user dashboard with order history and total spend.
     Requires login (redirects to /login/ if anonymous).
     """
-    orders = (
-        transctions.objects
-        .filter(user=request.user)
-        .select_related('product')
-        .order_by('-transaction_date')
-    )
-    total_spent = sum(o.total_price for o in orders)
     return render(request, 'products/profile.html', {
-        'orders':      orders,
-        'total_spent': total_spent,
+        'orders':      [],
+        'total_spent': 0,
     })
 
 
@@ -288,14 +380,6 @@ def wishlist_checkout(request):
     if not items.exists():
         messages.warning(request, 'Your wishlist is empty.')
         return redirect('wishlist')
-    for item in items:
-        transctions.objects.create(
-            user=request.user,
-            transaction_id=uuid.uuid4().hex[:12].upper(),
-            product=item.product,
-            quantity=1,
-            total_price=item.product.price,
-        )
     items.delete()
     messages.success(request, 'Your wishlist order has been placed successfully!')
     return redirect('order_success')
@@ -315,14 +399,8 @@ def admin_panel(request):
     if request.method == 'POST':
         action = request.POST.get('action', '').strip()
 
-        # Order status update
+        # Order status update (orders removed)
         if action == 'update_order':
-            order_id   = request.POST.get('order_id', '').strip()
-            new_status = request.POST.get('new_status', '').strip()
-            valid_statuses = [c[0] for c in transctions.STATUS_CHOICES]
-            if order_id and new_status in valid_statuses:
-                transctions.objects.filter(pk=order_id).update(status=new_status)
-                messages.success(request, 'Order status updated.')
             return redirect(f"{request.path}?s=orders&status={status_filter}")
 
         # Add product
@@ -377,21 +455,6 @@ def admin_panel(request):
             messages.success(request, f'Product "{name}" deleted.')
             return redirect(f"{request.path}?s=products")
 
-    orders_qs = transctions.objects.select_related('product', 'user').order_by('-transaction_date')
-    if status_filter:
-        orders_qs = orders_qs.filter(status=status_filter)
-
-    by_status = {
-        row['status']: row['count']
-        for row in transctions.objects.values('status').annotate(count=Count('id'))
-    }
-    top_products = (
-        transctions.objects
-        .values('product__id', 'product__name', 'product__price')
-        .annotate(units_sold=Sum('quantity'), revenue=Sum('total_price'))
-        .order_by('-units_sold')[:5]
-    )
-
     edit_product = None
     if section == 'edit_product':
         edit_pk = request.GET.get('pk', '').strip()
@@ -401,25 +464,25 @@ def admin_panel(request):
     return render(request, 'products/admin_panel.html', {
         'section':        section,
         'status_filter':  status_filter,
-        'status_choices': transctions.STATUS_CHOICES,
-        'orders':         orders_qs[:60],
-        'recent_orders':  transctions.objects.select_related('product', 'user').order_by('-transaction_date')[:8],
+        'status_choices': [],
+        'orders':         [],
+        'recent_orders':  [],
         'products':       Product.objects.order_by('name'),
         'users':          User.objects.order_by('-date_joined')[:30],
         'promos':         promocode.objects.order_by('-expiry_date'),
-        'top_products':   top_products,
+        'top_products':   [],
         'edit_product':   edit_product,
         'stats': {
-            'order_count':    transctions.objects.count(),
-            'revenue':        transctions.objects.aggregate(t=Sum('total_price'))['t'] or 0,
-            'today_orders':   transctions.objects.filter(transaction_date__date=localdate()).count(),
+            'order_count':    0,
+            'revenue':        0,
+            'today_orders':   0,
             'product_count':  Product.objects.count(),
             'user_count':     User.objects.count(),
-            'pending_count':  by_status.get('pending', 0),
-            'delivered_count': by_status.get('delivered', 0),
+            'pending_count':  0,
+            'delivered_count': 0,
             'wishlist_count': Wishlist.objects.count(),
         },
-        'by_status': by_status,
+        'by_status': {},
     })
 
 
@@ -456,14 +519,40 @@ def user_panel(request):
             messages.success(request, 'Password changed successfully.')
         return redirect(f"{request.path}?tab=settings")
 
-    orders      = transctions.objects.filter(user=request.user).select_related('product').order_by('-transaction_date')
     wishlist    = Wishlist.objects.filter(user=request.user).select_related('product')
-    total_spent = orders.aggregate(t=Sum('total_price'))['t'] or 0
 
     return render(request, 'products/user_panel.html', {
-        'tab':         tab,
-        'orders':      orders,
-        'wishlist':    wishlist,
-        'total_spent': total_spent,
-        'status_choices': transctions.STATUS_CHOICES,
+        'tab':            tab,
+        'orders':         [],
+        'wishlist':       wishlist,
+        'total_spent':    0,
+        'status_choices': [],
     })
+
+
+# ── Instant Search ────────────────────────────────────────────────────────────
+
+def search_suggestions(request):
+    """GET /search/suggest/?q=term  →  JSON product suggestions for live search."""
+    q = request.GET.get('q', '').strip()
+    if len(q) < 2:
+        return JsonResponse({'results': [], 'total': 0})
+    qs = Product.objects.filter(
+        Q(name__icontains=q) | Q(product_type__icontains=q) | Q(description__icontains=q)
+    ).order_by('name')
+    total = qs.count()
+    results = []
+    for p in qs[:8]:
+        img = ''
+        if p.thumbnail:
+            img = p.thumbnail.url
+        elif p.image:
+            img = p.image.url
+        results.append({
+            'pk':    p.pk,
+            'name':  p.name,
+            'price': str(p.price),
+            'type':  p.product_type,
+            'img':   img,
+        })
+    return JsonResponse({'results': results, 'total': total})
