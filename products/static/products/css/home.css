@@ -74,6 +74,18 @@ h1, h2, h3, .hero-title, .section-title {
   max-width: 720px;
   animation: fadeUp .7s ease both;
 }
+.hero-logo-img {
+  height: clamp(80px, 14vw, 140px);
+  width: auto;
+  max-width: 320px;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto 14px;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.35);
+  animation: fadeUp .5s .15s ease both;
+}
+
 .hero-badge {
   display: inline-block;
   background: rgba(255,255,255,.08);
@@ -241,6 +253,23 @@ h1, h2, h3, .hero-title, .section-title {
   animation: bounceY 1.8s ease-in-out infinite;
 }
 
+
+/* ─── Video Banner ───────────────────────────────────────────── */
+.video-banner {
+  width: 100%;
+  background: #000;
+  line-height: 0;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+}
+.video-banner-el {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: contain;
+}
 
 /* ─── Promo Banner + Countdown ───────────────────────────────── */
 .promo-banner {
@@ -444,7 +473,7 @@ h1, h2, h3, .hero-title, .section-title {
 .type-row::-webkit-scrollbar-thumb { background: #253347; border-radius: 4px; }
 
 .type-card {
-  flex: 0 0 176px; background: #111827;
+  flex: 0 0 210px; background: #111827;
   border: 1px solid #1e2d3d; border-radius: 14px;
   overflow: hidden; transition: transform .2s, box-shadow .2s, border-color .2s;
 }
@@ -491,7 +520,7 @@ h1, h2, h3, .hero-title, .section-title {
 .type-card-row { display: flex; align-items: center; justify-content: space-between; }
 .type-card-price { font-size: .9rem; font-weight: 800; color: #818cf8; }
 .type-card-add {
-  width: 30px; height: 30px; border-radius: 8px;
+  width: 34px; height: 34px; border-radius: 8px;
   background: rgba(99,102,241,.12); border: 1px solid rgba(99,102,241,.25);
   color: #818cf8; display: flex; align-items: center; justify-content: center;
   cursor: pointer; transition: background .15s, border-color .15s, color .15s; padding: 0;
@@ -1150,9 +1179,11 @@ h1, h2, h3, .hero-title, .section-title {
   .hero-btn { width: 100%; max-width: 280px; justify-content: center; padding: 10px 20px; }
   .hero-btn-primary { padding: 10px 20px; }
   /* Type cards on small screens */
-  .type-card { flex: 0 0 142px; }
-  .type-card-viewall { flex: 0 0 100px; min-height: 175px; }
-  .type-section-title { font-size: 1.05rem; }
+  .type-card { flex: 0 0 185px; }
+  .type-card-viewall { flex: 0 0 135px; min-height: 215px; }
+  .type-section-title { font-size: 1.1rem; }
+  .type-card-name { font-size: .8rem; }
+  .type-card-price { font-size: .95rem; }
   /* Why cards compact */
   .why-card { padding: 20px 18px; }
 }
@@ -1162,9 +1193,9 @@ h1, h2, h3, .hero-title, .section-title {
   .hero-badge { display: none; }
   .hero-sub { display: none; }
   .products-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
-  .type-card { flex: 0 0 132px; }
-  .type-card-body { padding: 8px 10px 10px; }
-  .type-card-name { font-size: .72rem; }
-  .type-card-price { font-size: .82rem; }
+  .type-card { flex: 0 0 168px; }
+  .type-card-body { padding: 9px 11px 11px; }
+  .type-card-name { font-size: .78rem; }
+  .type-card-price { font-size: .9rem; }
   .why-grid { gap: 10px; }
 }

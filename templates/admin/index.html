@@ -1,5 +1,5 @@
 {% extends "admin/base_site.html" %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block content %}
 <style>
@@ -150,9 +150,14 @@
 
 <!-- ════ WELCOME BANNER ════ -->
 <div class="lv-welcome">
-  <div>
-    <div class="lv-welcome-title">Welcome back, {{ user.first_name|default:user.username }} 👋</div>
-    <div class="lv-welcome-sub">Here's what's happening with Lumivis Pvt. Ltd. today.</div>
+  <div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;">
+    <img src="{% static 'logoo.png' %}" alt="Lumivis Pvt. Ltd."
+         style="height:56px;width:auto;max-width:180px;object-fit:contain;
+                display:block;border-radius:10px;flex-shrink:0;" />
+    <div>
+      <div class="lv-welcome-title">Welcome back, {{ user.first_name|default:user.username }} 👋</div>
+      <div class="lv-welcome-sub">Here's what's happening today.</div>
+    </div>
   </div>
   <div class="lv-welcome-actions">
     <a href="{% url 'lumivis_admin:products_product_add' %}" class="lv-btn lv-btn-white">

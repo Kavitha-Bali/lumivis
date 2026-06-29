@@ -1,0 +1,81 @@
+{% extends 'products/base.html' %}
+
+{% block title %}Cancel Order — Lumivis Pvt. Ltd.{% endblock %}
+
+{% block content %}
+<main class="main" style="max-width:520px;margin:0 auto;padding:48px 16px;">
+
+  <div style="background:#111827;border:1.5px solid #1e2d3d;border-radius:16px;padding:36px 32px;">
+
+    <div style="text-align:center;margin-bottom:28px;">
+      <div style="width:56px;height:56px;background:rgba(239,68,68,.12);border:2px solid rgba(239,68,68,.35);
+                  border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2.2">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </div>
+      <h1 style="font-size:1.4rem;font-weight:800;color:#f1f5f9;margin:0 0 6px;">Cancel Order</h1>
+      <p style="font-size:.875rem;color:#64748b;margin:0;">
+        Order <span style="color:#818cf8;font-weight:700;">{{ order.order_id }}</span>
+      </p>
+    </div>
+
+    <!-- Order summary -->
+    <div style="background:#0f172a;border:1px solid #1e2d3d;border-radius:10px;padding:14px 16px;margin-bottom:24px;">
+      <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:.85rem;border-bottom:1px solid #1e2d3d;">
+        <span style="color:#64748b;">Customer</span>
+        <span style="color:#e2e8f0;font-weight:600;">{{ order.customer_name }}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:.85rem;border-bottom:1px solid #1e2d3d;">
+        <span style="color:#64748b;">Total</span>
+        <span style="color:#34d399;font-weight:700;">₹{{ order.total }}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:.85rem;">
+        <span style="color:#64748b;">Status</span>
+        <span style="color:#fbbf24;font-weight:600;text-transform:capitalize;">{{ order.status }}</span>
+      </div>
+    </div>
+
+    <!-- Warning -->
+    <div style="background:rgba(251,191,36,.07);border:1px solid rgba(251,191,36,.25);border-radius:10px;
+                padding:12px 14px;margin-bottom:22px;font-size:.83rem;color:#fde68a;display:flex;gap:10px;align-items:flex-start;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2.2" style="flex-shrink:0;margin-top:1px;">
+        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+        <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+      </svg>
+      Your cancellation request will be sent to admin for approval. The order will only be cancelled after admin confirms.
+    </div>
+
+    <!-- Reason form -->
+    <form method="POST">
+      {% csrf_token %}
+      <label style="display:block;font-size:.82rem;font-weight:700;color:#94a3b8;
+                    text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">
+        Reason for Cancellation <span style="color:#ef4444;">*</span>
+      </label>
+      <textarea name="reason" rows="4" required
+        placeholder="Please describe why you want to cancel this order…"
+        style="width:100%;background:#0f172a;border:1.5px solid #253347;border-radius:10px;
+               padding:12px 14px;color:#f1f5f9;font-size:.9rem;resize:vertical;
+               font-family:inherit;box-sizing:border-box;transition:border-color .2s;"
+        onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#253347'"></textarea>
+
+      <div style="display:flex;gap:12px;margin-top:20px;flex-wrap:wrap;">
+        <button type="submit"
+          style="flex:1;background:rgba(239,68,68,.12);border:1.5px solid rgba(239,68,68,.4);
+                 color:#f87171;padding:12px 20px;border-radius:10px;font-weight:700;
+                 font-size:.9rem;cursor:pointer;transition:background .15s;">
+          Submit Cancellation Request
+        </button>
+        <a href="{% url 'home' %}"
+          style="flex:1;text-align:center;background:#1e2d42;border:1.5px solid #253347;
+                 color:#94a3b8;padding:12px 20px;border-radius:10px;font-weight:700;
+                 font-size:.9rem;text-decoration:none;transition:background .15s;">
+          Keep Order
+        </a>
+      </div>
+    </form>
+
+  </div>
+</main>
+{% endblock %}

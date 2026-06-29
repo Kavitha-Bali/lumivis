@@ -104,9 +104,39 @@
 
           <!-- UPI panel (default) -->
           <div class="co-pay-panel" id="upi-panel">
-            <label class="co-pay-label">UPI ID</label>
-            <input type="text" class="co-pay-input" placeholder="yourname@upi" />
-            <p style="font-size:.72rem;color:#64748b;margin-top:6px;">e.g. name@okaxis &nbsp;·&nbsp; name@ybl &nbsp;·&nbsp; name@paytm</p>
+
+            <!-- Scan & Pay section -->
+            <div class="upi-scan-wrap">
+              <div class="upi-qr-box">
+                {% load static %}
+                <img src="{% static 'pr.jpeg' %}" alt="Paytm UPI QR Code" class="upi-qr-img" />
+                <div class="upi-qr-label">Scan with any UPI app</div>
+                <div class="upi-qr-apps">
+                  <span>Paytm</span>
+                  <span>PhonePe</span>
+                  <span>GPay</span>
+                  <span>BHIM</span>
+                </div>
+              </div>
+              <div class="upi-or-divider"><span>OR</span></div>
+              <div class="upi-id-box">
+                <div class="upi-id-label">Pay directly using UPI ID</div>
+                <div class="upi-id-row">
+                  <span class="upi-id-val" id="upiIdVal">hemanth022@ptyes</span>
+                  <button type="button" class="upi-copy-btn" onclick="copyUPI()" title="Copy UPI ID">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                    <span id="upiCopyLabel">Copy</span>
+                  </button>
+                </div>
+                <p class="upi-id-hint">Open your UPI app → Pay → Enter this UPI ID → Pay the order total</p>
+              </div>
+            </div>
+
+            <div class="upi-notice">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              After paying, click <strong>Place Order</strong> to confirm. Keep your transaction screenshot as proof.
+            </div>
+
           </div>
 
           <!-- Card panel -->
@@ -293,6 +323,140 @@
 .co-pay-label  { display: block; font-size: .8rem; font-weight: 600; color: #94a3b8; margin-bottom: 6px; }
 .co-pay-input  { width: 100%; }
 
+/* UPI Scan & Pay */
+.upi-scan-wrap {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+.upi-qr-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.upi-qr-img {
+  width: 180px;
+  height: 180px;
+  border-radius: 14px;
+  border: 3px solid #00b9f1;
+  object-fit: contain;
+  background: #fff;
+  padding: 6px;
+}
+.upi-qr-label {
+  font-size: .72rem;
+  color: #94a3b8;
+  font-weight: 600;
+  text-align: center;
+}
+.upi-qr-apps {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.upi-qr-apps span {
+  font-size: .65rem;
+  font-weight: 700;
+  color: #64748b;
+  background: #1e2d42;
+  border: 1px solid #253347;
+  border-radius: 6px;
+  padding: 3px 8px;
+}
+.upi-or-divider {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  padding: 12px 0;
+  flex-shrink: 0;
+}
+.upi-or-divider span {
+  font-size: .75rem;
+  font-weight: 700;
+  color: #475569;
+  background: #0f172a;
+  padding: 6px 10px;
+  border: 1px solid #253347;
+  border-radius: 20px;
+}
+.upi-id-box {
+  flex: 1;
+  min-width: 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  justify-content: center;
+}
+.upi-id-label {
+  font-size: .78rem;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+.upi-id-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #111827;
+  border: 2px solid #00b9f1;
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+.upi-id-val {
+  flex: 1;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #00b9f1;
+  letter-spacing: .03em;
+  word-break: break-all;
+}
+.upi-copy-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(0,185,241,.12);
+  border: 1px solid rgba(0,185,241,.35);
+  color: #00b9f1;
+  border-radius: 7px;
+  padding: 6px 12px;
+  font-size: .75rem;
+  font-weight: 700;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background .15s;
+}
+.upi-copy-btn:hover { background: rgba(0,185,241,.25); }
+.upi-id-hint {
+  font-size: .75rem;
+  color: #64748b;
+  line-height: 1.5;
+  margin: 0;
+}
+.upi-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 10px 14px;
+  background: rgba(251,191,36,.07);
+  border: 1px solid rgba(251,191,36,.2);
+  border-radius: 8px;
+  font-size: .78rem;
+  color: #fde68a;
+  line-height: 1.5;
+}
+@media (max-width: 480px) {
+  .upi-scan-wrap { flex-direction: column; align-items: center; }
+  .upi-or-divider { flex-direction: row; width: 100%; }
+  .upi-or-divider span { margin: 0 auto; }
+}
+
 /* Urgent Delivery */
 .ud-toggle-row {
   display: flex;
@@ -376,6 +540,15 @@
 
 <!-- ── Phone + tab JS ── -->
 <script>
+/* --- Copy UPI ID --- */
+function copyUPI() {
+  navigator.clipboard.writeText('hemanth022@ptyes').then(function() {
+    var lbl = document.getElementById('upiCopyLabel');
+    lbl.textContent = 'Copied!';
+    setTimeout(function(){ lbl.textContent = 'Copy'; }, 2000);
+  }).catch(function() {});
+}
+
 /* --- Tab switcher --- */
 function switchTab(btn) {
   document.querySelectorAll('.co-tab').forEach(function(b) { b.classList.remove('co-tab-on'); });

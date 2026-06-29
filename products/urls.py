@@ -28,6 +28,10 @@ urlpatterns = [
     path('admin-panel/', views.admin_panel, name='admin_panel'),
     path('my-account/', views.user_panel, name='user_panel'),
 
+    # Order cancellation
+    path('order/cancel/<str:order_id>/', views.cancel_order, name='cancel_order'),
+    path('admin-panel/cancel/<int:pk>/<str:action>/', views.admin_cancel_review, name='admin_cancel_review'),
+
     # Live search
     path('search/suggest/', views.search_suggestions, name='search_suggest'),
 ]

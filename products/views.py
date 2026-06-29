@@ -10,7 +10,9 @@ from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
-from .models import Product, Wishlist, promocode
+from django.utils import timezone
+
+from .models import CancelRequest, Order, Product, Wishlist, promocode
 
 
 
@@ -234,10 +236,25 @@ def checkout(request):
             for i in items
         )
 
+        customer_name = request.POST.get('full_name', '').strip()
+
+        # Persist order to database
+        Order.objects.create(
+            order_id      = order_id,
+            user          = request.user if request.user.is_authenticated else None,
+            customer_name = customer_name,
+            phone         = phone,
+            items_text    = items_text,
+            total         = final_total,
+            urgent        = urgent_delivery,
+            delivery_date = delivery_date if urgent_delivery else '',
+            urgent_charge = urgent_charge if urgent_delivery else 0,
+        )
+
         # Store order details in session for the success page
         request.session['order_id']            = order_id
         request.session['order_total']         = str(final_total)
-        request.session['order_customer']      = request.POST.get('full_name', '').strip()
+        request.session['order_customer']      = customer_name
         request.session['order_phone']         = phone
         request.session['order_items']         = items_text
         request.session['order_urgent']        = urgent_delivery
@@ -279,6 +296,56 @@ def order_success(request):
         'order_delivery_date': order_delivery_date,
         'order_urgent_charge': order_urgent_charge,
     })
+
+
+# ── Order Cancellation ───────────────────────────────────────────────────────
+
+def cancel_order(request, order_id):
+    order = get_object_or_404(Order, order_id=order_id)
+
+    if order.status in ('shipped', 'delivered', 'cancelled'):
+        messages.error(request, 'This order cannot be cancelled at this stage.')
+        return redirect('home')
+
+    already_requested = CancelRequest.objects.filter(order=order).exists()
+    if already_requested:
+        messages.info(request, 'A cancellation request is already pending for this order.')
+        return redirect('home')
+
+    if request.method == 'POST':
+        reason = request.POST.get('reason', '').strip()
+        if not reason:
+            messages.error(request, 'Please provide a reason for cancellation.')
+            return render(request, 'products/cancel_order.html', {'order': order})
+        CancelRequest.objects.create(order=order, reason=reason)
+        messages.success(request, 'Cancellation request submitted. Admin will review it shortly.')
+        return redirect('home')
+
+    return render(request, 'products/cancel_order.html', {'order': order})
+
+
+@login_required(login_url='/login/')
+def admin_cancel_review(request, pk, action):
+    if not request.user.is_staff:
+        messages.error(request, 'Access denied.')
+        return redirect('home')
+
+    cancel_req = get_object_or_404(CancelRequest, pk=pk)
+
+    if action == 'approve':
+        cancel_req.status      = 'approved'
+        cancel_req.reviewed_at = timezone.now()
+        cancel_req.save()
+        cancel_req.order.status = 'cancelled'
+        cancel_req.order.save()
+        messages.success(request, f'Order {cancel_req.order.order_id} has been cancelled.')
+    elif action == 'reject':
+        cancel_req.status      = 'rejected'
+        cancel_req.reviewed_at = timezone.now()
+        cancel_req.save()
+        messages.info(request, f'Cancellation request for {cancel_req.order.order_id} rejected.')
+
+    return redirect('/admin-panel/?s=cancellations')
 
 
 # ── Auth ──────────────────────────────────────────────────────────────────────
@@ -461,26 +528,30 @@ def admin_panel(request):
         if edit_pk:
             edit_product = get_object_or_404(Product, pk=edit_pk)
 
+    cancel_requests = CancelRequest.objects.select_related('order').order_by('-requested_at')
+
     return render(request, 'products/admin_panel.html', {
-        'section':        section,
-        'status_filter':  status_filter,
-        'status_choices': [],
-        'orders':         [],
-        'recent_orders':  [],
-        'products':       Product.objects.order_by('name'),
-        'users':          User.objects.order_by('-date_joined')[:30],
-        'promos':         promocode.objects.order_by('-expiry_date'),
-        'top_products':   [],
-        'edit_product':   edit_product,
+        'section':          section,
+        'status_filter':    status_filter,
+        'status_choices':   [],
+        'orders':           Order.objects.order_by('-created_at'),
+        'recent_orders':    Order.objects.order_by('-created_at')[:10],
+        'products':         Product.objects.order_by('name'),
+        'users':            User.objects.order_by('-date_joined')[:30],
+        'promos':           promocode.objects.order_by('-expiry_date'),
+        'top_products':     [],
+        'edit_product':     edit_product,
+        'cancel_requests':  cancel_requests,
+        'pending_cancels':  cancel_requests.filter(status='pending').count(),
         'stats': {
-            'order_count':    0,
-            'revenue':        0,
-            'today_orders':   0,
-            'product_count':  Product.objects.count(),
-            'user_count':     User.objects.count(),
-            'pending_count':  0,
-            'delivered_count': 0,
-            'wishlist_count': Wishlist.objects.count(),
+            'order_count':     Order.objects.count(),
+            'revenue':         sum(o.total for o in Order.objects.all()),
+            'today_orders':    Order.objects.filter(created_at__date=timezone.now().date()).count(),
+            'product_count':   Product.objects.count(),
+            'user_count':      User.objects.count(),
+            'pending_count':   Order.objects.filter(status='pending').count(),
+            'delivered_count': Order.objects.filter(status='delivered').count(),
+            'wishlist_count':  Wishlist.objects.count(),
         },
         'by_status': {},
     })

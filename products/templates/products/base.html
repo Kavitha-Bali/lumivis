@@ -5,11 +5,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" type="image/png" href="{% static 'Samanyastra.png' %}"/>
-  <title>{% block title %}Lumivis Pvt. Ltd.{% endblock %}</title>
+  <title>{% block title %}Lumivis.Pvt.Ltd{% endblock %}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Sora:wght@700;800;900&family=Cinzel+Decorative:wght@400;700;900&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="{% static 'products/css/style.css' %}?v=3" />
+  <link rel="stylesheet" href="{% static 'products/css/style.css' %}?v=2" />
+  <link rel="stylesheet" href="{% static 'products/css/home.css' %}?v=4" />
   {% block extra_css %}{% endblock %}
 </head>
 <body>
@@ -23,7 +24,7 @@
     </button>
 
     <a href="{% url 'home' %}" class="nav-brand">
-      <img src="{% static 'Samanyastra.png' %}" alt="Samanyastra" class="nav-brand-logo" />
+      <img src="{% static 'logoo.png' %}" alt="Lumivis Pvt. Ltd." class="nav-brand-logo" />
     </a>
 
     <ul class="nav-links" role="list">

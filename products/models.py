@@ -38,6 +38,50 @@ class promocode(models.Model):
         return self.promo_code
 
 
+class Order(models.Model):
+    STATUS_CHOICES = [
+        ('pending',   'Pending'),
+        ('confirmed', 'Confirmed'),
+        ('shipped',   'Shipped'),
+        ('delivered', 'Delivered'),
+        ('cancelled', 'Cancelled'),
+    ]
+    order_id      = models.CharField(max_length=20, unique=True)
+    user          = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='orders')
+    customer_name = models.CharField(max_length=100)
+    phone         = models.CharField(max_length=20)
+    items_text    = models.TextField()
+    total         = models.DecimalField(max_digits=10, decimal_places=2)
+    urgent        = models.BooleanField(default=False)
+    delivery_date = models.CharField(max_length=20, blank=True)
+    urgent_charge = models.DecimalField(max_digits=8, decimal_places=2, default=0)
+    status        = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    created_at    = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.order_id
+
+    @property
+    def can_cancel(self):
+        return self.status in ('pending', 'confirmed') and not hasattr(self, '_cancel_request_cache')
+
+
+class CancelRequest(models.Model):
+    CANCEL_STATUS = [
+        ('pending',  'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    ]
+    order        = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='cancel_request')
+    reason       = models.TextField()
+    status       = models.CharField(max_length=20, choices=CANCEL_STATUS, default='pending')
+    requested_at = models.DateTimeField(auto_now_add=True)
+    reviewed_at  = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return f"Cancel — {self.order.order_id} [{self.status}]"
+
+
 class Wishlist(models.Model):
     user     = models.ForeignKey(User, on_delete=models.CASCADE, related_name='wishlist')
     product  = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='wishlisted_by')

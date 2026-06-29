@@ -41,7 +41,7 @@ body { background: #f1f5f9; }
   width: auto;
   object-fit: contain;
   display: block;
-  filter: brightness(0) invert(1);
+  border-radius: 8px;
   transition: opacity .2s;
 }
 .ap-logo-img:hover { opacity: .85; }
@@ -130,34 +130,6 @@ body { background: #f1f5f9; }
   pointer-events: none;
 }
 .ap-dash-hero-left { z-index: 1; }
-.ap-dash-hero-logo {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  z-index: 1;
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(255,255,255,.12);
-  border-radius: 16px;
-  padding: 16px 24px;
-  backdrop-filter: blur(8px);
-  flex-shrink: 0;
-}
-.ap-dash-logo-img {
-  height: 60px;
-  max-width: 180px;
-  width: auto;
-  object-fit: contain;
-  display: block;
-  filter: brightness(0) invert(1);
-}
-.ap-dash-logo-label {
-  font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-  color: #a5b4fc;
-}
 
 /* ── Page header ── */
 .ap-page-hd { margin-bottom: 24px; }
@@ -379,7 +351,9 @@ body { background: #f1f5f9; }
   <!-- ════════════ SIDEBAR ════════════ -->
   <aside class="ap-sidebar" id="apSidebar">
     <div class="ap-logo">
-      <img src="{% static 'logoo.png' %}" alt="Lumivis" class="ap-logo-img" />
+      <img src="{% static 'logoo.png' %}" alt="Lumivis Pvt. Ltd."
+           style="height:52px;width:auto;max-width:170px;object-fit:contain;
+                  display:block;border-radius:8px;" />
       <span class="ap-logo-sub">Admin Panel</span>
     </div>
 
@@ -406,6 +380,11 @@ body { background: #f1f5f9; }
       <a href="?s=promos" class="ap-nav-item {% if section == 'promos' %}active{% endif %}">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
         Promo Codes
+      </a>
+      <a href="?s=cancellations" class="ap-nav-item {% if section == 'cancellations' %}active{% endif %}">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        Cancellations
+        {% if pending_cancels %}<span class="ap-nav-badge" style="background:#ef4444;">{{ pending_cancels }}</span>{% endif %}
       </a>
     </div>
 
@@ -465,10 +444,6 @@ body { background: #f1f5f9; }
         </div>
         <h1 class="ap-page-title">Welcome back, {{ user.first_name|default:user.username }}!</h1>
         <p class="ap-page-sub">Here's a live overview of your store's performance.</p>
-      </div>
-      <div class="ap-dash-hero-logo">
-        <img src="{% static 'logoo.png' %}" alt="Lumivis" class="ap-dash-logo-img" />
-        <span class="ap-dash-logo-label">Admin Console</span>
       </div>
     </div>
 
@@ -985,6 +960,80 @@ body { background: #f1f5f9; }
           </tr>
           {% empty %}
           <tr><td colspan="5" class="ap-empty">No promo codes yet. <a href="{% url 'lumivis_admin:products_promocode_add' %}">Create one →</a></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ────────── CANCELLATIONS ────────── -->
+    {% elif section == 'cancellations' %}
+    <div class="ap-page-hd">
+      <h1 class="ap-page-title">Order Cancellation Requests</h1>
+      <p class="ap-page-sub">Review and approve or reject customer cancellation requests.</p>
+    </div>
+
+    <div class="ap-table-wrap">
+      <table class="ap-table">
+        <thead>
+          <tr>
+            <th>Order ID</th>
+            <th>Customer</th>
+            <th>Total</th>
+            <th>Reason</th>
+            <th>Requested</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for cr in cancel_requests %}
+          <tr>
+            <td><strong class="ap-mono" style="color:#818cf8;">{{ cr.order.order_id }}</strong></td>
+            <td>
+              <div style="font-weight:600;color:#e2e8f0;">{{ cr.order.customer_name }}</div>
+              <div style="font-size:0.75rem;color:#64748b;">{{ cr.order.phone }}</div>
+            </td>
+            <td><strong style="color:#34d399;">₹{{ cr.order.total }}</strong></td>
+            <td style="max-width:220px;">
+              <div style="font-size:0.83rem;color:#94a3b8;white-space:pre-wrap;word-break:break-word;">{{ cr.reason }}</div>
+            </td>
+            <td style="font-size:0.78rem;color:#64748b;">{{ cr.requested_at|date:"d M Y, H:i" }}</td>
+            <td>
+              {% if cr.status == 'pending' %}
+                <span class="sb" style="background:rgba(251,191,36,.12);color:#fbbf24;border:1px solid rgba(251,191,36,.3);">Pending</span>
+              {% elif cr.status == 'approved' %}
+                <span class="sb" style="background:rgba(239,68,68,.1);color:#f87171;border:1px solid rgba(239,68,68,.3);">Approved</span>
+              {% else %}
+                <span class="sb" style="background:rgba(100,116,139,.1);color:#94a3b8;border:1px solid #1e2d3d;">Rejected</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if cr.status == 'pending' %}
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <a href="{% url 'admin_cancel_review' cr.pk 'approve' %}"
+                   style="display:inline-flex;align-items:center;gap:4px;background:rgba(239,68,68,.12);
+                          border:1px solid rgba(239,68,68,.35);color:#f87171;padding:5px 12px;
+                          border-radius:7px;font-size:0.78rem;font-weight:700;text-decoration:none;"
+                   onclick="return confirm('Approve cancellation for {{ cr.order.order_id }}?')">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  Approve
+                </a>
+                <a href="{% url 'admin_cancel_review' cr.pk 'reject' %}"
+                   style="display:inline-flex;align-items:center;gap:4px;background:#1e2d42;
+                          border:1px solid #253347;color:#94a3b8;padding:5px 12px;
+                          border-radius:7px;font-size:0.78rem;font-weight:700;text-decoration:none;"
+                   onclick="return confirm('Reject cancellation for {{ cr.order.order_id }}?')">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  Reject
+                </a>
+              </div>
+              {% else %}
+              <span style="font-size:0.78rem;color:#475569;">Reviewed {{ cr.reviewed_at|date:"d M Y" }}</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="7" class="ap-empty">No cancellation requests yet.</td></tr>
           {% endfor %}
         </tbody>
       </table>
