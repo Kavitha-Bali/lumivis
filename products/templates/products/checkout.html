@@ -9,7 +9,7 @@
   <div class="checkout-layout">
 
     <!-- ── Shipping + Payment form ── -->
-    <form method="POST" class="checkout-form" id="checkoutForm" novalidate>
+    <form method="POST" class="checkout-form" id="checkoutForm" novalidate enctype="multipart/form-data">
       {% csrf_token %}
 
       <!-- Shipping Details -->
@@ -54,7 +54,10 @@
             <label for="city">City</label>
             <input type="text" id="city" name="city"
               placeholder="Hyderabad"
-              value="{{ form_data.city|default:'' }}" required />
+              value="{{ form_data.city|default:'' }}"
+              oninput="detectZoneFromCity(this.value)"
+              onchange="detectZoneFromCity(this.value)"
+              required />
           </div>
 
           <div class="field">
@@ -67,13 +70,65 @@
         </div>
       </div>
 
-      <!-- Payment Method — Online only -->
+      <!-- Delivery Zone -->
+      <div class="form-section">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:14px;">
+          <h2 class="form-section-title" style="margin-bottom:0;">Delivery Location</h2>
+          <div class="dz-loc-badge" id="dzLocBadge">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            Enter your city above
+          </div>
+        </div>
+        <div class="dz-wrap">
+
+          <label class="dz-option" id="dz-inside">
+            <input type="radio" name="delivery_zone" value="inside" checked
+                   onchange="updateDeliveryCharge(this.value)" />
+            <div class="dz-card">
+              <div class="dz-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                  <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+                </svg>
+              </div>
+              <div class="dz-info">
+                <span class="dz-name">Inside Visakhapatnam</span>
+                <span class="dz-desc">Delivery within city limits</span>
+              </div>
+              <span class="dz-price">₹100</span>
+              <span class="dz-check">&#10003;</span>
+            </div>
+          </label>
+
+          <label class="dz-option" id="dz-outside">
+            <input type="radio" name="delivery_zone" value="outside"
+                   onchange="updateDeliveryCharge(this.value)" />
+            <div class="dz-card">
+              <div class="dz-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                  <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
+                  <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                </svg>
+              </div>
+              <div class="dz-info">
+                <span class="dz-name">Outside Visakhapatnam</span>
+                <span class="dz-desc">Delivery to other cities &amp; states</span>
+              </div>
+              <span class="dz-price">₹250</span>
+              <span class="dz-check">&#10003;</span>
+            </div>
+          </label>
+
+        </div>
+        <input type="hidden" name="delivery_charge" id="deliveryChargeHidden" value="100" />
+      </div>
+
+      <!-- Payment Method — UPI only -->
       <div class="form-section">
         <h2 class="form-section-title">Payment Method</h2>
 
         <div class="co-pay-card">
 
-          <!-- Header row -->
+          <!-- Header -->
           <div class="co-pay-hd">
             <div class="co-pay-icon">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -83,44 +138,29 @@
               </svg>
             </div>
             <div>
-              <div class="co-pay-title">Online Payment</div>
-              <div class="co-pay-sub">100% Secure &nbsp;·&nbsp; UPI &nbsp;·&nbsp; Card &nbsp;·&nbsp; Net Banking</div>
+              <div class="co-pay-title">UPI Payment</div>
+              <div class="co-pay-sub">Paytm &nbsp;·&nbsp; PhonePe &nbsp;·&nbsp; GPay &nbsp;·&nbsp; BHIM</div>
             </div>
             <span class="co-pay-badge">&#10003; Active</span>
           </div>
 
-          <!-- Method tabs -->
-          <div class="co-pay-tabs">
-            <button type="button" class="co-tab co-tab-on" data-panel="upi-panel" onclick="switchTab(this)">
-              UPI
-            </button>
-            <button type="button" class="co-tab" data-panel="card-panel" onclick="switchTab(this)">
-              Debit / Credit Card
-            </button>
-            <button type="button" class="co-tab" data-panel="nb-panel" onclick="switchTab(this)">
-              Net Banking
-            </button>
-          </div>
-
-          <!-- UPI panel (default) -->
+          <!-- Step 1: Scan or copy UPI ID -->
           <div class="co-pay-panel" id="upi-panel">
-
-            <!-- Scan & Pay section -->
+            <div class="pay-step-label">
+              <span class="pay-step-num">1</span> Scan QR or copy UPI ID &amp; complete payment in your UPI app
+            </div>
             <div class="upi-scan-wrap">
               <div class="upi-qr-box">
                 {% load static %}
-                <img src="{% static 'pr.jpeg' %}" alt="Paytm UPI QR Code" class="upi-qr-img" />
+                <img src="{% static 'scanner.png' %}" alt="UPI QR Code" class="upi-qr-img" />
                 <div class="upi-qr-label">Scan with any UPI app</div>
                 <div class="upi-qr-apps">
-                  <span>Paytm</span>
-                  <span>PhonePe</span>
-                  <span>GPay</span>
-                  <span>BHIM</span>
+                  <span>Paytm</span><span>PhonePe</span><span>GPay</span><span>BHIM</span>
                 </div>
               </div>
               <div class="upi-or-divider"><span>OR</span></div>
               <div class="upi-id-box">
-                <div class="upi-id-label">Pay directly using UPI ID</div>
+                <div class="upi-id-label">Pay using UPI ID</div>
                 <div class="upi-id-row">
                   <span class="upi-id-val" id="upiIdVal">hemanth022@ptyes</span>
                   <button type="button" class="upi-copy-btn" onclick="copyUPI()" title="Copy UPI ID">
@@ -128,52 +168,40 @@
                     <span id="upiCopyLabel">Copy</span>
                   </button>
                 </div>
-                <p class="upi-id-hint">Open your UPI app → Pay → Enter this UPI ID → Pay the order total</p>
-              </div>
-            </div>
-
-            <div class="upi-notice">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-              After paying, click <strong>Place Order</strong> to confirm. Keep your transaction screenshot as proof.
-            </div>
-
-          </div>
-
-          <!-- Card panel -->
-          <div class="co-pay-panel" id="card-panel" style="display:none;">
-            <div class="form-grid">
-              <div class="field field-full" style="margin-bottom:14px;">
-                <label class="co-pay-label">Card Number</label>
-                <input type="text" class="co-pay-input" placeholder="1234  5678  9012  3456" maxlength="19" />
-              </div>
-              <div class="field" style="margin-bottom:0;">
-                <label class="co-pay-label">Expiry</label>
-                <input type="text" class="co-pay-input" placeholder="MM / YY" maxlength="7" />
-              </div>
-              <div class="field" style="margin-bottom:0;">
-                <label class="co-pay-label">CVV</label>
-                <input type="text" class="co-pay-input" placeholder="•••" maxlength="4" />
+                <p class="upi-id-hint">Open UPI app → Pay → Enter UPI ID → Pay total amount</p>
               </div>
             </div>
           </div>
 
-          <!-- Net Banking panel -->
-          <div class="co-pay-panel" id="nb-panel" style="display:none;">
-            <label class="co-pay-label">Select Bank</label>
-            <select class="co-pay-input">
-              <option value="">-- Choose your bank --</option>
-              <option>SBI</option>
-              <option>HDFC Bank</option>
-              <option>ICICI Bank</option>
-              <option>Axis Bank</option>
-              <option>Kotak Mahindra Bank</option>
-              <option>Punjab National Bank</option>
-              <option>Bank of Baroda</option>
-              <option>Canara Bank</option>
-            </select>
+          <!-- Divider -->
+          <div class="pay-divider">
+            <span>After paying, do step 2 below</span>
           </div>
 
-          <input type="hidden" name="payment_method" value="online" />
+          <!-- Step 2: Confirm via WhatsApp -->
+          <div class="pay-step2-wrap" id="payStep2Wrap">
+            <div class="pay-step-label" style="padding:0 0 14px;">
+              <span class="pay-step-num">2</span> Confirm your order on WhatsApp — then Place Order button will appear
+            </div>
+            <button type="button" class="pay-wa-btn" id="payWaBtn" onclick="markPaymentDone()">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/>
+              </svg>
+              Confirm Order on WhatsApp
+            </button>
+            <p class="pay-wa-hint">WhatsApp opens with your order details — send the message to confirm</p>
+          </div>
+
+          <!-- Step 2 done state (hidden by default) -->
+          <div class="pay-wa-done" id="payWaDone" style="display:none;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            <div>
+              <div class="pay-wa-done-title">WhatsApp message sent!</div>
+              <div class="pay-wa-done-sub">Now click <strong>Place Order</strong> below to complete your order.</div>
+            </div>
+          </div>
+
+          <input type="hidden" name="payment_method" value="upi" />
         </div>
       </div>
 
@@ -221,8 +249,9 @@
       <input type="hidden" name="urgent_delivery" id="urgentDeliveryHidden" value="no">
       <input type="hidden" name="urgent_charge"   id="urgentChargeHidden"   value="0">
 
-      <button type="submit" class="btn btn-dark btn-lg" style="width:100%;">
-        Place Order &nbsp;→
+      <button type="submit" class="btn btn-dark btn-lg place-order-btn" id="placeOrderBtn" style="display:none;width:100%;margin-top:8px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-3px;margin-right:8px;"><polyline points="20 6 9 17 4 12"/></svg>
+        Place Order — Confirm My Purchase
       </button>
     </form>
 
@@ -238,6 +267,14 @@
         <span>₹{{ item.subtotal }}</span>
       </div>
       {% endfor %}
+
+      <div class="summary-item" id="deliveryChargeRow">
+        <span class="summary-item-name">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          Delivery Charge
+        </span>
+        <span id="summaryDeliveryCharge" style="color:#818cf8;font-weight:700;">₹100</span>
+      </div>
 
       <div class="summary-item" id="urgentChargeRow" style="display:none;">
         <span class="summary-item-name" style="color:#f59e0b;">
@@ -322,6 +359,67 @@
 .co-pay-panel  { padding: 16px 20px; }
 .co-pay-label  { display: block; font-size: .8rem; font-weight: 600; color: #94a3b8; margin-bottom: 6px; }
 .co-pay-input  { width: 100%; }
+
+/* Delivery Zone */
+.dz-loc-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: .72rem;
+  font-weight: 700;
+  background: rgba(99,102,241,.1);
+  border: 1px solid rgba(99,102,241,.25);
+  color: #818cf8;
+  transition: background .25s, color .25s, border-color .25s;
+}
+.dz-loc-badge.inside  { background:rgba(52,211,153,.1); border-color:rgba(52,211,153,.3); color:#34d399; }
+.dz-loc-badge.outside { background:rgba(245,158,11,.1); border-color:rgba(245,158,11,.3); color:#f59e0b; }
+.dz-loc-badge.denied  { background:rgba(100,116,139,.1); border-color:rgba(100,116,139,.3); color:#94a3b8; }
+@keyframes dzSpin { to { transform:rotate(360deg); } }
+.dz-loc-spin { animation: dzSpin 1s linear infinite; }
+.dz-wrap { display:flex; flex-direction:column; gap:12px; }
+.dz-option { cursor:pointer; }
+.dz-option input[type="radio"] { display:none; }
+.dz-card {
+  display:flex; align-items:center; gap:14px;
+  background:#0f172a; border:2px solid #1e2d3d;
+  border-radius:14px; padding:16px 18px;
+  transition:border-color .2s, background .2s;
+  position:relative;
+}
+.dz-option input:checked + .dz-card {
+  border-color:#6366f1;
+  background:rgba(99,102,241,.07);
+}
+.dz-icon {
+  width:44px; height:44px; border-radius:11px;
+  background:rgba(99,102,241,.12);
+  color:#818cf8;
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink:0;
+}
+.dz-option input:checked + .dz-card .dz-icon {
+  background:rgba(99,102,241,.25); color:#a5b4fc;
+}
+.dz-info { flex:1; display:flex; flex-direction:column; gap:3px; }
+.dz-name { font-size:.92rem; font-weight:700; color:#e2e8f0; }
+.dz-desc { font-size:.72rem; color:#64748b; }
+.dz-price {
+  font-size:1.05rem; font-weight:800; color:#34d399;
+  flex-shrink:0;
+}
+.dz-check {
+  width:22px; height:22px; border-radius:50%;
+  border:2px solid #253347; color:transparent;
+  display:flex; align-items:center; justify-content:center;
+  font-size:.75rem; font-weight:800;
+  transition:all .2s; flex-shrink:0;
+}
+.dz-option input:checked + .dz-card .dz-check {
+  border-color:#6366f1; background:#6366f1; color:#fff;
+}
 
 /* UPI Scan & Pay */
 .upi-scan-wrap {
@@ -536,6 +634,121 @@
   font-size: .78rem;
   color: #94a3b8;
 }
+
+/* Payment step labels */
+.pay-step-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: .82rem;
+  font-weight: 700;
+  color: #94a3b8;
+  padding: 0 0 14px;
+}
+.pay-step-num {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(99,102,241,.2);
+  border: 1.5px solid rgba(99,102,241,.4);
+  color: #818cf8;
+  font-size: .75rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Divider between step 1 and step 2 */
+.pay-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 20px;
+  margin: 4px 0;
+}
+.pay-divider::before,
+.pay-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(37,51,71,.8);
+}
+.pay-divider span {
+  font-size: .7rem;
+  font-weight: 700;
+  color: #475569;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+/* Step 2 WhatsApp confirm area */
+.pay-step2-wrap {
+  padding: 18px 20px;
+  background: rgba(37,211,102,.04);
+  border-top: 1px solid #1e2d3d;
+}
+.pay-wa-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  background: #25d366;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 15px 20px;
+  font-size: 1rem;
+  font-weight: 800;
+  cursor: pointer;
+  letter-spacing: .01em;
+  transition: background .15s, transform .15s, box-shadow .15s;
+  box-shadow: 0 4px 18px rgba(37,211,102,.3);
+}
+.pay-wa-btn:hover {
+  background: #1ebe5a;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(37,211,102,.45);
+}
+.pay-wa-hint {
+  text-align: center;
+  font-size: .73rem;
+  color: #64748b;
+  margin: 10px 0 0;
+}
+
+/* Step 2 done state */
+.pay-wa-done {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 20px;
+  background: rgba(52,211,153,.07);
+  border-top: 1px solid rgba(52,211,153,.2);
+}
+.pay-wa-done-title {
+  font-size: .9rem;
+  font-weight: 800;
+  color: #34d399;
+}
+.pay-wa-done-sub {
+  font-size: .78rem;
+  color: #94a3b8;
+  margin-top: 3px;
+}
+.pay-wa-done-sub strong { color: #e2e8f0; }
+
+/* Place order button — animated reveal */
+.place-order-btn {
+  animation: slideUp .35s ease;
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 </style>
 
 <!-- ── Phone + tab JS ── -->
@@ -677,9 +890,179 @@ function updateUrgentCharge() {
   updateSummaryTotal(charge);
 }
 
-function updateSummaryTotal(urgentCharge) {
-  var base = parseFloat('{{ total }}') || 0;
-  document.getElementById('summaryTotal').textContent = '₹' + (base + urgentCharge).toFixed(2);
+/* --- Delivery zone switcher --- */
+function updateDeliveryCharge(zone) {
+  var charge = zone === 'outside' ? 250 : 100;
+  document.getElementById('deliveryChargeHidden').value = charge;
+  document.getElementById('summaryDeliveryCharge').textContent = '₹' + charge;
+  /* Recalculate total with current urgent charge */
+  var urgentVal = parseInt(document.getElementById('urgentChargeHidden').value) || 0;
+  updateSummaryTotal(urgentVal);
 }
+
+function updateSummaryTotal(urgentCharge) {
+  var base     = parseFloat('{{ total }}') || 0;
+  var delivery = parseInt(document.getElementById('deliveryChargeHidden').value) || 100;
+  document.getElementById('summaryTotal').textContent = '₹' + (base + delivery + urgentCharge).toFixed(2);
+}
+
+/* Init: apply delivery charge to total on page load */
+(function() {
+  var urgentVal = parseInt(document.getElementById('urgentChargeHidden').value) || 0;
+  updateSummaryTotal(urgentVal);
+}());
+
+/* --- City-based delivery zone auto-detection --- */
+var VIZAG_KEYWORDS = [
+  'visakhapatnam', 'vizag', 'vishakhapatnam', 'vishakapatnam',
+  'visakha', 'vskp', 'waltair'
+];
+
+function isVizagCity(city) {
+  var c = city.toLowerCase().trim();
+  for (var i = 0; i < VIZAG_KEYWORDS.length; i++) {
+    if (c.indexOf(VIZAG_KEYWORDS[i]) !== -1) return true;
+  }
+  return false;
+}
+
+function setZoneBadge(zone) {
+  var badge = document.getElementById('dzLocBadge');
+  if (!badge) return;
+  badge.classList.remove('inside', 'outside', 'denied');
+  var checkSvg = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>';
+  if (zone === 'inside') {
+    badge.classList.add('inside');
+    badge.innerHTML = checkSvg + ' Inside Visakhapatnam — ₹100';
+  } else if (zone === 'outside') {
+    badge.classList.add('outside');
+    badge.innerHTML = checkSvg + ' Outside Visakhapatnam — ₹250';
+  } else {
+    badge.classList.add('denied');
+    badge.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> Enter your city above';
+  }
+}
+
+function applyZone(zone) {
+  var radio = document.querySelector('input[name="delivery_zone"][value="' + zone + '"]');
+  if (radio) { radio.checked = true; updateDeliveryCharge(zone); }
+  setZoneBadge(zone);
+}
+
+function detectZoneFromCity(city) {
+  if (!city || city.trim().length < 2) { setZoneBadge(''); return; }
+  applyZone(isVizagCity(city) ? 'inside' : 'outside');
+}
+
+/* Run on page load if city field is pre-filled (e.g. form re-render) */
+(function() {
+  var cityEl = document.getElementById('city');
+  if (cityEl && cityEl.value.trim().length >= 2) {
+    detectZoneFromCity(cityEl.value);
+  }
+
+  /* GPS as bonus — works only on HTTPS/localhost */
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      function(pos) {
+        /* Only use GPS if city field is still empty */
+        var cityEl2 = document.getElementById('city');
+        if (cityEl2 && cityEl2.value.trim().length >= 2) return;
+        var lat = pos.coords.latitude;
+        var lng = pos.coords.longitude;
+        var insideVizag = (lat >= 17.55 && lat <= 17.85 && lng >= 83.10 && lng <= 83.55);
+        applyZone(insideVizag ? 'inside' : 'outside');
+      },
+      function() { /* GPS denied — city field is the primary trigger */ },
+      { timeout: 5000, maximumAge: 60000 }
+    );
+  }
+}());
+
+/* --- Payment confirmation: open WhatsApp then reveal Place Order --- */
+function markPaymentDone() {
+  /* Validate name & phone first */
+  var nameEl  = document.getElementById('full_name');
+  var name    = nameEl ? nameEl.value.trim() : '';
+  var phone   = phoneEl ? phoneEl.value.trim() : '';
+  var tail    = phone.slice(PFX.length).replace(/\D/g, '');
+
+  if (!name) {
+    alert('Please enter your Full Name before confirming payment.');
+    if (nameEl) nameEl.focus();
+    return;
+  }
+  if (!/^[6-9][0-9]{9}$/.test(tail)) {
+    alert('Please enter a valid phone number before confirming payment.');
+    if (phoneEl) phoneEl.focus();
+    return;
+  }
+
+  /* Collect form data */
+  var addressEl = document.getElementById('address');
+  var cityEl    = document.getElementById('city');
+  var address   = (addressEl ? addressEl.value.trim() : '') + (cityEl && cityEl.value.trim() ? ', ' + cityEl.value.trim() : '');
+
+  var zoneRadio     = document.querySelector('input[name="delivery_zone"]:checked');
+  var zone          = zoneRadio ? zoneRadio.value : 'inside';
+  var zoneLabel     = zone === 'inside' ? 'Inside Visakhapatnam' : 'Outside Visakhapatnam';
+  var deliveryCharge = parseInt(document.getElementById('deliveryChargeHidden').value) || 100;
+  var urgentCharge  = parseInt(document.getElementById('urgentChargeHidden').value) || 0;
+  var base          = parseFloat('{{ total }}') || 0;
+  var grandTotal    = (base + deliveryCharge + urgentCharge).toFixed(2);
+
+  /* Collect items from sidebar */
+  var itemLines = [];
+  document.querySelectorAll('.summary-item').forEach(function(row) {
+    var nameSpan = row.querySelector('.summary-item-name');
+    var priceSpan = row.querySelectorAll('span')[1];
+    if (!nameSpan) return;
+    var txt = nameSpan.textContent.trim();
+    /* Skip delivery and urgent rows */
+    if (txt.indexOf('Delivery') !== -1 || txt.indexOf('Urgent') !== -1) return;
+    var price = priceSpan ? priceSpan.textContent.trim() : '';
+    itemLines.push('  - ' + txt + (price ? '  ' + price : ''));
+  });
+
+  var urgentLine = '';
+  if (urgentCharge > 0) {
+    var dateEl = document.getElementById('delivery_date');
+    urgentLine = 'Urgent Delivery : Yes (Rs.' + urgentCharge + ')' + (dateEl && dateEl.value ? ' by ' + dateEl.value : '') + '\n';
+  }
+
+  /* Build WhatsApp message */
+  var msg =
+    'Hello Lumivis Team!\n\n' +
+    'I have completed my UPI payment. Please confirm my order.\n\n' +
+    'Customer : ' + name + '\n' +
+    'Phone    : ' + phone + '\n' +
+    'Address  : ' + (address || '—') + '\n' +
+    'Location : ' + zoneLabel + '\n' +
+    'UPI ID   : hemanth022@ptyes\n\n' +
+    'Items:\n' + (itemLines.length ? itemLines.join('\n') : '  —') + '\n\n' +
+    'Delivery Charge : Rs.' + deliveryCharge + '\n' +
+    urgentLine +
+    'Total Paid      : Rs.' + grandTotal + '\n\n' +
+    'Kindly confirm my order. Thank you!';
+
+  var waUrl = 'https://wa.me/919052337409?text=' + encodeURIComponent(msg);
+  window.open(waUrl, '_blank');
+
+  /* Hide step 2 button area, show done state */
+  var step2 = document.getElementById('payStep2Wrap');
+  if (step2) step2.style.display = 'none';
+  var done = document.getElementById('payWaDone');
+  if (done) done.style.display = 'flex';
+
+  /* Reveal Place Order button and scroll to it */
+  var btn = document.getElementById('placeOrderBtn');
+  if (btn) {
+    btn.style.display = 'block';
+    setTimeout(function() {
+      btn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 400);
+  }
+}
+
 </script>
 {% endblock %}

@@ -146,6 +146,41 @@ body { background: #f1f5f9; }
   grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
   gap: 14px; margin-bottom: 28px;
 }
+/* Transactions stat cards */
+.ap-stat-card {
+  display:flex; align-items:center; gap:14px;
+  background:#fff; border:1px solid #e2e8f0; border-radius:12px;
+  padding:16px 18px;
+}
+.ap-stat-icon {
+  width:42px; height:42px; border-radius:10px;
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.ap-stat-body { flex:1; min-width:0; }
+.ap-stat-val  { font-size:1.3rem; font-weight:900; color:#0f172a; line-height:1; }
+.ap-stat-lbl  { font-size:.72rem; color:#64748b; font-weight:600; margin-top:4px; }
+
+/* Order Success Summary cards */
+.ap-success-item {
+  display:flex; align-items:center; gap:12px;
+  background:#fff; border:1px solid #e2e8f0;
+  border-left-width:4px; border-radius:10px;
+  padding:12px 14px;
+}
+.ap-si-icon {
+  width:36px; height:36px; border-radius:9px;
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.ap-si-num  { font-size:1.25rem; font-weight:900; color:#0f172a; line-height:1; }
+.ap-si-lbl  { font-size:.72rem; color:#64748b; margin-top:3px; }
+.ap-si-btn  {
+  margin-left:auto; flex-shrink:0;
+  font-size:.72rem; font-weight:700; color:#6366f1;
+  background:rgba(99,102,241,.08); border:1px solid rgba(99,102,241,.2);
+  border-radius:7px; padding:4px 12px; text-decoration:none;
+}
+.ap-si-btn:hover { background:rgba(99,102,241,.15); }
+
 .ap-stat {
   background: #fff; border: 1px solid #e2e8f0; border-radius: 14px;
   padding: 18px 20px; position: relative; overflow: hidden;
@@ -381,6 +416,10 @@ body { background: #f1f5f9; }
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
         Promo Codes
       </a>
+      <a href="?s=transactions" class="ap-nav-item {% if section == 'transactions' %}active{% endif %}">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        Transactions
+      </a>
       <a href="?s=cancellations" class="ap-nav-item {% if section == 'cancellations' %}active{% endif %}">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         Cancellations
@@ -484,37 +523,93 @@ body { background: #f1f5f9; }
       </div>
     </div>
 
-    <!-- Status Pipeline -->
+    <!-- Order Status Pipeline -->
     <div class="ap-pipeline">
       <div class="ap-section-hd">
-        <span class="ap-section-title">Order Status Overview</span>
+        <span class="ap-section-title">Order Status Pipeline</span>
         <span style="font-size:0.78rem;color:#94a3b8;">{{ stats.order_count }} total orders</span>
       </div>
       <div class="ap-pipe-bar">
-        {% with p=by_status.pending|default:0 pr=by_status.processing|default:0 s=by_status.shipped|default:0 d=by_status.delivered|default:0 c=by_status.cancelled|default:0 %}
         {% if stats.order_count %}
-          {% if p %}<div class="ap-pipe-seg pending"    style="flex:{{ p }};"></div>{% endif %}
-          {% if pr %}<div class="ap-pipe-seg processing" style="flex:{{ pr }};"></div>{% endif %}
-          {% if s %}<div class="ap-pipe-seg shipped"    style="flex:{{ s }};"></div>{% endif %}
-          {% if d %}<div class="ap-pipe-seg delivered"  style="flex:{{ d }};"></div>{% endif %}
-          {% if c %}<div class="ap-pipe-seg cancelled"  style="flex:{{ c }};"></div>{% endif %}
+          {% if by_status.pending %}   <div class="ap-pipe-seg pending"   title="Pending {{ by_status.pending }}"   style="flex:{{ by_status.pending }};"></div>{% endif %}
+          {% if by_status.confirmed %} <div class="ap-pipe-seg confirmed" title="Confirmed {{ by_status.confirmed }}" style="flex:{{ by_status.confirmed }};background:#6366f1;"></div>{% endif %}
+          {% if by_status.shipped %}   <div class="ap-pipe-seg shipped"   title="Shipped {{ by_status.shipped }}"   style="flex:{{ by_status.shipped }};"></div>{% endif %}
+          {% if by_status.delivered %} <div class="ap-pipe-seg delivered" title="Delivered {{ by_status.delivered }}" style="flex:{{ by_status.delivered }};"></div>{% endif %}
+          {% if by_status.cancelled %} <div class="ap-pipe-seg cancelled" title="Cancelled {{ by_status.cancelled }}" style="flex:{{ by_status.cancelled }};"></div>{% endif %}
         {% else %}
-          <div style="flex:1;background:#f1f5f9;border-radius:20px;"></div>
+          <div style="flex:1;background:#e2e8f0;border-radius:20px;height:100%;"></div>
         {% endif %}
-        {% endwith %}
       </div>
       <div class="ap-pipe-legend">
         <span class="ap-pipe-item"><span class="ap-pipe-dot" style="background:#fcd34d;"></span>Pending <strong style="margin-left:4px;">{{ by_status.pending|default:0 }}</strong></span>
-        <span class="ap-pipe-item"><span class="ap-pipe-dot" style="background:#93c5fd;"></span>Processing <strong style="margin-left:4px;">{{ by_status.processing|default:0 }}</strong></span>
+        <span class="ap-pipe-item"><span class="ap-pipe-dot" style="background:#6366f1;"></span>Confirmed <strong style="margin-left:4px;">{{ by_status.confirmed|default:0 }}</strong></span>
         <span class="ap-pipe-item"><span class="ap-pipe-dot" style="background:#a78bfa;"></span>Shipped <strong style="margin-left:4px;">{{ by_status.shipped|default:0 }}</strong></span>
         <span class="ap-pipe-item"><span class="ap-pipe-dot" style="background:#6ee7b7;"></span>Delivered <strong style="margin-left:4px;">{{ by_status.delivered|default:0 }}</strong></span>
         <span class="ap-pipe-item"><span class="ap-pipe-dot" style="background:#fca5a5;"></span>Cancelled <strong style="margin-left:4px;">{{ by_status.cancelled|default:0 }}</strong></span>
       </div>
     </div>
 
-    <!-- Recent Orders + Top Products -->
+    <!-- Pending Orders — Confirm widget -->
+    {% if stats.pending_count %}
+    <div class="ap-section-hd" style="margin-top:28px;">
+      <span class="ap-section-title" style="color:#f59e0b;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-1px;margin-right:4px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        {{ stats.pending_count }} Pending Order{{ stats.pending_count|pluralize }} — Action Required
+      </span>
+      <a href="?s=orders&status=pending" class="ap-section-link">View all →</a>
+    </div>
+    <div class="ap-table-wrap" style="margin-bottom:28px;">
+      <table class="ap-table">
+        <thead>
+          <tr><th>Order ID</th><th>Customer</th><th>Phone</th><th>Items</th><th>Total</th><th>Date</th><th>Confirm Order</th><th>WhatsApp</th></tr>
+        </thead>
+        <tbody>
+          {% for o in recent_orders %}
+          {% if o.status == 'pending' %}
+          <tr style="background:rgba(245,158,11,.04);">
+            <td><strong class="ap-mono" style="color:#f59e0b;">{{ o.order_id }}</strong></td>
+            <td style="font-weight:600;color:#e2e8f0;">{{ o.customer_name|default:"Guest" }}</td>
+            <td style="color:#94a3b8;font-size:.82rem;">{{ o.phone|default:"—" }}</td>
+            <td style="font-size:.78rem;color:#94a3b8;max-width:140px;">{{ o.items_text|truncatechars:50 }}</td>
+            <td><strong style="color:#34d399;">₹{{ o.total }}</strong></td>
+            <td style="color:#64748b;font-size:.78rem;white-space:nowrap;">{{ o.created_at|date:"d M, H:i" }}</td>
+            <td>
+              <form method="POST" action="?s=dashboard" style="display:inline;">
+                {% csrf_token %}
+                <input type="hidden" name="action"     value="update_order" />
+                <input type="hidden" name="order_id"   value="{{ o.pk }}" />
+                <input type="hidden" name="new_status" value="confirmed" />
+                <button type="submit"
+                        style="display:inline-flex;align-items:center;gap:6px;
+                               background:#6366f1;border:none;color:#fff;
+                               border-radius:9px;padding:7px 16px;
+                               font-size:.8rem;font-weight:700;cursor:pointer;">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  Confirm
+                </button>
+              </form>
+            </td>
+            <td>
+              <a href="https://wa.me/{{ o.phone|slice:'1:' }}?text=Hi%20{{ o.customer_name|urlencode }}%2C%20your%20order%20{{ o.order_id }}%20is%20confirmed!%20-%20Lumivis%20Team"
+                 target="_blank" rel="noopener"
+                 style="display:inline-flex;align-items:center;gap:5px;
+                        background:rgba(37,211,102,.12);border:1px solid rgba(37,211,102,.3);
+                        color:#4ade80;border-radius:9px;padding:6px 12px;
+                        font-size:.78rem;font-weight:700;text-decoration:none;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+                Notify
+              </a>
+            </td>
+          </tr>
+          {% endif %}
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+
+    <!-- Recent Orders table (all statuses) -->
     <div class="ap-two">
-      <!-- Recent Orders -->
       <div>
         <div class="ap-section-hd">
           <span class="ap-section-title">Recent Orders</span>
@@ -522,43 +617,90 @@ body { background: #f1f5f9; }
         </div>
         <div class="ap-table-wrap">
           <table class="ap-table">
-            <thead><tr><th>Order</th><th>Product</th><th>Customer</th><th>Total</th><th>Status</th></tr></thead>
+            <thead>
+              <tr><th>Order ID</th><th>Customer</th><th>Total</th><th>Delivery</th><th>Date</th><th>Status</th></tr>
+            </thead>
             <tbody>
               {% for o in recent_orders %}
               <tr>
-                <td class="ap-mono">#{{ o.transaction_id }}</td>
-                <td>{{ o.product.name|truncatechars:20 }}</td>
-                <td style="color:#64748b;">{{ o.user.username|default:"Guest" }}</td>
-                <td><strong>₹{{ o.total_price }}</strong></td>
+                <td><strong class="ap-mono" style="color:#818cf8;font-size:.85rem;">{{ o.order_id }}</strong></td>
+                <td>
+                  <div style="font-weight:600;color:#334155;">{{ o.customer_name|default:"Guest" }}</div>
+                  <div style="font-size:.72rem;color:#94a3b8;">{{ o.phone|default:"" }}</div>
+                </td>
+                <td><strong style="color:#059669;">₹{{ o.total }}</strong></td>
+                <td style="font-size:.78rem;">
+                  {% if o.delivery_zone == 'inside' %}<span style="color:#6366f1;">Inside Vzm</span>
+                  {% else %}<span style="color:#7c3aed;">Outside Vzm</span>{% endif %}
+                  <div style="color:#94a3b8;">₹{{ o.delivery_charge }}</div>
+                </td>
+                <td style="color:#94a3b8;font-size:.78rem;white-space:nowrap;">{{ o.created_at|date:"d M Y" }}</td>
                 <td><span class="sb {{ o.status }}">{{ o.get_status_display }}</span></td>
               </tr>
               {% empty %}
-              <tr><td colspan="5" class="ap-empty">No orders yet.</td></tr>
+              <tr><td colspan="6" class="ap-empty">No orders yet.</td></tr>
               {% endfor %}
             </tbody>
           </table>
         </div>
       </div>
 
-      <!-- Top Products bar chart -->
+      <!-- Order success summary -->
       <div>
         <div class="ap-section-hd">
-          <span class="ap-section-title">Top Selling Products</span>
+          <span class="ap-section-title">Order Success Summary</span>
         </div>
-        <div class="ap-table-wrap" style="padding:20px 22px;">
-          {% for p in top_products %}
-          <div class="ap-bar-row">
-            <div class="ap-bar-meta">
-              <span class="ap-bar-name">{{ p.product__name|truncatechars:26 }}</span>
-              <span class="ap-bar-count">{{ p.units_sold }} sold</span>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div class="ap-success-item" style="border-left-color:#f59e0b;">
+            <div class="ap-si-icon" style="background:rgba(245,158,11,.12);color:#f59e0b;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
             </div>
-            <div class="ap-bar-track">
-              <div class="ap-bar-fill" style="width:{% if top_products.0.units_sold %}{% widthratio p.units_sold top_products.0.units_sold 100 %}{% else %}0{% endif %}%;"></div>
+            <div>
+              <div class="ap-si-num">{{ by_status.pending|default:0 }}</div>
+              <div class="ap-si-lbl">Pending — awaiting confirmation</div>
             </div>
+            <a href="?s=orders&status=pending" class="ap-si-btn">Review</a>
           </div>
-          {% empty %}
-          <div class="ap-empty">No sales data yet.</div>
-          {% endfor %}
+          <div class="ap-success-item" style="border-left-color:#6366f1;">
+            <div class="ap-si-icon" style="background:rgba(99,102,241,.12);color:#6366f1;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div>
+              <div class="ap-si-num">{{ by_status.confirmed|default:0 }}</div>
+              <div class="ap-si-lbl">Confirmed — payment received</div>
+            </div>
+            <a href="?s=orders&status=confirmed" class="ap-si-btn">View</a>
+          </div>
+          <div class="ap-success-item" style="border-left-color:#0ea5e9;">
+            <div class="ap-si-icon" style="background:rgba(14,165,233,.12);color:#0ea5e9;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+            </div>
+            <div>
+              <div class="ap-si-num">{{ by_status.shipped|default:0 }}</div>
+              <div class="ap-si-lbl">Shipped — out for delivery</div>
+            </div>
+            <a href="?s=orders&status=shipped" class="ap-si-btn">View</a>
+          </div>
+          <div class="ap-success-item" style="border-left-color:#10b981;">
+            <div class="ap-si-icon" style="background:rgba(16,185,129,.12);color:#10b981;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            </div>
+            <div>
+              <div class="ap-si-num">{{ by_status.delivered|default:0 }}</div>
+              <div class="ap-si-lbl">Delivered — order complete</div>
+            </div>
+            <a href="?s=orders&status=delivered" class="ap-si-btn">View</a>
+          </div>
+          <div class="ap-success-item" style="border-left-color:#ef4444;">
+            <div class="ap-si-icon" style="background:rgba(239,68,68,.12);color:#ef4444;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </div>
+            <div>
+              <div class="ap-si-num">{{ by_status.cancelled|default:0 }}</div>
+              <div class="ap-si-lbl">Cancelled</div>
+            </div>
+            <a href="?s=cancellations" class="ap-si-btn" style="color:#f87171;">View</a>
+          </div>
         </div>
       </div>
     </div>
@@ -574,51 +716,256 @@ body { background: #f1f5f9; }
     <!-- Filter pills -->
     <div class="ap-filter">
       <a href="?s=orders" class="ap-pill {% if not status_filter %}active{% endif %}">All ({{ stats.order_count }})</a>
-      {% for key, label in status_choices %}
-      <a href="?s=orders&status={{ key }}" class="ap-pill {{ key }} {% if status_filter == key %}active{% endif %}">
-        {{ label }} &nbsp;<strong>{{ by_status|default_if_none:0 }}</strong>
-      </a>
-      {% endfor %}
+      <a href="?s=orders&status=pending"   class="ap-pill pending   {% if status_filter == 'pending' %}active{% endif %}">Pending <strong>{{ by_status.pending|default:0 }}</strong></a>
+      <a href="?s=orders&status=confirmed" class="ap-pill confirmed {% if status_filter == 'confirmed' %}active{% endif %}">Confirmed <strong>{{ by_status.confirmed|default:0 }}</strong></a>
+      <a href="?s=orders&status=shipped"   class="ap-pill shipped   {% if status_filter == 'shipped' %}active{% endif %}">Shipped <strong>{{ by_status.shipped|default:0 }}</strong></a>
+      <a href="?s=orders&status=delivered" class="ap-pill delivered {% if status_filter == 'delivered' %}active{% endif %}">Delivered <strong>{{ by_status.delivered|default:0 }}</strong></a>
+      <a href="?s=orders&status=cancelled" class="ap-pill cancelled {% if status_filter == 'cancelled' %}active{% endif %}">Cancelled <strong>{{ by_status.cancelled|default:0 }}</strong></a>
     </div>
 
     <div class="ap-table-wrap">
       <table class="ap-table">
         <thead>
-          <tr><th>Order ID</th><th>Date</th><th>Customer</th><th>Product</th><th>Qty</th><th>Total</th><th>Status</th><th>Update</th></tr>
+          <tr>
+            <th>Order ID</th>
+            <th>Date</th>
+            <th>Customer</th>
+            <th>Phone</th>
+            <th>Items</th>
+            <th>Delivery</th>
+            <th>Total</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
         </thead>
         <tbody>
           {% for o in orders %}
           <tr>
-            <td class="ap-mono">#{{ o.transaction_id }}</td>
-            <td style="color:#64748b;white-space:nowrap;font-size:0.8rem;">{{ o.transaction_date|date:"d M Y" }}</td>
-            <td>{{ o.user.username|default:"Guest" }}</td>
+            <td><strong class="ap-mono" style="color:#818cf8;">{{ o.order_id }}</strong></td>
+            <td style="color:#64748b;white-space:nowrap;font-size:0.8rem;">{{ o.created_at|date:"d M Y, H:i" }}</td>
             <td>
-              <div style="display:flex;align-items:center;gap:8px;">
-                {% if o.product.image %}
-                  <img src="{{ o.product.image.url }}" alt="" class="ap-thumb" />
-                {% endif %}
-                {{ o.product.name|truncatechars:24 }}
-              </div>
+              <div style="font-weight:600;color:#e2e8f0;">{{ o.customer_name|default:"Guest" }}</div>
+              {% if o.user %}<div style="font-size:.72rem;color:#64748b;">@{{ o.user.username }}</div>{% endif %}
             </td>
-            <td style="text-align:center;">{{ o.quantity }}</td>
-            <td><strong>₹{{ o.total_price }}</strong></td>
+            <td style="color:#94a3b8;font-size:.82rem;">{{ o.phone|default:"—" }}</td>
+            <td style="max-width:160px;">
+              <div style="font-size:.75rem;color:#94a3b8;white-space:pre-line;line-height:1.5;">{{ o.items_text|truncatechars:60 }}</div>
+            </td>
+            <td style="font-size:.78rem;">
+              {% if o.delivery_zone == 'inside' %}<span style="color:#818cf8;">Inside Vzm</span>
+              {% else %}<span style="color:#a78bfa;">Outside Vzm</span>{% endif %}
+              <div style="color:#64748b;">₹{{ o.delivery_charge }}</div>
+            </td>
+            <td><strong style="color:#34d399;">₹{{ o.total }}</strong></td>
             <td><span class="sb {{ o.status }}">{{ o.get_status_display }}</span></td>
             <td>
-              <form method="POST" action="?s=orders{% if status_filter %}&status={{ status_filter }}{% endif %}" class="status-form">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="update_order" />
-                <input type="hidden" name="order_id" value="{{ o.pk }}" />
-                <select name="new_status" class="status-select">
-                  {% for key, label in status_choices %}
-                  <option value="{{ key }}" {% if o.status == key %}selected{% endif %}>{{ label }}</option>
-                  {% endfor %}
-                </select>
-                <button type="submit" class="status-save">Save</button>
-              </form>
+              <div style="display:flex;flex-direction:column;gap:5px;min-width:130px;">
+                <!-- Status update -->
+                <form method="POST" action="?s=orders{% if status_filter %}&status={{ status_filter }}{% endif %}" style="display:flex;gap:4px;">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="update_order" />
+                  <input type="hidden" name="order_id" value="{{ o.pk }}" />
+                  <select name="new_status" class="status-select" style="flex:1;font-size:.72rem;">
+                    {% for key, label in status_choices %}
+                    <option value="{{ key }}" {% if o.status == key %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                  </select>
+                  <button type="submit" class="status-save" style="font-size:.72rem;padding:4px 8px;">✓</button>
+                </form>
+                <!-- WhatsApp customer -->
+                <a href="https://wa.me/{{ o.phone|slice:'1:' }}?text={{ 'Hi '|add:o.customer_name|add:', your order '|add:o.order_id|add:' has been received. We will confirm shortly. - Lumivis Team'|urlencode }}"
+                   target="_blank" rel="noopener"
+                   style="display:inline-flex;align-items:center;gap:4px;background:rgba(37,211,102,.1);
+                          border:1px solid rgba(37,211,102,.3);color:#4ade80;border-radius:7px;
+                          padding:4px 8px;font-size:.7rem;font-weight:700;text-decoration:none;">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+                  WhatsApp
+                </a>
+              </div>
             </td>
           </tr>
           {% empty %}
-          <tr><td colspan="8" class="ap-empty">No orders found.</td></tr>
+          <tr><td colspan="9" class="ap-empty">No orders found.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+
+    <!-- ────────── TRANSACTIONS ────────── -->
+    {% elif section == 'transactions' %}
+    <div class="ap-page-hd">
+      <h1 class="ap-page-title">Transactions</h1>
+      <p class="ap-page-sub">All UPI payment transactions and order revenue summary.</p>
+    </div>
+
+    <!-- Summary cards -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:28px;">
+      <div class="ap-stat-card" style="border-left:4px solid #34d399;">
+        <div class="ap-stat-icon" style="background:rgba(52,211,153,.12);color:#34d399;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        </div>
+        <div class="ap-stat-body">
+          <div class="ap-stat-val">₹{{ stats.revenue|floatformat:0 }}</div>
+          <div class="ap-stat-lbl">Total Revenue</div>
+        </div>
+      </div>
+      <div class="ap-stat-card" style="border-left:4px solid #818cf8;">
+        <div class="ap-stat-icon" style="background:rgba(129,140,248,.12);color:#818cf8;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+        </div>
+        <div class="ap-stat-body">
+          <div class="ap-stat-val">{{ stats.order_count }}</div>
+          <div class="ap-stat-lbl">Total Orders</div>
+        </div>
+      </div>
+      <div class="ap-stat-card" style="border-left:4px solid #f59e0b;">
+        <div class="ap-stat-icon" style="background:rgba(245,158,11,.12);color:#f59e0b;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div class="ap-stat-body">
+          <div class="ap-stat-val">{{ stats.pending_count }}</div>
+          <div class="ap-stat-lbl">Pending</div>
+        </div>
+      </div>
+      <div class="ap-stat-card" style="border-left:4px solid #6366f1;">
+        <div class="ap-stat-icon" style="background:rgba(99,102,241,.12);color:#6366f1;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="ap-stat-body">
+          <div class="ap-stat-val">{{ stats.confirmed_count }}</div>
+          <div class="ap-stat-lbl">Confirmed</div>
+        </div>
+      </div>
+      <div class="ap-stat-card" style="border-left:4px solid #0ea5e9;">
+        <div class="ap-stat-icon" style="background:rgba(14,165,233,.12);color:#0ea5e9;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+        </div>
+        <div class="ap-stat-body">
+          <div class="ap-stat-val">{{ stats.shipped_count }}</div>
+          <div class="ap-stat-lbl">Shipped</div>
+        </div>
+      </div>
+      <div class="ap-stat-card" style="border-left:4px solid #10b981;">
+        <div class="ap-stat-icon" style="background:rgba(16,185,129,.12);color:#10b981;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+        </div>
+        <div class="ap-stat-body">
+          <div class="ap-stat-val">{{ stats.delivered_count }}</div>
+          <div class="ap-stat-lbl">Delivered</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Today summary bar -->
+    <div style="display:flex;align-items:center;justify-content:space-between;background:#0f172a;
+                border:1px solid #1e293b;border-radius:12px;padding:14px 20px;margin-bottom:22px;flex-wrap:wrap;gap:12px;">
+      <div style="font-size:.82rem;color:#64748b;font-weight:600;">
+        <span style="color:#f59e0b;">Today</span> — {{ stats.today_orders }} order{{ stats.today_orders|pluralize }}
+      </div>
+      <div style="font-size:1.1rem;font-weight:800;color:#34d399;">
+        Revenue today: ₹{{ stats.today_revenue|floatformat:0 }}
+      </div>
+      <div style="display:flex;gap:8px;">
+        <span style="font-size:.72rem;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);
+                     color:#f87171;padding:3px 10px;border-radius:20px;font-weight:700;">
+          {{ stats.cancelled_count }} Cancelled
+        </span>
+      </div>
+    </div>
+
+    <!-- Transaction table -->
+    <div class="ap-table-wrap">
+      <table class="ap-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Order ID</th>
+            <th>Date &amp; Time</th>
+            <th>Customer</th>
+            <th>Phone</th>
+            <th>Items</th>
+            <th>Delivery</th>
+            <th>Amount</th>
+            <th>Payment</th>
+            <th>Status</th>
+            <th>Confirm</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for o in recent_orders %}
+          <tr>
+            <td style="color:#475569;font-size:.78rem;">{{ forloop.counter }}</td>
+            <td><strong class="ap-mono" style="color:#818cf8;font-size:.85rem;">{{ o.order_id }}</strong></td>
+            <td style="color:#64748b;font-size:.78rem;white-space:nowrap;">
+              {{ o.created_at|date:"d M Y" }}<br>
+              <span style="color:#475569;">{{ o.created_at|date:"H:i" }}</span>
+            </td>
+            <td>
+              <div style="font-weight:600;color:#e2e8f0;font-size:.85rem;">{{ o.customer_name|default:"Guest" }}</div>
+              {% if o.user %}<div style="font-size:.7rem;color:#475569;">@{{ o.user.username }}</div>{% endif %}
+            </td>
+            <td style="color:#94a3b8;font-size:.82rem;">{{ o.phone|default:"—" }}</td>
+            <td style="max-width:140px;font-size:.75rem;color:#94a3b8;white-space:pre-line;line-height:1.4;">{{ o.items_text|truncatechars:55 }}</td>
+            <td style="font-size:.78rem;text-align:center;">
+              <div style="font-weight:700;{% if o.delivery_zone == 'inside' %}color:#818cf8;{% else %}color:#a78bfa;{% endif %}">
+                {% if o.delivery_zone == 'inside' %}Inside{% else %}Outside{% endif %}
+              </div>
+              <div style="color:#475569;">₹{{ o.delivery_charge }}</div>
+            </td>
+            <td>
+              <div style="font-size:1rem;font-weight:800;color:#34d399;">₹{{ o.total }}</div>
+            </td>
+            <td style="text-align:center;">
+              <span style="display:inline-flex;align-items:center;gap:4px;background:rgba(37,211,102,.1);
+                           border:1px solid rgba(37,211,102,.25);color:#4ade80;border-radius:8px;
+                           padding:3px 10px;font-size:.7rem;font-weight:700;">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0;"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+                UPI
+              </span>
+            </td>
+            <td><span class="sb {{ o.status }}">{{ o.get_status_display }}</span></td>
+            <td>
+              {% if o.status == 'pending' %}
+              <form method="POST" action="?s=transactions" style="display:inline;">
+                {% csrf_token %}
+                <input type="hidden" name="action"     value="update_order" />
+                <input type="hidden" name="order_id"   value="{{ o.pk }}" />
+                <input type="hidden" name="new_status" value="confirmed" />
+                <button type="submit" class="ap-action-btn ap-btn-dark"
+                        style="padding:5px 12px;font-size:.72rem;background:#6366f1;border:none;color:#fff;border-radius:8px;cursor:pointer;">
+                  ✓ Confirm
+                </button>
+              </form>
+              {% elif o.status == 'confirmed' %}
+              <form method="POST" action="?s=transactions" style="display:inline;">
+                {% csrf_token %}
+                <input type="hidden" name="action"     value="update_order" />
+                <input type="hidden" name="order_id"   value="{{ o.pk }}" />
+                <input type="hidden" name="new_status" value="shipped" />
+                <button type="submit" class="ap-action-btn"
+                        style="padding:5px 12px;font-size:.72rem;background:#0ea5e9;border:none;color:#fff;border-radius:8px;cursor:pointer;">
+                  Ship →
+                </button>
+              </form>
+              {% elif o.status == 'shipped' %}
+              <form method="POST" action="?s=transactions" style="display:inline;">
+                {% csrf_token %}
+                <input type="hidden" name="action"     value="update_order" />
+                <input type="hidden" name="order_id"   value="{{ o.pk }}" />
+                <input type="hidden" name="new_status" value="delivered" />
+                <button type="submit" class="ap-action-btn"
+                        style="padding:5px 12px;font-size:.72rem;background:#10b981;border:none;color:#fff;border-radius:8px;cursor:pointer;">
+                  Delivered
+                </button>
+              </form>
+              {% else %}
+              <span style="font-size:.72rem;color:#475569;">—</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="11" class="ap-empty">No transactions yet.</td></tr>
           {% endfor %}
         </tbody>
       </table>
@@ -749,17 +1096,32 @@ body { background: #f1f5f9; }
               </div>
             </div>
             <div class="pf-field">
-              <label class="pf-label">Cover / Thumbnail Image</label>
+              <label class="pf-label">Thumbnail Image</label>
               <div class="pf-upload-wrap">
                 <input type="file" name="thumbnail" id="addThumbInput" accept="image/*" class="pf-file-input"
                        onchange="previewImage(this,'addThumbPreview')" />
                 <label for="addThumbInput" class="pf-upload-label">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="3"/><path d="M7 8h10M7 12h6"/></svg>
-                  <span>Choose cover image</span>
-                  <small style="color:#94a3b8;">Shown on product cards & listings</small>
+                  <span>Choose thumbnail</span>
+                  <small style="color:#94a3b8;">Small square — shown on product cards</small>
                 </label>
                 <img id="addThumbPreview" src="" alt="" class="pf-preview" style="display:none;" />
               </div>
+            </div>
+          </div>
+          <!-- Cover Image — full width row -->
+          <div class="pf-field" style="margin-top:8px;">
+            <label class="pf-label">Cover Image <span style="font-size:.7rem;color:#818cf8;font-weight:600;">(Banner / Hero)</span></label>
+            <div class="pf-upload-wrap">
+              <input type="file" name="cover_image" id="addCoverInput" accept="image/*" class="pf-file-input"
+                     onchange="previewImage(this,'addCoverPreview')" />
+              <label for="addCoverInput" class="pf-upload-label" style="border-color:rgba(99,102,241,.4);background:rgba(99,102,241,.04);">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="1.5"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><polyline points="21 14 16 9 5 20"/></svg>
+                <span style="color:#6366f1;">Choose cover image</span>
+                <small style="color:#818cf8;">Wide banner image — shown at top of product detail page (recommended: 1200×400 px)</small>
+              </label>
+              <img id="addCoverPreview" src="" alt="" class="pf-preview"
+                   style="display:none;width:100%;height:140px;object-fit:cover;border-radius:10px;border:2px solid rgba(99,102,241,.3);" />
             </div>
           </div>
         </div>
@@ -853,9 +1215,9 @@ body { background: #f1f5f9; }
                 <img id="editPreview" src="" alt="" class="pf-preview" style="display:none;" />
               </div>
             </div>
-            <!-- Cover / thumbnail -->
+            <!-- Thumbnail -->
             <div class="pf-field">
-              <label class="pf-label">Cover / Thumbnail Image</label>
+              <label class="pf-label">Thumbnail Image</label>
               {% if edit_product.thumbnail %}
               <div style="margin-bottom:10px;">
                 <img src="{{ edit_product.thumbnail.url }}" alt="{{ edit_product.name }} thumbnail"
@@ -869,10 +1231,32 @@ body { background: #f1f5f9; }
                 <label for="editThumbInput" class="pf-upload-label">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="3"/><path d="M7 8h10M7 12h6"/></svg>
                   <span>{% if edit_product.thumbnail %}Replace thumbnail{% else %}Upload thumbnail{% endif %}</span>
-                  <small style="color:#94a3b8;">Shown on product cards & listings</small>
+                  <small style="color:#94a3b8;">Small square — shown on product cards</small>
                 </label>
                 <img id="editThumbPreview" src="" alt="" class="pf-preview" style="display:none;" />
               </div>
+            </div>
+          </div>
+          <!-- Cover Image — full width row -->
+          <div class="pf-field" style="margin-top:8px;">
+            <label class="pf-label">Cover Image <span style="font-size:.7rem;color:#818cf8;font-weight:600;">(Banner / Hero)</span></label>
+            {% if edit_product.cover_image %}
+            <div style="margin-bottom:10px;">
+              <img src="{{ edit_product.cover_image.url }}" alt="{{ edit_product.name }} cover"
+                   style="width:100%;max-height:140px;object-fit:cover;border-radius:10px;border:2px solid rgba(99,102,241,.3);" />
+              <div style="font-size:0.7rem;color:#818cf8;margin-top:4px;">Current cover image</div>
+            </div>
+            {% endif %}
+            <div class="pf-upload-wrap">
+              <input type="file" name="cover_image" id="editCoverInput" accept="image/*" class="pf-file-input"
+                     onchange="previewImage(this,'editCoverPreview')" />
+              <label for="editCoverInput" class="pf-upload-label" style="border-color:rgba(99,102,241,.4);background:rgba(99,102,241,.04);">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="1.5"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><polyline points="21 14 16 9 5 20"/></svg>
+                <span style="color:#6366f1;">{% if edit_product.cover_image %}Replace cover image{% else %}Upload cover image{% endif %}</span>
+                <small style="color:#818cf8;">Wide banner image — shown at top of product detail page (recommended: 1200×400 px)</small>
+              </label>
+              <img id="editCoverPreview" src="" alt="" class="pf-preview"
+                   style="display:none;width:100%;height:140px;object-fit:cover;border-radius:10px;border:2px solid rgba(99,102,241,.3);" />
             </div>
           </div>
         </div>
@@ -897,7 +1281,7 @@ body { background: #f1f5f9; }
 
     <div class="ap-table-wrap">
       <table class="ap-table">
-        <thead><tr><th>User</th><th>Email</th><th>Joined</th><th>Role</th><th>Status</th></tr></thead>
+        <thead><tr><th>User</th><th>Email</th><th>Phone</th><th>Joined</th><th>Role</th><th>Status</th></tr></thead>
         <tbody>
           {% for u in users %}
           <tr>
@@ -908,6 +1292,9 @@ body { background: #f1f5f9; }
               </div>
             </td>
             <td style="color:#64748b;">{{ u.email|default:"—" }}</td>
+            <td style="color:#94a3b8;font-size:.82rem;">
+              {% if u.profile.phone %}{{ u.profile.phone }}{% else %}—{% endif %}
+            </td>
             <td style="color:#64748b;font-size:0.8rem;">{{ u.date_joined|date:"d M Y" }}</td>
             <td>
               {% if u.is_staff %}<span class="sb delivered">Admin</span>
@@ -919,7 +1306,7 @@ body { background: #f1f5f9; }
             </td>
           </tr>
           {% empty %}
-          <tr><td colspan="5" class="ap-empty">No users found.</td></tr>
+          <tr><td colspan="6" class="ap-empty">No users found.</td></tr>
           {% endfor %}
         </tbody>
       </table>

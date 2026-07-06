@@ -7,10 +7,11 @@ class Product(models.Model):
     product_id = models.CharField(max_length=50, unique=True)
     product_type = models.CharField(max_length=50)
     product_size = models.CharField(max_length=50)
-    thumbnail = models.ImageField(upload_to='products/thumb/', null=True, blank=True)
+    thumbnail   = models.ImageField(upload_to='products/thumb/',  null=True, blank=True)
+    cover_image = models.ImageField(upload_to='products/covers/', null=True, blank=True)
     description = models.TextField()
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-    image = models.ImageField(upload_to='products/', null=True, blank=True)
+    price       = models.DecimalField(max_digits=10, decimal_places=2)
+    image       = models.ImageField(upload_to='products/', null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -38,6 +39,14 @@ class promocode(models.Model):
         return self.promo_code
 
 
+class UserProfile(models.Model):
+    user  = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    phone = models.CharField(max_length=15, blank=True)
+
+    def __str__(self):
+        return f"{self.user.username} profile"
+
+
 class Order(models.Model):
     STATUS_CHOICES = [
         ('pending',   'Pending'),
@@ -46,17 +55,20 @@ class Order(models.Model):
         ('delivered', 'Delivered'),
         ('cancelled', 'Cancelled'),
     ]
-    order_id      = models.CharField(max_length=20, unique=True)
-    user          = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='orders')
-    customer_name = models.CharField(max_length=100)
-    phone         = models.CharField(max_length=20)
-    items_text    = models.TextField()
-    total         = models.DecimalField(max_digits=10, decimal_places=2)
-    urgent        = models.BooleanField(default=False)
-    delivery_date = models.CharField(max_length=20, blank=True)
-    urgent_charge = models.DecimalField(max_digits=8, decimal_places=2, default=0)
-    status        = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    created_at    = models.DateTimeField(auto_now_add=True)
+    order_id       = models.CharField(max_length=20, unique=True)
+    user           = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='orders')
+    customer_name  = models.CharField(max_length=100)
+    phone          = models.CharField(max_length=20)
+    items_text     = models.TextField()
+    total          = models.DecimalField(max_digits=10, decimal_places=2)
+    urgent         = models.BooleanField(default=False)
+    delivery_date  = models.CharField(max_length=20, blank=True)
+    urgent_charge  = models.DecimalField(max_digits=8, decimal_places=2, default=0)
+    delivery_zone       = models.CharField(max_length=20, default='inside')
+    delivery_charge     = models.DecimalField(max_digits=8, decimal_places=2, default=100)
+    payment_screenshot  = models.ImageField(upload_to='payments/screenshots/', null=True, blank=True)
+    status              = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    created_at          = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.order_id
@@ -80,6 +92,22 @@ class CancelRequest(models.Model):
 
     def __str__(self):
         return f"Cancel — {self.order.order_id} [{self.status}]"
+
+
+class PopupOffer(models.Model):
+    title         = models.CharField(max_length=100)
+    subtitle      = models.CharField(max_length=200, blank=True)
+    badge_text    = models.CharField(max_length=50, default='Limited Offer')
+    discount_text = models.CharField(max_length=50, default='40% OFF')
+    product       = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True, blank=True, related_name='popup_offers')
+    is_active     = models.BooleanField(default=True)
+    created_at    = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.title
+
+    class Meta:
+        verbose_name = 'Popup Offer'
 
 
 class Wishlist(models.Model):

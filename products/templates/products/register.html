@@ -13,17 +13,51 @@
     <form method="POST" class="auth-form">
       {% csrf_token %}
 
-      {% for field in form %}
+      <!-- Username -->
       <div class="field">
-        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-        {{ field }}
-        {% if field.errors %}
-          <p class="field-error">{{ field.errors.0 }}</p>
-        {% endif %}
+        <label for="{{ form.username.id_for_label }}">{{ form.username.label }}</label>
+        {{ form.username }}
+        {% if form.username.errors %}<p class="field-error">{{ form.username.errors.0 }}</p>{% endif %}
       </div>
-      {% endfor %}
 
-      <button type="submit" class="btn btn-dark btn-lg" style="width:100%;">Create Account</button>
+      <!-- Email -->
+      <div class="field">
+        <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+        {{ form.email }}
+        {% if form.email.errors %}<p class="field-error">{{ form.email.errors.0 }}</p>{% endif %}
+      </div>
+
+      <!-- Phone -->
+      <div class="field">
+        <label for="{{ form.phone.id_for_label }}">
+          {{ form.phone.label }}
+          <span style="font-size:.72rem;color:#64748b;font-weight:400;">(optional)</span>
+        </label>
+        {{ form.phone }}
+        {% if form.phone.errors %}<p class="field-error">{{ form.phone.errors.0 }}</p>{% endif %}
+      </div>
+
+      <!-- Password -->
+      <div class="field">
+        <label for="{{ form.password1.id_for_label }}">{{ form.password1.label }}</label>
+        {{ form.password1 }}
+        {% if form.password1.errors %}<p class="field-error">{{ form.password1.errors.0 }}</p>{% endif %}
+      </div>
+
+      <!-- Confirm Password -->
+      <div class="field">
+        <label for="{{ form.password2.id_for_label }}">{{ form.password2.label }}</label>
+        {{ form.password2 }}
+        {% if form.password2.errors %}<p class="field-error">{{ form.password2.errors.0 }}</p>{% endif %}
+      </div>
+
+      {% if form.non_field_errors %}
+      <p class="field-error">{{ form.non_field_errors.0 }}</p>
+      {% endif %}
+
+      <button type="submit" class="btn btn-dark btn-lg" style="width:100%;margin-top:4px;">
+        Create Account
+      </button>
     </form>
 
     <p class="auth-switch">

@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 
 from django.utils.html import format_html, mark_safe
 from django.utils.timezone import now
-from .models import Product, promocode, ratings, Wishlist
+from .models import Product, PopupOffer, promocode, ratings, Wishlist
 
 
 # ── Custom admin site with dashboard stats ─────────────────────────────────────
@@ -127,6 +127,17 @@ class RatingsAdmin(admin.ModelAdmin):
             '<span style="color:#f59e0b;font-size:1rem;letter-spacing:2px;">{}</span>',
             stars,
         )
+
+
+# ── Popup Offer ──────────────────────────────────────────────────────────────
+
+@admin.register(PopupOffer, site=admin_site)
+class PopupOfferAdmin(admin.ModelAdmin):
+    list_display  = ('title', 'discount_text', 'product', 'is_active', 'created_at')
+    list_filter   = ('is_active',)
+    search_fields = ('title', 'product__name')
+    ordering      = ('-created_at',)
+    list_per_page = 20
 
 
 # ── Wishlist ──────────────────────────────────────────────────────────────────

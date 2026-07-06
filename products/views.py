@@ -4,7 +4,7 @@ import uuid
 from django.contrib import messages
 from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import User
 from django.db.models import Q
 from django.http import JsonResponse
@@ -12,7 +12,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from django.utils import timezone
 
-from .models import CancelRequest, Order, Product, Wishlist, promocode
+from .forms import CustomRegisterForm
+from .models import CancelRequest, Order, PopupOffer, Product, UserProfile, Wishlist, promocode
 
 
 
@@ -93,11 +94,14 @@ def home(request):
         wishlisted_ids = set(
             Wishlist.objects.filter(user=request.user).values_list('product_id', flat=True)
         )
+    popup_offer = PopupOffer.objects.filter(is_active=True).select_related('product').first()
+
     return render(request, 'products/index.html', {
         'products':       products,
         'query':          query,
         'product_types':  product_types,
         'wishlisted_ids': wishlisted_ids,
+        'popup_offer':    popup_offer,
     })
 
 
@@ -227,7 +231,20 @@ def checkout(request):
         if urgent_charge < 0:
             urgent_charge = 0
 
-        final_total = total + urgent_charge
+        # Delivery zone & charge
+        delivery_zone = request.POST.get('delivery_zone', 'inside').strip()
+        if delivery_zone not in ('inside', 'outside'):
+            delivery_zone = 'inside'
+        try:
+            delivery_charge = int(request.POST.get('delivery_charge', '100'))
+        except ValueError:
+            delivery_charge = 100
+        if delivery_zone == 'inside':
+            delivery_charge = 100
+        else:
+            delivery_charge = 250
+
+        final_total = total + urgent_charge + delivery_charge
 
         # Build order summary for WhatsApp
         order_id = 'LVP-' + uuid.uuid4().hex[:6].upper()
@@ -238,29 +255,40 @@ def checkout(request):
 
         customer_name = request.POST.get('full_name', '').strip()
 
+        # Payment screenshot
+        screenshot_file = request.FILES.get('payment_screenshot')
+
         # Persist order to database
-        Order.objects.create(
-            order_id      = order_id,
-            user          = request.user if request.user.is_authenticated else None,
-            customer_name = customer_name,
-            phone         = phone,
-            items_text    = items_text,
-            total         = final_total,
-            urgent        = urgent_delivery,
-            delivery_date = delivery_date if urgent_delivery else '',
-            urgent_charge = urgent_charge if urgent_delivery else 0,
+        order_obj = Order.objects.create(
+            order_id        = order_id,
+            user            = request.user if request.user.is_authenticated else None,
+            customer_name   = customer_name,
+            phone           = phone,
+            items_text      = items_text,
+            total           = final_total,
+            urgent          = urgent_delivery,
+            delivery_date   = delivery_date if urgent_delivery else '',
+            urgent_charge   = urgent_charge if urgent_delivery else 0,
+            delivery_zone   = delivery_zone,
+            delivery_charge = delivery_charge,
         )
+        if screenshot_file:
+            order_obj.payment_screenshot = screenshot_file
+            order_obj.save()
 
         # Store order details in session for the success page
-        request.session['order_id']            = order_id
-        request.session['order_total']         = str(final_total)
-        request.session['order_customer']      = customer_name
-        request.session['order_phone']         = phone
-        request.session['order_items']         = items_text
-        request.session['order_urgent']        = urgent_delivery
-        request.session['order_delivery_date'] = delivery_date if urgent_delivery else ''
-        request.session['order_urgent_charge'] = str(urgent_charge) if urgent_delivery else '0'
-        request.session['cart']                = {}
+        request.session['order_id']              = order_id
+        request.session['order_total']           = str(final_total)
+        request.session['order_customer']        = customer_name
+        request.session['order_phone']           = phone
+        request.session['order_items']           = items_text
+        request.session['order_urgent']          = urgent_delivery
+        request.session['order_delivery_date']   = delivery_date if urgent_delivery else ''
+        request.session['order_urgent_charge']   = str(urgent_charge) if urgent_delivery else '0'
+        request.session['order_delivery_zone']   = delivery_zone
+        request.session['order_delivery_charge'] = str(delivery_charge)
+        request.session['order_screenshot_url']  = order_obj.payment_screenshot.url if order_obj.payment_screenshot else ''
+        request.session['cart']                  = {}
 
         messages.success(request, f'Order {order_id} placed successfully!')
         return redirect('order_success')
@@ -277,24 +305,33 @@ def order_success(request):
     Order confirmation page — reads order details from session and clears them.
     GET /order-success/
     """
-    order_id            = request.session.pop('order_id',            'LVP-UNKNOWN')
-    order_total         = request.session.pop('order_total',         '0')
-    order_customer      = request.session.pop('order_customer',      '')
-    order_phone         = request.session.pop('order_phone',         '')
-    order_items         = request.session.pop('order_items',         '')
-    order_urgent        = request.session.pop('order_urgent',        False)
-    order_delivery_date = request.session.pop('order_delivery_date', '')
-    order_urgent_charge = request.session.pop('order_urgent_charge', '0')
+    order_id              = request.session.pop('order_id',              'LVP-UNKNOWN')
+    order_total           = request.session.pop('order_total',           '0')
+    order_customer        = request.session.pop('order_customer',        '')
+    order_phone           = request.session.pop('order_phone',           '')
+    order_items           = request.session.pop('order_items',           '')
+    order_urgent          = request.session.pop('order_urgent',          False)
+    order_delivery_date   = request.session.pop('order_delivery_date',   '')
+    order_urgent_charge   = request.session.pop('order_urgent_charge',   '0')
+    order_delivery_zone   = request.session.pop('order_delivery_zone',   'inside')
+    order_delivery_charge = request.session.pop('order_delivery_charge', '100')
+    order_screenshot_url  = request.session.pop('order_screenshot_url',  '')
+
+    delivery_zone_label = 'Inside Visakhapatnam' if order_delivery_zone == 'inside' else 'Outside Visakhapatnam'
 
     return render(request, 'products/order_success.html', {
-        'order_id':            order_id,
-        'order_total':         order_total,
-        'order_customer':      order_customer,
-        'order_phone':         order_phone,
-        'order_items':         order_items,
-        'order_urgent':        order_urgent,
-        'order_delivery_date': order_delivery_date,
-        'order_urgent_charge': order_urgent_charge,
+        'order_id':              order_id,
+        'order_total':           order_total,
+        'order_customer':        order_customer,
+        'order_phone':           order_phone,
+        'order_items':           order_items,
+        'order_urgent':          order_urgent,
+        'order_delivery_date':   order_delivery_date,
+        'order_urgent_charge':   order_urgent_charge,
+        'order_delivery_zone':   order_delivery_zone,
+        'order_delivery_charge': order_delivery_charge,
+        'delivery_zone_label':   delivery_zone_label,
+        'order_screenshot_url':  order_screenshot_url,
     })
 
 
@@ -351,16 +388,13 @@ def admin_cancel_review(request, pk, action):
 # ── Auth ──────────────────────────────────────────────────────────────────────
 
 def register_view(request):
-    """
-    GET  /register/  — registration form.
-    POST /register/  — create account, auto-login, redirect home.
-    Redirects to home if already authenticated.
-    """
     if request.user.is_authenticated:
         return redirect('home')
-    form = UserCreationForm(request.POST or None)
+    form = CustomRegisterForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
-        user = form.save()
+        user  = form.save()
+        phone = form.cleaned_data.get('phone', '').strip()
+        UserProfile.objects.create(user=user, phone=phone)
         login(request, user)
         messages.success(request, f'Welcome to Lumivis, {user.username}!')
         return redirect('home')
@@ -466,9 +500,19 @@ def admin_panel(request):
     if request.method == 'POST':
         action = request.POST.get('action', '').strip()
 
-        # Order status update (orders removed)
         if action == 'update_order':
-            return redirect(f"{request.path}?s=orders&status={status_filter}")
+            order_pk   = request.POST.get('order_id', '').strip()
+            new_status = request.POST.get('new_status', '').strip()
+            if order_pk and new_status in dict(Order.STATUS_CHOICES):
+                try:
+                    o = Order.objects.get(pk=order_pk)
+                    o.status = new_status
+                    o.save()
+                    messages.success(request, f'Order {o.order_id} marked as {new_status}.')
+                except Order.DoesNotExist:
+                    pass
+            back = section if section in ('transactions', 'dashboard') else 'orders'
+            return redirect(f"{request.path}?s={back}")
 
         # Add product
         if action == 'add_product':
@@ -492,6 +536,8 @@ def admin_panel(request):
                 p.image = request.FILES['image']
             if 'thumbnail' in request.FILES:
                 p.thumbnail = request.FILES['thumbnail']
+            if 'cover_image' in request.FILES:
+                p.cover_image = request.FILES['cover_image']
             p.save()
             messages.success(request, f'Product "{name}" added successfully.')
             return redirect(f"{request.path}?s=products")
@@ -509,6 +555,8 @@ def admin_panel(request):
                 p.image = request.FILES['image']
             if 'thumbnail' in request.FILES:
                 p.thumbnail = request.FILES['thumbnail']
+            if 'cover_image' in request.FILES:
+                p.cover_image = request.FILES['cover_image']
             p.save()
             messages.success(request, f'Product "{p.name}" updated.')
             return redirect(f"{request.path}?s=products")
@@ -530,12 +578,17 @@ def admin_panel(request):
 
     cancel_requests = CancelRequest.objects.select_related('order').order_by('-requested_at')
 
+    orders_qs = Order.objects.order_by('-created_at')
+    if status_filter:
+        orders_qs = orders_qs.filter(status=status_filter)
+
     return render(request, 'products/admin_panel.html', {
         'section':          section,
         'status_filter':    status_filter,
-        'status_choices':   [],
-        'orders':           Order.objects.order_by('-created_at'),
+        'status_choices':   Order.STATUS_CHOICES,
+        'orders':           orders_qs,
         'recent_orders':    Order.objects.order_by('-created_at')[:10],
+
         'products':         Product.objects.order_by('name'),
         'users':            User.objects.order_by('-date_joined')[:30],
         'promos':           promocode.objects.order_by('-expiry_date'),
@@ -550,10 +603,20 @@ def admin_panel(request):
             'product_count':   Product.objects.count(),
             'user_count':      User.objects.count(),
             'pending_count':   Order.objects.filter(status='pending').count(),
+            'confirmed_count': Order.objects.filter(status='confirmed').count(),
+            'shipped_count':   Order.objects.filter(status='shipped').count(),
             'delivered_count': Order.objects.filter(status='delivered').count(),
+            'cancelled_count': Order.objects.filter(status='cancelled').count(),
             'wishlist_count':  Wishlist.objects.count(),
+            'today_revenue':   sum(o.total for o in Order.objects.filter(created_at__date=timezone.now().date())),
         },
-        'by_status': {},
+        'by_status': {
+            'pending':   Order.objects.filter(status='pending').count(),
+            'confirmed': Order.objects.filter(status='confirmed').count(),
+            'shipped':   Order.objects.filter(status='shipped').count(),
+            'delivered': Order.objects.filter(status='delivered').count(),
+            'cancelled': Order.objects.filter(status='cancelled').count(),
+        },
     })
 
 
