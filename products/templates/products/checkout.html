@@ -175,29 +175,42 @@
 
           <!-- Divider -->
           <div class="pay-divider">
-            <span>After paying, do step 2 below</span>
+            <span>After payment, enter your details below</span>
           </div>
 
-          <!-- Step 2: Confirm via WhatsApp -->
-          <div class="pay-step2-wrap" id="payStep2Wrap">
-            <div class="pay-step-label" style="padding:0 0 14px;">
-              <span class="pay-step-num">2</span> Confirm your order on WhatsApp — then Place Order button will appear
+          <!-- Step 2: Enter UPI ID + Transaction ID — shown when form fields are valid -->
+          <div class="pay-upi-wrap" id="payUpiWrap" style="display:none;">
+            <div class="pay-step-label" style="padding:0 0 16px;">
+              <span class="pay-step-num">2</span> Enter your payment details
             </div>
-            <button type="button" class="pay-wa-btn" id="payWaBtn" onclick="markPaymentDone()">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/>
-              </svg>
-              Confirm Order on WhatsApp
-            </button>
-            <p class="pay-wa-hint">WhatsApp opens with your order details — send the message to confirm</p>
-          </div>
 
-          <!-- Step 2 done state (hidden by default) -->
-          <div class="pay-wa-done" id="payWaDone" style="display:none;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-            <div>
-              <div class="pay-wa-done-title">WhatsApp message sent!</div>
-              <div class="pay-wa-done-sub">Now click <strong>Place Order</strong> below to complete your order.</div>
+            <!-- UPI ID -->
+            <div class="pay-upi-field">
+              <label class="pay-upi-label">Your UPI ID <span class="pay-field-req">*</span></label>
+              <input type="text" id="customerUpiId" name="upi_id" class="pay-upi-input"
+                     placeholder="e.g. yourname@okaxis or 9876543210@upi"
+                     oninput="checkUpiReady()" autocomplete="off" />
+            </div>
+
+            <!-- Transaction ID -->
+            <div class="pay-upi-field">
+              <label class="pay-upi-label">
+                Transaction / UTR ID <span class="pay-field-req">*</span>
+                <span class="pay-txn-hint-inline">12-digit number from your UPI app</span>
+              </label>
+              <div class="pay-txn-input-wrap">
+                <input type="text" id="customerTxnId" name="transaction_id" class="pay-upi-input pay-txn-input"
+                       placeholder="e.g. 426811234567"
+                       maxlength="20"
+                       oninput="checkUpiReady()" autocomplete="off" />
+                <span class="pay-txn-status" id="txnStatus"></span>
+              </div>
+              <p class="pay-txn-guide">Open your UPI app → Transaction History → Copy the 12-digit UTR/Reference number</p>
+            </div>
+
+            <div class="pay-upi-note">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              Your payment will be verified by our team. Order confirmation will be sent once approved.
             </div>
           </div>
 
@@ -249,7 +262,7 @@
       <input type="hidden" name="urgent_delivery" id="urgentDeliveryHidden" value="no">
       <input type="hidden" name="urgent_charge"   id="urgentChargeHidden"   value="0">
 
-      <button type="submit" class="btn btn-dark btn-lg place-order-btn" id="placeOrderBtn" style="display:none;width:100%;margin-top:8px;">
+      <button type="submit" class="btn btn-dark btn-lg place-order-btn" id="placeOrderBtn" style="display:none;width:100%;margin-top:16px;">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-3px;margin-right:8px;"><polyline points="20 6 9 17 4 12"/></svg>
         Place Order — Confirm My Purchase
       </button>
@@ -685,6 +698,121 @@
 }
 
 /* Step 2 WhatsApp confirm area */
+.pay-confirm-wrap {
+  padding: 18px 20px;
+  background: rgba(99,102,241,.06);
+  border-top: 1px solid #1e2d3d;
+}
+.pay-confirm-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 15px 20px;
+  font-size: 1rem;
+  font-weight: 800;
+  cursor: pointer;
+  letter-spacing: .01em;
+  transition: background .15s, transform .15s, box-shadow .15s;
+  box-shadow: 0 4px 18px rgba(16,185,129,.3);
+}
+.pay-confirm-btn:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(16,185,129,.45);
+}
+/* Step 3 UPI input area */
+.pay-upi-wrap {
+  padding: 18px 20px;
+  background: rgba(251,191,36,.04);
+  border-top: 1px solid #1e2d3d;
+}
+.pay-upi-label {
+  display: block;
+  font-size: .78rem;
+  font-weight: 600;
+  color: #94a3b8;
+  margin-bottom: 7px;
+  letter-spacing: .03em;
+}
+.pay-upi-input {
+  width: 100%;
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 10px;
+  padding: 11px 14px;
+  color: #f1f5f9;
+  font-size: .92rem;
+  outline: none;
+  box-sizing: border-box;
+  margin-bottom: 14px;
+  transition: border-color .15s;
+}
+.pay-upi-input:focus { border-color: #6366f1; }
+.pay-upi-input.input-valid   { border-color: #10b981; }
+.pay-upi-input.input-invalid { border-color: #ef4444; }
+.pay-upi-note {
+  display: flex; align-items: flex-start; gap: 8px;
+  background: rgba(245,158,11,.07);
+  border: 1px solid rgba(245,158,11,.25);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: .78rem; color: #d97706; line-height: 1.5;
+  margin-top: 6px;
+}
+.pay-field-req { color: #f87171; margin-left: 2px; }
+.pay-txn-hint-inline {
+  font-size: .7rem; color: #475569; font-weight: 400;
+  margin-left: 8px; letter-spacing: 0;
+}
+.pay-txn-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.pay-txn-input-wrap .pay-upi-input { margin-bottom: 6px; padding-right: 40px; }
+.pay-txn-status {
+  position: absolute; right: 12px; top: 50%;
+  transform: translateY(-60%);
+  font-size: 1.1rem; line-height: 1;
+}
+.pay-txn-guide {
+  font-size: .72rem; color: #475569;
+  margin: 0 0 14px; line-height: 1.5;
+}
+.pay-upi-continue-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 14px 20px;
+  font-size: .95rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background .15s, transform .15s, box-shadow .15s;
+  box-shadow: 0 4px 18px rgba(99,102,241,.3);
+}
+.pay-upi-continue-btn:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+.pay-upi-continue-btn:not(:disabled):hover {
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(99,102,241,.45);
+}
 .pay-step2-wrap {
   padding: 18px 20px;
   background: rgba(37,211,102,.04);
@@ -979,90 +1107,73 @@ function detectZoneFromCity(city) {
   }
 }());
 
-/* --- Payment confirmation: open WhatsApp then reveal Place Order --- */
-function markPaymentDone() {
-  /* Validate name & phone first */
-  var nameEl  = document.getElementById('full_name');
-  var name    = nameEl ? nameEl.value.trim() : '';
-  var phone   = phoneEl ? phoneEl.value.trim() : '';
+/* --- Step 1: Show UPI details section when all form fields are valid --- */
+function checkFormReady() {
+  var name    = (document.getElementById('full_name')  || {}).value || '';
+  var email   = (document.getElementById('email')      || {}).value || '';
+  var address = (document.getElementById('address')    || {}).value || '';
+  var city    = (document.getElementById('city')       || {}).value || '';
+  var phone   = phoneEl ? phoneEl.value : '';
   var tail    = phone.slice(PFX.length).replace(/\D/g, '');
 
-  if (!name) {
-    alert('Please enter your Full Name before confirming payment.');
-    if (nameEl) nameEl.focus();
-    return;
+  var formReady = name.trim().length  >= 2 &&
+                  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) &&
+                  address.trim().length >= 4 &&
+                  city.trim().length    >= 2 &&
+                  /^[6-9][0-9]{9}$/.test(tail);
+
+  var upiWrap = document.getElementById('payUpiWrap');
+  if (upiWrap) upiWrap.style.display = formReady ? 'block' : 'none';
+  if (!formReady) {
+    var placeBtn = document.getElementById('placeOrderBtn');
+    if (placeBtn) placeBtn.style.display = 'none';
   }
-  if (!/^[6-9][0-9]{9}$/.test(tail)) {
-    alert('Please enter a valid phone number before confirming payment.');
-    if (phoneEl) phoneEl.focus();
-    return;
-  }
+  checkUpiReady();
+}
 
-  /* Collect form data */
-  var addressEl = document.getElementById('address');
-  var cityEl    = document.getElementById('city');
-  var address   = (addressEl ? addressEl.value.trim() : '') + (cityEl && cityEl.value.trim() ? ', ' + cityEl.value.trim() : '');
+/* --- Step 2: Validate UPI ID + Transaction ID, enable Place Order --- */
+function validateTxnId(val) {
+  return /^[A-Za-z0-9]{8,20}$/.test(val.trim());
+}
 
-  var zoneRadio     = document.querySelector('input[name="delivery_zone"]:checked');
-  var zone          = zoneRadio ? zoneRadio.value : 'inside';
-  var zoneLabel     = zone === 'inside' ? 'Inside Visakhapatnam' : 'Outside Visakhapatnam';
-  var deliveryCharge = parseInt(document.getElementById('deliveryChargeHidden').value) || 100;
-  var urgentCharge  = parseInt(document.getElementById('urgentChargeHidden').value) || 0;
-  var base          = parseFloat('{{ total }}') || 0;
-  var grandTotal    = (base + deliveryCharge + urgentCharge).toFixed(2);
+function checkUpiReady() {
+  var upiEl  = document.getElementById('customerUpiId');
+  var txnEl  = document.getElementById('customerTxnId');
+  var status = document.getElementById('txnStatus');
+  var placeBtn = document.getElementById('placeOrderBtn');
+  if (!upiEl || !txnEl) return;
 
-  /* Collect items from sidebar */
-  var itemLines = [];
-  document.querySelectorAll('.summary-item').forEach(function(row) {
-    var nameSpan = row.querySelector('.summary-item-name');
-    var priceSpan = row.querySelectorAll('span')[1];
-    if (!nameSpan) return;
-    var txt = nameSpan.textContent.trim();
-    /* Skip delivery and urgent rows */
-    if (txt.indexOf('Delivery') !== -1 || txt.indexOf('Urgent') !== -1) return;
-    var price = priceSpan ? priceSpan.textContent.trim() : '';
-    itemLines.push('  - ' + txt + (price ? '  ' + price : ''));
-  });
+  var upiOk  = upiEl.value.trim().length >= 3;
+  var txnVal = txnEl.value.trim();
+  var txnOk  = validateTxnId(txnVal);
 
-  var urgentLine = '';
-  if (urgentCharge > 0) {
-    var dateEl = document.getElementById('delivery_date');
-    urgentLine = 'Urgent Delivery : Yes (Rs.' + urgentCharge + ')' + (dateEl && dateEl.value ? ' by ' + dateEl.value : '') + '\n';
+  txnEl.classList.toggle('input-valid',   txnVal.length > 0 && txnOk);
+  txnEl.classList.toggle('input-invalid', txnVal.length > 0 && !txnOk);
+  if (status) {
+    status.textContent = txnVal.length === 0 ? '' : txnOk ? '✓' : '✗';
+    status.style.color = txnOk ? '#10b981' : '#ef4444';
   }
 
-  /* Build WhatsApp message */
-  var msg =
-    'Hello Lumivis Team!\n\n' +
-    'I have completed my UPI payment. Please confirm my order.\n\n' +
-    'Customer : ' + name + '\n' +
-    'Phone    : ' + phone + '\n' +
-    'Address  : ' + (address || '—') + '\n' +
-    'Location : ' + zoneLabel + '\n' +
-    'UPI ID   : hemanth022@ptyes\n\n' +
-    'Items:\n' + (itemLines.length ? itemLines.join('\n') : '  —') + '\n\n' +
-    'Delivery Charge : Rs.' + deliveryCharge + '\n' +
-    urgentLine +
-    'Total Paid      : Rs.' + grandTotal + '\n\n' +
-    'Kindly confirm my order. Thank you!';
-
-  var waUrl = 'https://wa.me/919052337409?text=' + encodeURIComponent(msg);
-  window.open(waUrl, '_blank');
-
-  /* Hide step 2 button area, show done state */
-  var step2 = document.getElementById('payStep2Wrap');
-  if (step2) step2.style.display = 'none';
-  var done = document.getElementById('payWaDone');
-  if (done) done.style.display = 'flex';
-
-  /* Reveal Place Order button and scroll to it */
-  var btn = document.getElementById('placeOrderBtn');
-  if (btn) {
-    btn.style.display = 'block';
-    setTimeout(function() {
-      btn.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }, 400);
+  var allReady = upiOk && txnOk;
+  if (placeBtn) {
+    placeBtn.style.display = allReady ? 'block' : 'none';
+    if (allReady) {
+      setTimeout(function() {
+        placeBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 200);
+    }
   }
 }
+
+/* Wire events */
+['full_name', 'email', 'address', 'city'].forEach(function(id) {
+  var el = document.getElementById(id);
+  if (el) el.addEventListener('input', checkFormReady);
+});
+if (phoneEl) phoneEl.addEventListener('input', checkFormReady);
+
+/* Run once on load */
+checkFormReady();
 
 </script>
 {% endblock %}

@@ -248,29 +248,30 @@ body { background: #f1f5f9; }
   <div class="up-table-wrap">
     <table class="up-table">
       <thead>
-        <tr><th>Order ID</th><th>Product</th><th>Date</th><th>Qty</th><th>Total</th><th>Status</th></tr>
+        <tr><th>Order ID</th><th>Items</th><th>Date</th><th>Total</th><th>Payment</th><th>Status</th></tr>
       </thead>
       <tbody>
         {% for o in orders %}
         <tr>
-          <td class="up-mono" style="color:#64748b;">#{{ o.transaction_id }}</td>
-          <td>
-            <div style="display:flex;align-items:center;gap:10px;">
-              {% if o.product.image %}
-                <img src="{{ o.product.image.url }}" alt="{{ o.product.name }}"
-                     style="width:40px;height:40px;object-fit:cover;border-radius:8px;border:1px solid #e2e8f0;flex-shrink:0;" />
-              {% endif %}
-              <div>
-                <a href="{% url 'product_detail' o.product.pk %}" style="color:#0f172a;text-decoration:none;font-weight:600;font-size:0.86rem;">
-                  {{ o.product.name|truncatechars:28 }}
-                </a>
-                <div style="font-size:0.72rem;color:#94a3b8;">{{ o.product.product_type }}</div>
-              </div>
-            </div>
+          <td class="up-mono">
+            <a href="{% url 'order_track' %}?order_id={{ o.order_id }}" style="color:#818cf8;text-decoration:none;font-weight:700;font-size:.82rem;" title="Track this order">
+              {{ o.order_id }}
+            </a>
           </td>
-          <td style="color:#64748b;white-space:nowrap;font-size:0.8rem;">{{ o.transaction_date|date:"d M Y" }}</td>
-          <td style="text-align:center;">{{ o.quantity }}</td>
-          <td><strong>₹{{ o.total_price }}</strong></td>
+          <td style="max-width:220px;">
+            <div style="font-size:.82rem;color:#cbd5e1;line-height:1.5;white-space:pre-wrap;">{{ o.items_text|truncatechars:80 }}</div>
+          </td>
+          <td style="color:#64748b;white-space:nowrap;font-size:.8rem;">{{ o.created_at|date:"d M Y" }}</td>
+          <td><strong style="color:#818cf8;">₹{{ o.total }}</strong></td>
+          <td>
+            {% if o.payment_status == 'pending' %}
+              <span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:999px;font-size:.72rem;font-weight:700;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);color:#fbbf24;">⏳ Pending</span>
+            {% elif o.payment_status == 'verified' %}
+              <span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:999px;font-size:.72rem;font-weight:700;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);color:#34d399;">✓ Verified</span>
+            {% elif o.payment_status == 'rejected' %}
+              <span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:999px;font-size:.72rem;font-weight:700;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#f87171;">✗ Rejected</span>
+            {% endif %}
+          </td>
           <td>
             <span class="sb {{ o.status }}">{{ o.get_status_display }}</span>
           </td>

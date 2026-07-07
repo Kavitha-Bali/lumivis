@@ -55,6 +55,11 @@ class Order(models.Model):
         ('delivered', 'Delivered'),
         ('cancelled', 'Cancelled'),
     ]
+    PAYMENT_STATUS_CHOICES = [
+        ('pending',  'Pending Verification'),
+        ('verified', 'Payment Verified'),
+        ('rejected', 'Payment Rejected'),
+    ]
     order_id       = models.CharField(max_length=20, unique=True)
     user           = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='orders')
     customer_name  = models.CharField(max_length=100)
@@ -67,8 +72,12 @@ class Order(models.Model):
     delivery_zone       = models.CharField(max_length=20, default='inside')
     delivery_charge     = models.DecimalField(max_digits=8, decimal_places=2, default=100)
     payment_screenshot  = models.ImageField(upload_to='payments/screenshots/', null=True, blank=True)
-    status              = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    created_at          = models.DateTimeField(auto_now_add=True)
+    upi_id          = models.CharField(max_length=100, blank=True, default='')
+    transaction_id  = models.CharField(max_length=50, blank=True, default='')
+    payment_status    = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='pending')
+    status            = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    notification_seen = models.BooleanField(default=False)
+    created_at        = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.order_id
@@ -95,10 +104,11 @@ class CancelRequest(models.Model):
 
 
 class PopupOffer(models.Model):
-    title         = models.CharField(max_length=100)
-    subtitle      = models.CharField(max_length=200, blank=True)
-    badge_text    = models.CharField(max_length=50, default='Limited Offer')
-    discount_text = models.CharField(max_length=50, default='40% OFF')
+    title         = models.CharField(max_length=100, blank=True, default='')
+    subtitle      = models.CharField(max_length=200, blank=True, default='')
+    badge_text    = models.CharField(max_length=50, blank=True, default='')
+    discount_text = models.CharField(max_length=50, blank=True, default='')
+    image         = models.ImageField(upload_to='popup_offers/', null=True, blank=True)
     product       = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True, blank=True, related_name='popup_offers')
     is_active     = models.BooleanField(default=True)
     created_at    = models.DateTimeField(auto_now_add=True)

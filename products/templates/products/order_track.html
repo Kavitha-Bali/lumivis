@@ -1,0 +1,369 @@
+{% extends 'products/base.html' %}
+{% load static %}
+
+{% block title %}Track Your Order — Lumivis Pvt. Ltd.{% endblock %}
+
+{% block content %}
+<div class="ot-page">
+
+  <!-- Header -->
+  <div class="ot-header">
+    <span class="ot-eyebrow">Order Tracking</span>
+    <h1 class="ot-title">Track Your Order</h1>
+    <p class="ot-sub">Enter your Order ID to check the live status of your order.</p>
+  </div>
+
+  <!-- Search box -->
+  <div class="ot-search-wrap">
+    <form class="ot-search-form" method="GET" action="{% url 'order_track' %}">
+      <div class="ot-input-row">
+        <div class="ot-input-wrap">
+          <svg class="ot-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input
+            type="text"
+            name="order_id"
+            class="ot-input"
+            placeholder="e.g. LVP-20250001"
+            value="{{ searched_id }}"
+            autocomplete="off"
+            autofocus
+          />
+        </div>
+        <button type="submit" class="ot-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          Track
+        </button>
+      </div>
+      <p class="ot-hint">Your Order ID was shown on the order confirmation page and in your WhatsApp notification.</p>
+    </form>
+  </div>
+
+  <!-- Error -->
+  {% if error %}
+  <div class="ot-error">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    {{ error }}
+  </div>
+  {% endif %}
+
+  <!-- Result card -->
+  {% if order %}
+  <div class="ot-card">
+
+    <!-- Order header row -->
+    <div class="ot-card-top">
+      <div>
+        <div class="ot-card-label">Order ID</div>
+        <div class="ot-card-id">{{ order.order_id }}</div>
+      </div>
+      <div class="ot-card-date">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        {{ order.created_at|date:"d M Y, h:i A" }}
+      </div>
+    </div>
+
+    <!-- Order info -->
+    <div class="ot-product-row">
+      <div class="ot-product-info">
+        <div class="ot-product-name">{{ order.customer_name }}</div>
+        <div class="ot-product-meta">{{ order.phone }}</div>
+        <div class="ot-product-meta" style="margin-top:6px;">{{ order.items_text|linebreaksbr }}</div>
+        <div class="ot-product-meta" style="margin-top:6px;color:#818cf8;font-weight:700;">Total: ₹{{ order.total }}</div>
+      </div>
+    </div>
+
+    <!-- Status badges -->
+    <div class="ot-badges">
+
+      <!-- Payment status -->
+      {% if order.payment_status == 'pending' %}
+      <div class="ot-badge ot-badge-warn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Payment Verification Pending
+      </div>
+      {% elif order.payment_status == 'verified' %}
+      <div class="ot-badge ot-badge-green">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        Payment Verified
+      </div>
+      {% elif order.payment_status == 'rejected' %}
+      <div class="ot-badge ot-badge-red">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        Payment Rejected — Please contact support
+      </div>
+      {% endif %}
+
+      <!-- Order status -->
+      {% if order.status == 'pending' %}
+      <div class="ot-badge ot-badge-gray">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Order Pending
+      </div>
+      {% elif order.status == 'confirmed' %}
+      <div class="ot-badge ot-badge-indigo">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        Order Confirmed
+      </div>
+      {% elif order.status == 'shipped' %}
+      <div class="ot-badge ot-badge-blue">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+        Shipped
+      </div>
+      {% elif order.status == 'delivered' %}
+      <div class="ot-badge ot-badge-green">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        Delivered
+      </div>
+      {% elif order.status == 'cancelled' %}
+      <div class="ot-badge ot-badge-red">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        Order Cancelled
+      </div>
+      {% endif %}
+
+    </div>
+
+    <!-- Progress timeline -->
+    {% if order.status != 'cancelled' %}
+    <div class="ot-timeline">
+      {% with s=order.status ps=order.payment_status %}
+
+      <div class="ot-step {% if ps == 'verified' or s == 'confirmed' or s == 'shipped' or s == 'delivered' %}done{% elif ps == 'pending' %}active{% endif %}">
+        <div class="ot-step-dot">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="ot-step-label">Payment<br><span>{% if ps == 'verified' %}Verified{% elif ps == 'rejected' %}Rejected{% else %}Pending{% endif %}</span></div>
+      </div>
+
+      <div class="ot-step-line {% if s == 'confirmed' or s == 'shipped' or s == 'delivered' %}done{% endif %}"></div>
+
+      <div class="ot-step {% if s == 'confirmed' or s == 'shipped' or s == 'delivered' %}done{% elif s == 'pending' and ps == 'verified' %}active{% endif %}">
+        <div class="ot-step-dot">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="ot-step-label">Order<br><span>{% if s == 'confirmed' or s == 'shipped' or s == 'delivered' %}Confirmed{% else %}Awaiting{% endif %}</span></div>
+      </div>
+
+      <div class="ot-step-line {% if s == 'shipped' or s == 'delivered' %}done{% endif %}"></div>
+
+      <div class="ot-step {% if s == 'shipped' or s == 'delivered' %}done{% elif s == 'confirmed' %}active{% endif %}">
+        <div class="ot-step-dot">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="ot-step-label">Shipped<br><span>{% if s == 'shipped' or s == 'delivered' %}On the way{% else %}Upcoming{% endif %}</span></div>
+      </div>
+
+      <div class="ot-step-line {% if s == 'delivered' %}done{% endif %}"></div>
+
+      <div class="ot-step {% if s == 'delivered' %}done{% elif s == 'shipped' %}active{% endif %}">
+        <div class="ot-step-dot">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="ot-step-label">Delivered<br><span>{% if s == 'delivered' %}Done{% else %}Upcoming{% endif %}</span></div>
+      </div>
+
+      {% endwith %}
+    </div>
+    {% endif %}
+
+    <!-- Support note -->
+    <div class="ot-support">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      Need help? Contact us on
+      <a href="https://wa.me/919052337409" target="_blank" rel="noopener">WhatsApp</a>
+      with your Order ID.
+    </div>
+
+  </div>
+  {% endif %}
+
+</div>
+
+<style>
+.ot-page {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 56px 24px 80px;
+  min-height: 70vh;
+}
+
+/* Header */
+.ot-header { text-align: center; margin-bottom: 40px; }
+.ot-eyebrow {
+  display: inline-block;
+  font-size: .72rem; font-weight: 700; letter-spacing: .12em;
+  text-transform: uppercase; color: #818cf8; margin-bottom: 10px;
+}
+.ot-title {
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  font-weight: 900; color: #f1f5f9; margin: 0 0 10px;
+}
+.ot-sub { font-size: .92rem; color: #64748b; margin: 0; }
+
+/* Search */
+.ot-search-wrap {
+  background: #111827;
+  border: 1.5px solid #1e2d3d;
+  border-radius: 18px;
+  padding: 28px 24px;
+  margin-bottom: 24px;
+}
+.ot-input-row { display: flex; gap: 10px; }
+.ot-input-wrap {
+  flex: 1; position: relative;
+  display: flex; align-items: center;
+}
+.ot-search-icon {
+  position: absolute; left: 14px; color: #475569; pointer-events: none;
+}
+.ot-input {
+  width: 100%;
+  padding: 13px 14px 13px 42px;
+  background: #0a0f1e;
+  border: 1.5px solid #253347;
+  border-radius: 10px;
+  color: #f1f5f9;
+  font-size: .95rem;
+  font-family: 'Inter', sans-serif;
+  outline: none;
+  transition: border-color .18s;
+  letter-spacing: .04em;
+}
+.ot-input:focus { border-color: #6366f1; }
+.ot-btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 13px 24px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: #fff; border: none; border-radius: 10px;
+  font-size: .9rem; font-weight: 700; cursor: pointer;
+  white-space: nowrap;
+  transition: box-shadow .18s, transform .15s;
+  box-shadow: 0 4px 14px rgba(99,102,241,.4);
+}
+.ot-btn:hover { box-shadow: 0 8px 24px rgba(99,102,241,.6); transform: translateY(-1px); }
+.ot-hint { font-size: .76rem; color: #475569; margin: 12px 0 0; }
+
+/* Error */
+.ot-error {
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(239,68,68,.08);
+  border: 1px solid rgba(239,68,68,.3);
+  border-radius: 12px;
+  padding: 14px 18px;
+  color: #fca5a5;
+  font-size: .88rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+/* Result card */
+.ot-card {
+  background: #111827;
+  border: 1.5px solid #1e2d3d;
+  border-radius: 18px;
+  overflow: hidden;
+}
+.ot-card-top {
+  display: flex; align-items: flex-start;
+  justify-content: space-between; flex-wrap: wrap; gap: 10px;
+  padding: 22px 24px 16px;
+  border-bottom: 1px solid #1e2d3d;
+}
+.ot-card-label { font-size: .7rem; text-transform: uppercase; letter-spacing: .1em; color: #475569; margin-bottom: 4px; }
+.ot-card-id { font-size: 1.15rem; font-weight: 800; color: #818cf8; letter-spacing: .04em; }
+.ot-card-date {
+  display: flex; align-items: center; gap: 6px;
+  font-size: .78rem; color: #64748b;
+}
+
+/* Product row */
+.ot-product-row {
+  display: flex; align-items: center; gap: 14px;
+  padding: 18px 24px;
+  border-bottom: 1px solid #1e2d3d;
+}
+.ot-product-img {
+  width: 56px; height: 56px;
+  object-fit: cover; border-radius: 10px;
+  border: 1px solid #1e2d3d; flex-shrink: 0;
+}
+.ot-product-name { font-size: .92rem; font-weight: 700; color: #f1f5f9; margin-bottom: 4px; }
+.ot-product-meta { font-size: .78rem; color: #64748b; }
+
+/* Badges */
+.ot-badges {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  padding: 18px 24px;
+  border-bottom: 1px solid #1e2d3d;
+}
+.ot-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 14px; border-radius: 999px;
+  font-size: .78rem; font-weight: 700;
+}
+.ot-badge-warn  { background: rgba(245,158,11,.1); border: 1px solid rgba(245,158,11,.3); color: #fbbf24; }
+.ot-badge-green { background: rgba(16,185,129,.1); border: 1px solid rgba(16,185,129,.3); color: #34d399; }
+.ot-badge-red   { background: rgba(239,68,68,.1);  border: 1px solid rgba(239,68,68,.3);  color: #f87171; }
+.ot-badge-gray  { background: rgba(100,116,139,.1);border: 1px solid rgba(100,116,139,.3);color: #94a3b8; }
+.ot-badge-indigo{ background: rgba(99,102,241,.1); border: 1px solid rgba(99,102,241,.3); color: #818cf8; }
+.ot-badge-blue  { background: rgba(59,130,246,.1); border: 1px solid rgba(59,130,246,.3); color: #60a5fa; }
+
+/* Progress timeline */
+.ot-timeline {
+  display: flex; align-items: center;
+  padding: 24px 28px;
+  border-bottom: 1px solid #1e2d3d;
+  overflow-x: auto;
+}
+.ot-step {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 8px; min-width: 70px; flex-shrink: 0;
+}
+.ot-step-dot {
+  width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: #1e2d3d;
+  border: 2px solid #253347;
+  color: #475569;
+  transition: all .3s;
+}
+.ot-step.done .ot-step-dot  { background: #10b981; border-color: #10b981; color: #fff; }
+.ot-step.active .ot-step-dot { background: #6366f1; border-color: #6366f1; color: #fff; animation: stepPulse 1.6s ease infinite; }
+.ot-step-label {
+  font-size: .68rem; font-weight: 600; color: #475569;
+  text-align: center; line-height: 1.4;
+}
+.ot-step.done .ot-step-label   { color: #34d399; }
+.ot-step.active .ot-step-label { color: #818cf8; }
+.ot-step-label span { font-weight: 700; }
+
+.ot-step-line {
+  flex: 1; height: 2px; background: #1e2d3d; min-width: 24px;
+  border-radius: 2px; transition: background .3s;
+}
+.ot-step-line.done { background: #10b981; }
+
+@keyframes stepPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(99,102,241,.4); }
+  50%       { box-shadow: 0 0 0 8px rgba(99,102,241,0); }
+}
+
+/* Support */
+.ot-support {
+  display: flex; align-items: center; gap: 8px;
+  padding: 16px 24px;
+  font-size: .8rem; color: #475569;
+}
+.ot-support a { color: #25d366; text-decoration: none; font-weight: 600; }
+.ot-support a:hover { text-decoration: underline; }
+
+@media (max-width: 560px) {
+  .ot-page { padding: 32px 16px 60px; }
+  .ot-search-wrap { padding: 20px 16px; }
+  .ot-input-row { flex-direction: column; }
+  .ot-btn { width: 100%; justify-content: center; }
+  .ot-card-top { flex-direction: column; }
+  .ot-timeline { padding: 20px 16px; }
+}
+</style>
+{% endblock %}

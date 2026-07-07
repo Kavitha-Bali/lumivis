@@ -757,9 +757,61 @@ body { background: #f1f5f9; }
               <div style="color:#64748b;">₹{{ o.delivery_charge }}</div>
             </td>
             <td><strong style="color:#34d399;">₹{{ o.total }}</strong></td>
-            <td><span class="sb {{ o.status }}">{{ o.get_status_display }}</span></td>
             <td>
-              <div style="display:flex;flex-direction:column;gap:5px;min-width:130px;">
+              <span class="sb {{ o.status }}">{{ o.get_status_display }}</span>
+              <!-- Payment verification badge -->
+              {% if o.payment_status == 'pending' %}
+                <div style="margin-top:4px;display:inline-flex;align-items:center;gap:4px;
+                            background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.35);
+                            color:#f59e0b;border-radius:6px;padding:2px 7px;font-size:.68rem;font-weight:700;">
+                  ⏳ Pay Pending
+                </div>
+              {% elif o.payment_status == 'verified' %}
+                <div style="margin-top:4px;display:inline-flex;align-items:center;gap:4px;
+                            background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.35);
+                            color:#10b981;border-radius:6px;padding:2px 7px;font-size:.68rem;font-weight:700;">
+                  ✓ Pay Verified
+                </div>
+              {% elif o.payment_status == 'rejected' %}
+                <div style="margin-top:4px;display:inline-flex;align-items:center;gap:4px;
+                            background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.35);
+                            color:#ef4444;border-radius:6px;padding:2px 7px;font-size:.68rem;font-weight:700;">
+                  ✗ Pay Rejected
+                </div>
+              {% endif %}
+              <!-- Transaction details -->
+              {% if o.transaction_id %}
+              <div style="margin-top:5px;font-size:.7rem;color:#64748b;">
+                TXN: <span style="color:#a5b4fc;font-family:monospace;">{{ o.transaction_id }}</span>
+              </div>
+              {% endif %}
+              {% if o.upi_id %}
+              <div style="font-size:.7rem;color:#64748b;">
+                UPI: <span style="color:#a5b4fc;">{{ o.upi_id }}</span>
+              </div>
+              {% endif %}
+            </td>
+            <td>
+              <div style="display:flex;flex-direction:column;gap:5px;min-width:140px;">
+                <!-- Payment approve / reject -->
+                {% if o.payment_status == 'pending' and o.transaction_id %}
+                <a href="{% url 'approve_payment' o.order_id 'approve' %}"
+                   style="display:inline-flex;align-items:center;justify-content:center;gap:4px;
+                          background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.4);
+                          color:#10b981;border-radius:7px;padding:5px 8px;font-size:.72rem;
+                          font-weight:700;text-decoration:none;"
+                   onclick="return confirm('Approve payment for {{ o.order_id }}?')">
+                  ✓ Approve Payment
+                </a>
+                <a href="{% url 'approve_payment' o.order_id 'reject' %}"
+                   style="display:inline-flex;align-items:center;justify-content:center;gap:4px;
+                          background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.35);
+                          color:#ef4444;border-radius:7px;padding:5px 8px;font-size:.72rem;
+                          font-weight:700;text-decoration:none;"
+                   onclick="return confirm('Reject payment for {{ o.order_id }}?')">
+                  ✗ Reject Payment
+                </a>
+                {% endif %}
                 <!-- Status update -->
                 <form method="POST" action="?s=orders{% if status_filter %}&status={{ status_filter }}{% endif %}" style="display:flex;gap:4px;">
                   {% csrf_token %}
@@ -773,7 +825,7 @@ body { background: #f1f5f9; }
                   <button type="submit" class="status-save" style="font-size:.72rem;padding:4px 8px;">✓</button>
                 </form>
                 <!-- WhatsApp customer -->
-                <a href="https://wa.me/{{ o.phone|slice:'1:' }}?text={{ 'Hi '|add:o.customer_name|add:', your order '|add:o.order_id|add:' has been received. We will confirm shortly. - Lumivis Team'|urlencode }}"
+                <a href="https://wa.me/{{ o.phone|slice:'1:' }}?text={{ 'Hi '|add:o.customer_name|add:', your order '|add:o.order_id|add:' is confirmed! - Lumivis Team'|urlencode }}"
                    target="_blank" rel="noopener"
                    style="display:inline-flex;align-items:center;gap:4px;background:rgba(37,211,102,.1);
                           border:1px solid rgba(37,211,102,.3);color:#4ade80;border-radius:7px;

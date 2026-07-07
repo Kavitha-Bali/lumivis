@@ -28,9 +28,18 @@ urlpatterns = [
     path('admin-panel/', views.admin_panel, name='admin_panel'),
     path('my-account/', views.user_panel, name='user_panel'),
 
+    # Order tracking (public)
+    path('order-track/', views.order_track, name='order_track'),
+
+    # Dismiss order status notification
+    path('order/dismiss/<str:order_id>/', views.dismiss_notification, name='dismiss_notification'),
+
     # Order cancellation
     path('order/cancel/<str:order_id>/', views.cancel_order, name='cancel_order'),
     path('admin-panel/cancel/<int:pk>/<str:action>/', views.admin_cancel_review, name='admin_cancel_review'),
+
+    # Payment approval
+    path('admin-panel/payment/<str:order_id>/<str:action>/', views.approve_payment, name='approve_payment'),
 
     # Live search
     path('search/suggest/', views.search_suggestions, name='search_suggest'),

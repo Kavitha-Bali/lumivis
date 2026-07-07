@@ -4,207 +4,115 @@
 
 /* ─── Welcome Popup Offer ────────────────────────────────────── */
 .popup-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.72);
-  backdrop-filter: blur(4px);
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.78);
+  backdrop-filter: blur(6px);
   z-index: 9999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: flex; align-items: center; justify-content: center;
   padding: 16px;
-  opacity: 0;
-  pointer-events: none;
+  opacity: 0; pointer-events: none;
   transition: opacity .3s ease;
 }
 .popup-backdrop.popup-visible {
   opacity: 1;
   pointer-events: all;
 }
+
+/* ── Card: height follows image naturally — no cropping ─────────── */
 .popup-card {
   position: relative;
-  display: flex;
-  background: #111827;
-  border: 1.5px solid #1e2d3d;
-  border-radius: 20px;
+  width: 80%;
+  max-width: 640px;
+  max-height: 90vh;
+  border-radius: 22px;
   overflow: hidden;
-  max-width: 680px;
-  width: 100%;
-  box-shadow: 0 24px 80px rgba(0,0,0,.6);
-  transform: translateY(24px) scale(.97);
-  transition: transform .35s cubic-bezier(.34,1.56,.64,1);
+  background: #060912;
+  box-shadow: 0 28px 80px rgba(0,0,0,.85);
+  transform: translateY(24px) scale(.94);
+  transition: transform .38s cubic-bezier(.34,1.56,.64,1);
 }
 .popup-backdrop.popup-visible .popup-card {
   transform: translateY(0) scale(1);
 }
-.popup-close {
-  position: absolute;
-  top: 14px; right: 14px;
-  width: 34px; height: 34px;
-  border-radius: 50%;
-  background: rgba(255,255,255,.07);
-  border: 1px solid rgba(255,255,255,.12);
-  color: #94a3b8;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer;
-  z-index: 2;
-  transition: background .15s, color .15s;
-}
-.popup-close:hover { background: rgba(239,68,68,.18); color: #f87171; }
 
-/* Left image panel */
+/* Close button */
+.popup-close {
+  position: absolute; top: 12px; right: 12px;
+  width: 32px; height: 32px; border-radius: 50%;
+  background: rgba(0,0,0,.65);
+  border: 1px solid rgba(255,255,255,.2);
+  color: #e2e8f0;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; z-index: 30;
+  transition: background .15s;
+}
+.popup-close:hover { background: rgba(239,68,68,.7); }
+
+/* ── Image flows at its natural proportions — full image visible ── */
 .popup-img-side {
-  position: relative;
-  width: 240px;
-  flex-shrink: 0;
-  background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
+  display: block;
+  width: 100%;
+  background: #060912;
 }
 .popup-product-img {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  height: auto;         /* natural height — never crops */
   display: block;
 }
-.popup-img-placeholder {
+
+/* ── Button strip — frosted glass overlay at bottom of card ─────── */
+.popup-buy-form {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  z-index: 10;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
-  height: 280px;
-}
-.popup-discount-badge {
-  position: absolute;
-  bottom: 16px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: linear-gradient(135deg, #ef4444, #dc2626);
-  color: #fff;
-  font-size: 1.1rem;
-  font-weight: 900;
-  padding: 6px 18px;
-  border-radius: 999px;
-  white-space: nowrap;
-  box-shadow: 0 4px 16px rgba(239,68,68,.5);
-  letter-spacing: .03em;
+  padding: 16px 24px;
+  background: rgba(6, 9, 18, 0.55);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-top: 1px solid rgba(255,255,255,.12);
 }
 
-/* Right content */
-.popup-content {
-  flex: 1;
-  padding: 32px 28px 28px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.popup-badge {
-  display: inline-block;
-  background: rgba(99,102,241,.15);
-  border: 1px solid rgba(99,102,241,.35);
-  color: #818cf8;
-  font-size: .7rem;
-  font-weight: 700;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  padding: 4px 12px;
-  border-radius: 999px;
-  width: fit-content;
-}
-.popup-title {
-  font-size: 1.45rem;
-  font-weight: 900;
-  color: #f1f5f9;
-  line-height: 1.2;
-  margin: 0;
-}
-.popup-sub {
-  font-size: .85rem;
-  color: #64748b;
-  margin: 0;
-  line-height: 1.6;
-}
-.popup-product-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 12px 14px;
-  background: #0f172a;
-  border: 1px solid #1e2d3d;
-  border-radius: 10px;
-}
-.popup-product-name {
-  font-size: .82rem;
-  color: #94a3b8;
-  font-weight: 600;
-}
-.popup-product-price {
-  font-size: 1.25rem;
-  font-weight: 900;
-  color: #34d399;
-}
-.popup-actions {
-  display: flex;
-  gap: 10px;
-  margin-top: 4px;
-}
+/* ── Buy Now button ─────────────────────────────────────────────── */
+.popup-actions { display: flex; gap: 10px; width: 100%; }
+.popup-actions form { display: flex; flex: 1; }
 .popup-btn-buy {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  padding: 13px 18px;
+  display: flex; align-items: center; justify-content: center;
+  gap: 8px; flex: 1; width: 100%;
+  padding: 14px 18px;
   background: linear-gradient(135deg, #6366f1, #8b5cf6);
-  color: #fff;
-  border: none;
-  border-radius: 12px;
-  font-size: .92rem;
-  font-weight: 800;
-  cursor: pointer;
-  box-shadow: 0 4px 18px rgba(99,102,241,.45);
+  color: #fff; border: none; border-radius: 12px;
+  font-size: 1rem; font-weight: 800; cursor: pointer;
+  box-shadow: 0 4px 18px rgba(99,102,241,.55);
   transition: box-shadow .18s, transform .15s;
   text-decoration: none;
-  letter-spacing: .02em;
 }
-.popup-btn-buy:hover { box-shadow: 0 8px 28px rgba(99,102,241,.6); transform: translateY(-1px); }
-.popup-btn-view {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 13px 16px;
-  background: #1e2d42;
-  border: 1.5px solid #253347;
-  color: #94a3b8;
-  border-radius: 12px;
-  font-size: .82rem;
-  font-weight: 700;
-  text-decoration: none;
-  white-space: nowrap;
-  transition: background .15s, color .15s;
+.popup-btn-buy:hover {
+  box-shadow: 0 8px 28px rgba(99,102,241,.75);
+  transform: translateY(-2px);
 }
-.popup-btn-view:hover { background: #253347; color: #e2e8f0; }
-.popup-later {
-  background: none;
-  border: none;
-  color: #475569;
-  font-size: .75rem;
-  cursor: pointer;
-  text-align: center;
-  margin-top: 4px;
-  transition: color .15s;
-  padding: 4px;
-}
-.popup-later:hover { color: #94a3b8; text-decoration: underline; }
 
-@media (max-width: 560px) {
-  .popup-card { flex-direction: column; max-width: 360px; }
-  .popup-img-side { width: 100%; height: 180px; }
-  .popup-product-img { height: 180px; object-fit: cover; }
-  .popup-content { padding: 20px 18px 18px; }
-  .popup-title { font-size: 1.15rem; }
+/* ── Mobile / Tablet ≤ 768px ────────────────────────────────────── */
+@media (max-width: 768px) {
+  .popup-backdrop { padding: 14px; }
+
+  .popup-card {
+    width: 88%;
+    max-width: 380px;
+    border-radius: 18px;
+  }
+
+  .popup-close { top: 8px; right: 8px; width: 28px; height: 28px; }
+  .popup-buy-form { padding: 13px 16px; }
+  .popup-btn-buy { font-size: .88rem; padding: 12px 14px; }
+}
+
+/* ── Small phones ≤ 420px ───────────────────────────────────────── */
+@media (max-width: 420px) {
+  .popup-card { width: 92%; }
+  .popup-btn-buy { font-size: .82rem; }
 }
 
 /* ─── Fonts ──────────────────────────────────────────────────── */

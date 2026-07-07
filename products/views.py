@@ -94,7 +94,7 @@ def home(request):
         wishlisted_ids = set(
             Wishlist.objects.filter(user=request.user).values_list('product_id', flat=True)
         )
-    popup_offer = PopupOffer.objects.filter(is_active=True).select_related('product').first()
+    popup_offer = PopupOffer.objects.filter(is_active=True).select_related('product').order_by('-created_at').first()
 
     return render(request, 'products/index.html', {
         'products':       products,
@@ -258,6 +258,10 @@ def checkout(request):
         # Payment screenshot
         screenshot_file = request.FILES.get('payment_screenshot')
 
+        # UPI payment details
+        upi_id         = request.POST.get('upi_id', '').strip()
+        transaction_id = request.POST.get('transaction_id', '').strip()
+
         # Persist order to database
         order_obj = Order.objects.create(
             order_id        = order_id,
@@ -271,6 +275,9 @@ def checkout(request):
             urgent_charge   = urgent_charge if urgent_delivery else 0,
             delivery_zone   = delivery_zone,
             delivery_charge = delivery_charge,
+            upi_id          = upi_id,
+            transaction_id  = transaction_id,
+            payment_status  = 'pending',
         )
         if screenshot_file:
             order_obj.payment_screenshot = screenshot_file
@@ -288,6 +295,8 @@ def checkout(request):
         request.session['order_delivery_zone']   = delivery_zone
         request.session['order_delivery_charge'] = str(delivery_charge)
         request.session['order_screenshot_url']  = order_obj.payment_screenshot.url if order_obj.payment_screenshot else ''
+        request.session['order_upi_id']          = upi_id
+        request.session['order_transaction_id']  = transaction_id
         request.session['cart']                  = {}
 
         messages.success(request, f'Order {order_id} placed successfully!')
@@ -296,7 +305,14 @@ def checkout(request):
     return render(request, 'products/checkout.html', {
         'items': items,
         'total': total,
-        'form_data': {},
+        'form_data': {
+            'full_name':   '',
+            'email':       request.user.email if request.user.is_authenticated else '',
+            'phone_input': '+91',
+            'address':     '',
+            'city':        '',
+            'pincode':     '',
+        },
     })
 
 
@@ -316,6 +332,8 @@ def order_success(request):
     order_delivery_zone   = request.session.pop('order_delivery_zone',   'inside')
     order_delivery_charge = request.session.pop('order_delivery_charge', '100')
     order_screenshot_url  = request.session.pop('order_screenshot_url',  '')
+    order_upi_id          = request.session.pop('order_upi_id',          '')
+    order_transaction_id  = request.session.pop('order_transaction_id',  '')
 
     delivery_zone_label = 'Inside Visakhapatnam' if order_delivery_zone == 'inside' else 'Outside Visakhapatnam'
 
@@ -332,6 +350,61 @@ def order_success(request):
         'order_delivery_charge': order_delivery_charge,
         'delivery_zone_label':   delivery_zone_label,
         'order_screenshot_url':  order_screenshot_url,
+        'order_upi_id':          order_upi_id,
+        'order_transaction_id':  order_transaction_id,
+    })
+
+
+# ── Admin: Approve / Reject Payment ─────────────────────────────────────────
+
+@login_required(login_url='/login/')
+def approve_payment(request, order_id, action):
+    if not request.user.is_staff:
+        messages.error(request, 'Access denied.')
+        return redirect('home')
+    order = get_object_or_404(Order, order_id=order_id)
+    if action == 'approve':
+        order.payment_status = 'verified'
+        order.status = 'confirmed'
+        order.save()
+        messages.success(request, f'Payment verified and order {order_id} confirmed.')
+    elif action == 'reject':
+        order.payment_status = 'rejected'
+        order.save()
+        messages.warning(request, f'Payment rejected for order {order_id}.')
+    return redirect(request.META.get('HTTP_REFERER', 'admin_panel'))
+
+
+# ── Dismiss Order Notification ───────────────────────────────────────────────
+
+@login_required(login_url='/login/')
+def dismiss_notification(request, order_id):
+    if request.method == 'POST':
+        Order.objects.filter(order_id=order_id, user=request.user).update(notification_seen=True)
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'ok': True})
+    return redirect(request.META.get('HTTP_REFERER', 'home'))
+
+
+# ── Order Track ──────────────────────────────────────────────────────────────
+
+def order_track(request):
+    order = None
+    error = None
+    searched_id = request.GET.get('order_id', '').strip().upper()
+    if searched_id:
+        try:
+            order = Order.objects.get(order_id=searched_id)
+            # User is actively viewing their order — clear the notification
+            if request.user.is_authenticated and order.user == request.user and not order.notification_seen:
+                order.notification_seen = True
+                order.save(update_fields=['notification_seen'])
+        except Order.DoesNotExist:
+            error = 'No order found with that ID. Please check and try again.'
+    return render(request, 'products/order_track.html', {
+        'order': order,
+        'error': error,
+        'searched_id': searched_id,
     })
 
 
@@ -654,12 +727,14 @@ def user_panel(request):
         return redirect(f"{request.path}?tab=settings")
 
     wishlist    = Wishlist.objects.filter(user=request.user).select_related('product')
+    orders      = Order.objects.filter(user=request.user).order_by('-created_at')
+    total_spent = sum(o.total for o in orders)
 
     return render(request, 'products/user_panel.html', {
         'tab':            tab,
-        'orders':         [],
+        'orders':         orders,
         'wishlist':       wishlist,
-        'total_spent':    0,
+        'total_spent':    total_spent,
         'status_choices': [],
     })
 

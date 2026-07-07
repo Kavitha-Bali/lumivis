@@ -133,11 +133,46 @@ class RatingsAdmin(admin.ModelAdmin):
 
 @admin.register(PopupOffer, site=admin_site)
 class PopupOfferAdmin(admin.ModelAdmin):
-    list_display  = ('title', 'discount_text', 'product', 'is_active', 'created_at')
-    list_filter   = ('is_active',)
-    search_fields = ('title', 'product__name')
-    ordering      = ('-created_at',)
-    list_per_page = 20
+    list_display        = ('popup_image_thumb', 'featured_product', 'is_active', 'created_at')
+    list_display_links  = ('popup_image_thumb',)
+    list_filter         = ('is_active',)
+    ordering            = ('-created_at',)
+    list_per_page       = 20
+    readonly_fields     = ('popup_image_thumb',)
+
+    fieldsets = (
+        ('Popup Image', {
+            'description': 'Upload an image for the popup. Recommended size: 600 × 800 px (portrait).',
+            'fields': ('image', 'popup_image_thumb'),
+        }),
+        ('Buy Now Product  (optional)', {
+            'description': 'Select a product to show a Buy Now button on the popup. Leave empty to show the popup without a button.',
+            'fields': ('product',),
+        }),
+        ('Visibility', {
+            'fields': ('is_active',),
+        }),
+    )
+
+    @admin.display(description='Image')
+    def popup_image_thumb(self, obj):
+        if obj and obj.image:
+            return format_html(
+                '<img src="{}" style="width:70px;height:88px;object-fit:cover;'
+                'border-radius:8px;border:1px solid #e5e7eb;" />',
+                obj.image.url,
+            )
+        return mark_safe('<span style="color:#9ca3af;font-size:0.8rem;">No image</span>')
+
+    @admin.display(description='Product (Buy Now)')
+    def featured_product(self, obj):
+        if obj.product:
+            return format_html(
+                '<span style="font-weight:600;">{}</span>'
+                '&nbsp;<span style="color:#6b7280;font-size:.8rem;">₹{}</span>',
+                obj.product.name, obj.product.price,
+            )
+        return mark_safe('<span style="color:#9ca3af;font-size:0.8rem;">—</span>')
 
 
 # ── Wishlist ──────────────────────────────────────────────────────────────────
