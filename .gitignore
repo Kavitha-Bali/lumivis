@@ -9,11 +9,25 @@ __pycache__/
 
 # Django
 db.sqlite3
+*.sqlite3
 media/
 
-# Virtual env
+# Virtual environments
 env/
 venv/
+nv/
+.venv/
 
+# Large media / video files
+*.mp4
+*.mov
+*.avi
+*.mkv
 
-.sqlite3
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
