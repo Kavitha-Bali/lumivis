@@ -115,10 +115,10 @@ WSGI_APPLICATION = 'lumivis.wsgi.application'
 DATABASES = {
     "default": {
         "ENGINE":   "django.db.backends.postgresql",
-        "NAME":     env("DB_NAME",     default="lumivis"),
-        "USER":     env("DB_USER",     default="postgres"),
+        "NAME":     env("DB_NAME",     default=""),
+        "USER":     env("DB_USER",     default=""),
         "PASSWORD": env("DB_PASSWORD", default=""),
-        "HOST":     env("DB_HOST",     default="localhost"),
+        "HOST":     env("DB_HOST",     default=""),
         "PORT":     env("DB_PORT",     default="5432"),
     }
 }
