@@ -12,6 +12,7 @@
 
     <form method="POST" class="auth-form">
       {% csrf_token %}
+      {% if next %}<input type="hidden" name="next" value="{{ next }}" />{% endif %}
 
       {% if form.non_field_errors %}
       <div class="alert alert-error">{{ form.non_field_errors }}</div>
@@ -36,7 +37,7 @@
       <button type="submit" class="btn btn-dark btn-lg" style="width:100%;">Sign In</button>
     </form>
 
-    {% if request.GET.next != '/admin-panel/' %}
+    {% if 'admin' not in request.GET.next %}
     <p class="auth-switch">
       Don't have an account? <a href="{% url 'register' %}">Create one</a>
     </p>

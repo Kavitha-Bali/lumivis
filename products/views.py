@@ -9,6 +9,7 @@ from django.contrib.auth.models import User
 from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.csrf import ensure_csrf_cookie
 
 from django.utils import timezone
 
@@ -474,21 +475,29 @@ def register_view(request):
     return render(request, 'products/register.html', {'form': form})
 
 
+@ensure_csrf_cookie
 def login_view(request):
     """
     GET  /login/  — login form.
     POST /login/  — authenticate and redirect to ?next= or home.
-    Redirects to home if already authenticated.
     """
+    # Resolve next URL — prefer GET param, fall back to POST body
+    next_url = request.GET.get('next', '').strip() or request.POST.get('next', '').strip()
+    # Only allow relative internal redirects (no open-redirect)
+    if not next_url.startswith('/'):
+        next_url = ''
+
     if request.user.is_authenticated:
-        return redirect('home')
+        return redirect(next_url or 'home')
+
     form = AuthenticationForm(data=request.POST or None)
     if request.method == 'POST' and form.is_valid():
         user = form.get_user()
         login(request, user)
         messages.success(request, f'Welcome back, {user.username}!')
-        return redirect(request.GET.get('next') or 'home')
-    return render(request, 'products/login.html', {'form': form})
+        return redirect(next_url or 'home')
+
+    return render(request, 'products/login.html', {'form': form, 'next': next_url})
 
 
 def logout_view(request):
