@@ -4,7 +4,7 @@ from django.shortcuts import redirect
 
 from django.utils.html import format_html, mark_safe
 from django.utils.timezone import now
-from .models import Product, PopupOffer, promocode, ratings, Wishlist
+from .models import Product, PopupOffer, ProductImage, promocode, ratings, Wishlist
 
 
 # ── Custom admin site with dashboard stats ─────────────────────────────────────
@@ -68,6 +68,23 @@ admin_site = LumivisAdminSite(name='lumivis_admin')
 
 # ── Product ─────────────────────────────────────────────────────────────────
 
+class ProductImageInline(admin.TabularInline):
+    model = ProductImage
+    extra = 3
+    fields = ('image', 'order', 'image_preview')
+    readonly_fields = ('image_preview',)
+
+    @admin.display(description='Preview')
+    def image_preview(self, obj):
+        if obj and obj.pk and obj.image:
+            return format_html(
+                '<img src="{}" style="width:60px;height:60px;object-fit:cover;'
+                'border-radius:6px;border:1px solid #e5e7eb;" />',
+                obj.image.url,
+            )
+        return mark_safe('<span style="color:#9ca3af;font-size:0.75rem;">No image</span>')
+
+
 @admin.register(Product, site=admin_site)
 class ProductAdmin(admin.ModelAdmin):
     list_display  = ('image_thumb', 'name', 'product_id', 'product_type', 'product_size', 'price')
@@ -76,6 +93,7 @@ class ProductAdmin(admin.ModelAdmin):
     list_filter   = ('product_type', 'product_size')
     ordering      = ('name',)
     list_per_page = 20
+    inlines       = (ProductImageInline,)
 
     fieldsets = (
         ('Product Information', {
