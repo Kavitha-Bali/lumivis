@@ -106,7 +106,7 @@
 
   .popup-close { top: 8px; right: 8px; width: 28px; height: 28px; }
   .popup-buy-form { padding: 13px 16px; }
-  .popup-btn-buy { font-size: .88rem; padding: 12px 14px; }
+  .popup-btn-buy { font-size: .88rem; padding: 12px 14px;  }
 }
 
 /* ── Small phones ≤ 420px ───────────────────────────────────────── */
