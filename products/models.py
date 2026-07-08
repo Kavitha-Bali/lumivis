@@ -17,6 +17,18 @@ class Product(models.Model):
         return self.name
 
 
+class ProductImage(models.Model):
+    product    = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='gallery_images')
+    image      = models.ImageField(upload_to='products/gallery/')
+    order      = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['order', 'created_at']
+
+    def __str__(self):
+        return f"{self.product.name} — gallery image {self.pk}"
+
 
 class ratings(models.Model):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)

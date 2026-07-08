@@ -13,11 +13,12 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.csrf import ensure_csrf_cookie
+from django.views.decorators.csrf import csrf_exempt
 
 from django.utils import timezone
 
 from .forms import CustomRegisterForm
-from .models import CancelRequest, ContactMessage, Order, PopupOffer, Product, UserProfile, Wishlist, promocode, ratings
+from .models import CancelRequest, ContactMessage, Order, PopupOffer, Product, ProductImage, UserProfile, Wishlist, promocode, ratings
 
 
 # ── Access-control decorators ─────────────────────────────────────────────────
@@ -131,7 +132,7 @@ def home(request):
         'popup_offer':    popup_offer,
     })
 
-
+# @csrf_exempt
 def product_detail(request, pk):
     product = get_object_or_404(Product, pk=pk)
     related = (
@@ -764,6 +765,8 @@ def admin_panel(request):
             if 'cover_image' in request.FILES:
                 p.cover_image = request.FILES['cover_image']
             p.save()
+            for gallery_file in request.FILES.getlist('gallery_images'):
+                ProductImage.objects.create(product=p, image=gallery_file)
             messages.success(request, f'Product "{name}" added successfully.')
             return redirect(f"{request.path}?s=products")
 
@@ -783,8 +786,19 @@ def admin_panel(request):
             if 'cover_image' in request.FILES:
                 p.cover_image = request.FILES['cover_image']
             p.save()
+            for gallery_file in request.FILES.getlist('gallery_images'):
+                ProductImage.objects.create(product=p, image=gallery_file)
             messages.success(request, f'Product "{p.name}" updated.')
             return redirect(f"{request.path}?s=products")
+
+        # Delete a single gallery image from a product
+        if action == 'delete_product_image':
+            image_pk = request.POST.get('image_pk', '').strip()
+            gallery_image = get_object_or_404(ProductImage, pk=image_pk)
+            product_pk = gallery_image.product_id
+            gallery_image.delete()
+            messages.success(request, 'Gallery image removed.')
+            return redirect(f"{request.path}?s=edit_product&pk={product_pk}")
 
         # Delete product
         if action == 'delete_product':
