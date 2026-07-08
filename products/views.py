@@ -1,20 +1,38 @@
 import re
 import uuid
+from decimal import Decimal
+from functools import wraps
 
 from django.contrib import messages
 from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import User
-from django.db.models import Q
+from django.db.models import Q, Avg
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.views.decorators.csrf import ensure_csrf_cookie
 
 from django.utils import timezone
 
 from .forms import CustomRegisterForm
-from .models import CancelRequest, Order, PopupOffer, Product, UserProfile, Wishlist, promocode
+from .models import CancelRequest, ContactMessage, Order, PopupOffer, Product, UserProfile, Wishlist, promocode, ratings
+
+
+# ── Access-control decorators ─────────────────────────────────────────────────
+
+def staff_required(view_func):
+    """Allow only authenticated staff/admin users. Others are denied with a clear message."""
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect(f'/login/?next={request.path}')
+        if not request.user.is_staff:
+            messages.error(request, 'Access denied. This area is for administrators only.')
+            return redirect('home')
+        return view_func(request, *args, **kwargs)
+    return wrapper
 
 
 
@@ -43,6 +61,14 @@ def about(request):
 
 def contact(request):
     if request.method == 'POST':
+        name    = request.POST.get('name', '').strip()
+        email   = request.POST.get('email', '').strip()
+        subject = request.POST.get('subject', '').strip()
+        msg_body = request.POST.get('message', '').strip()
+        if name and email and msg_body:
+            ContactMessage.objects.create(
+                name=name, email=email, subject=subject, message=msg_body
+            )
         messages.success(request, "Thank you! We'll get back to you shortly.")
         return redirect('contact')
     return render(request, 'products/contact.html')
@@ -107,10 +133,6 @@ def home(request):
 
 
 def product_detail(request, pk):
-    """
-    Single product page with up to 4 related products of the same type.
-    GET /product/<pk>/
-    """
     product = get_object_or_404(Product, pk=pk)
     related = (
         Product.objects
@@ -121,11 +143,80 @@ def product_detail(request, pk):
         request.user.is_authenticated and
         Wishlist.objects.filter(user=request.user, product=product).exists()
     )
+    product_reviews = ratings.objects.filter(product=product).select_related('user').order_by('-created_at')
+    avg_rating      = product_reviews.aggregate(avg=Avg('rating'))['avg']
+    user_has_reviewed = (
+        request.user.is_authenticated and
+        ratings.objects.filter(user=request.user, product=product).exists()
+    )
+    user_can_review = (
+        request.user.is_authenticated and
+        not user_has_reviewed and
+        Order.objects.filter(
+            user=request.user, status='delivered',
+            items_text__icontains=product.name,
+        ).exists()
+    )
     return render(request, 'products/product_detail.html', {
-        'product':       product,
-        'related':       related,
-        'is_wishlisted': is_wishlisted,
+        'product':           product,
+        'related':           related,
+        'is_wishlisted':     is_wishlisted,
+        'reviews':           product_reviews,
+        'avg_rating':        avg_rating,
+        'review_count':      product_reviews.count(),
+        'user_has_reviewed': user_has_reviewed,
+        'user_can_review':   user_can_review,
     })
+
+
+# ── Reviews ───────────────────────────────────────────────────────────────────
+
+@login_required(login_url='/login/')
+def submit_review(request, product_pk):
+    product = get_object_or_404(Product, pk=product_pk)
+    if request.method != 'POST':
+        return redirect('product_detail', pk=product_pk)
+
+    if ratings.objects.filter(user=request.user, product=product).exists():
+        messages.error(request, 'You have already reviewed this product.')
+        return redirect('product_detail', pk=product_pk)
+
+    if not Order.objects.filter(
+        user=request.user, status='delivered',
+        items_text__icontains=product.name,
+    ).exists():
+        messages.error(request, 'You can only review products from your delivered orders.')
+        return redirect('product_detail', pk=product_pk)
+
+    star        = request.POST.get('rating', '').strip()
+    review_text = request.POST.get('review', '').strip()
+
+    if not star or not star.isdigit() or int(star) not in range(1, 6):
+        messages.error(request, 'Please select a rating between 1 and 5 stars.')
+        return redirect('product_detail', pk=product_pk)
+    if len(review_text) < 10:
+        messages.error(request, 'Review must be at least 10 characters.')
+        return redirect('product_detail', pk=product_pk)
+
+    ratings.objects.create(user=request.user, product=product, rating=int(star), review=review_text)
+    messages.success(request, f'Thank you! Your review for "{product.name}" has been published.')
+    return redirect('product_detail', pk=product_pk)
+
+
+@login_required(login_url='/login/')
+def delete_review(request, review_pk):
+    review     = get_object_or_404(ratings, pk=review_pk)
+    product_pk = review.product.pk
+    if request.method == 'POST':
+        if request.user == review.user or request.user.is_staff:
+            review.delete()
+            if request.user.is_staff:
+                messages.success(request, 'Review deleted.')
+                return redirect(f"{reverse('admin_panel')}?s=reviews")
+            messages.success(request, 'Your review has been removed.')
+        else:
+            messages.error(request, 'You can only delete your own reviews.')
+    return redirect('product_detail', pk=product_pk)
 
 
 # ── Cart ──────────────────────────────────────────────────────────────────────
@@ -147,6 +238,8 @@ def add_to_cart(request, pk):
     Add one unit of a product to the session cart, then redirect.
     POST /cart/add/<pk>/   (next=<url_name> in POST body redirects back to caller)
     """
+    if not request.user.is_authenticated:
+        return redirect(reverse('login') + '?next=' + reverse('product_detail', args=[pk]))
     get_object_or_404(Product, pk=pk)
     cart         = request.session.get('cart', {})
     cart[str(pk)] = cart.get(str(pk), 0) + 1
@@ -160,6 +253,8 @@ def buy_now(request, pk):
     POST /cart/buy/<pk>/  — add item to cart then go straight to checkout.
     Replaces the old direct link that skipped adding the item.
     """
+    if not request.user.is_authenticated:
+        return redirect(reverse('login') + '?next=' + reverse('product_detail', args=[pk]))
     get_object_or_404(Product, pk=pk)
     cart          = request.session.get('cart', {})
     cart[str(pk)] = cart.get(str(pk), 0) + 1
@@ -198,8 +293,32 @@ def update_cart(request, pk):
     return redirect('cart')
 
 
+# ── Promo code AJAX validator ──────────────────────────────────────────────────
+
+@login_required(login_url='/login/')
+def apply_promo(request):
+    if request.method != 'POST':
+        return JsonResponse({'valid': False, 'message': 'Invalid request.'})
+    code = request.POST.get('code', '').strip()
+    if not code:
+        return JsonResponse({'valid': False, 'message': 'Please enter a promo code.'})
+    try:
+        promo = promocode.objects.get(promo_code__iexact=code, is_active=True)
+        if promo.expiry_date < timezone.now():
+            return JsonResponse({'valid': False, 'message': 'This promo code has expired.'})
+        return JsonResponse({
+            'valid':        True,
+            'discount_pct': float(promo.discount_percentage),
+            'code':         promo.promo_code,
+            'message':      f'{float(promo.discount_percentage):.0f}% discount applied!',
+        })
+    except promocode.DoesNotExist:
+        return JsonResponse({'valid': False, 'message': 'Invalid promo code. Please check and try again.'})
+
+
 # ── Checkout ──────────────────────────────────────────────────────────────────
 
+@login_required(login_url='/login/')
 def checkout(request):
     """
     GET  /checkout/  — show order summary + shipping form.
@@ -245,7 +364,20 @@ def checkout(request):
         else:
             delivery_charge = 250
 
-        final_total = total + urgent_charge + delivery_charge
+        # Promo code — server-side re-validation (client JS already validated, but we confirm here)
+        promo_code_input    = request.POST.get('promo_code', '').strip()
+        promo_discount      = Decimal('0')
+        promo_code_applied  = ''
+        if promo_code_input:
+            try:
+                promo_obj = promocode.objects.get(promo_code__iexact=promo_code_input, is_active=True)
+                if promo_obj.expiry_date >= timezone.now():
+                    promo_discount     = (total * promo_obj.discount_percentage / Decimal('100')).quantize(Decimal('0.01'))
+                    promo_code_applied = promo_obj.promo_code
+            except promocode.DoesNotExist:
+                pass
+
+        final_total = total - promo_discount + Decimal(urgent_charge) + Decimal(delivery_charge)
 
         # Build order summary for WhatsApp
         order_id = 'LVP-' + uuid.uuid4().hex[:6].upper()
@@ -259,9 +391,20 @@ def checkout(request):
         # Payment screenshot
         screenshot_file = request.FILES.get('payment_screenshot')
 
-        # UPI payment details
+        # UPI payment details — both required
         upi_id         = request.POST.get('upi_id', '').strip()
         transaction_id = request.POST.get('transaction_id', '').strip()
+
+        if not upi_id:
+            messages.error(request, 'Your UPI ID is required to place an order.')
+            return render(request, 'products/checkout.html', {
+                'items': items, 'total': total, 'form_data': request.POST,
+            })
+        if not transaction_id or not re.match(r'^[A-Za-z0-9]{8,20}$', transaction_id):
+            messages.error(request, 'A valid Transaction / UTR ID (8–20 characters) is required.')
+            return render(request, 'products/checkout.html', {
+                'items': items, 'total': total, 'form_data': request.POST,
+            })
 
         # Persist order to database
         order_obj = Order.objects.create(
@@ -276,6 +419,8 @@ def checkout(request):
             urgent_charge   = urgent_charge if urgent_delivery else 0,
             delivery_zone   = delivery_zone,
             delivery_charge = delivery_charge,
+            promo_code      = promo_code_applied,
+            promo_discount  = promo_discount,
             upi_id          = upi_id,
             transaction_id  = transaction_id,
             payment_status  = 'pending',
@@ -295,6 +440,8 @@ def checkout(request):
         request.session['order_urgent_charge']   = str(urgent_charge) if urgent_delivery else '0'
         request.session['order_delivery_zone']   = delivery_zone
         request.session['order_delivery_charge'] = str(delivery_charge)
+        request.session['order_promo_code']      = promo_code_applied
+        request.session['order_promo_discount']  = str(promo_discount)
         request.session['order_screenshot_url']  = order_obj.payment_screenshot.url if order_obj.payment_screenshot else ''
         request.session['order_upi_id']          = upi_id
         request.session['order_transaction_id']  = transaction_id
@@ -358,11 +505,8 @@ def order_success(request):
 
 # ── Admin: Approve / Reject Payment ─────────────────────────────────────────
 
-@login_required(login_url='/login/')
+@staff_required
 def approve_payment(request, order_id, action):
-    if not request.user.is_staff:
-        messages.error(request, 'Access denied.')
-        return redirect('home')
     order = get_object_or_404(Order, order_id=order_id)
     if action == 'approve':
         order.payment_status = 'verified'
@@ -435,27 +579,26 @@ def cancel_order(request, order_id):
     return render(request, 'products/cancel_order.html', {'order': order})
 
 
-@login_required(login_url='/login/')
+@staff_required
 def admin_cancel_review(request, pk, action):
-    if not request.user.is_staff:
-        messages.error(request, 'Access denied.')
-        return redirect('home')
-
     cancel_req = get_object_or_404(CancelRequest, pk=pk)
-
+    if request.method != 'POST':
+        return redirect('/admin-panel/?s=cancellations')
+    admin_response = request.POST.get('admin_response', '').strip()
     if action == 'approve':
-        cancel_req.status      = 'approved'
-        cancel_req.reviewed_at = timezone.now()
+        cancel_req.status        = 'approved'
+        cancel_req.reviewed_at   = timezone.now()
+        cancel_req.admin_response = admin_response
         cancel_req.save()
         cancel_req.order.status = 'cancelled'
         cancel_req.order.save()
         messages.success(request, f'Order {cancel_req.order.order_id} has been cancelled.')
     elif action == 'reject':
-        cancel_req.status      = 'rejected'
-        cancel_req.reviewed_at = timezone.now()
+        cancel_req.status        = 'rejected'
+        cancel_req.reviewed_at   = timezone.now()
+        cancel_req.admin_response = admin_response
         cancel_req.save()
         messages.info(request, f'Cancellation request for {cancel_req.order.order_id} rejected.')
-
     return redirect('/admin-panel/?s=cancellations')
 
 
@@ -488,14 +631,18 @@ def login_view(request):
         next_url = ''
 
     if request.user.is_authenticated:
-        return redirect(next_url or 'home')
+        if next_url:
+            return redirect(next_url)
+        return redirect('admin_panel' if request.user.is_staff else 'home')
 
     form = AuthenticationForm(data=request.POST or None)
     if request.method == 'POST' and form.is_valid():
         user = form.get_user()
         login(request, user)
         messages.success(request, f'Welcome back, {user.username}!')
-        return redirect(next_url or 'home')
+        if next_url:
+            return redirect(next_url)
+        return redirect('admin_panel' if user.is_staff else 'home')
 
     return render(request, 'products/login.html', {'form': form, 'next': next_url})
 
@@ -540,8 +687,7 @@ def toggle_wishlist(request, pk):
     Redirects to ?next= or the wishlist page.
     """
     if not request.user.is_authenticated:
-        messages.warning(request, 'Please log in to save products to your wishlist.')
-        return redirect('login')
+        return redirect(reverse('login') + '?next=' + reverse('product_detail', args=[pk]))
     product  = get_object_or_404(Product, pk=pk)
     existing = Wishlist.objects.filter(user=request.user, product=product).first()
     if existing:
@@ -570,11 +716,8 @@ def wishlist_checkout(request):
 
 # ── Admin Panel ────────────────────────────────────────────────────────────────
 
-@login_required(login_url='/login/')
+@staff_required
 def admin_panel(request):
-    if not request.user.is_staff:
-        messages.error(request, 'Access denied. Admin privileges required.')
-        return redirect('home')
     section       = request.GET.get('s', 'dashboard')
     status_filter = request.GET.get('status', '').strip()
 
@@ -652,6 +795,13 @@ def admin_panel(request):
             messages.success(request, f'Product "{name}" deleted.')
             return redirect(f"{request.path}?s=products")
 
+        # Mark contact message as read
+        if action == 'mark_message_read':
+            msg_pk = request.POST.get('msg_pk', '').strip()
+            if msg_pk:
+                ContactMessage.objects.filter(pk=msg_pk).update(is_read=True)
+            return redirect(f"{request.path}?s=messages")
+
     edit_product = None
     if section == 'edit_product':
         edit_pk = request.GET.get('pk', '').strip()
@@ -678,6 +828,10 @@ def admin_panel(request):
         'edit_product':     edit_product,
         'cancel_requests':  cancel_requests,
         'pending_cancels':  cancel_requests.filter(status='pending').count(),
+        'all_ratings':       ratings.objects.select_related('user', 'product').order_by('-created_at'),
+        'ratings_count':     ratings.objects.count(),
+        'contact_messages':  ContactMessage.objects.order_by('-created_at'),
+        'unread_count':      ContactMessage.objects.filter(is_read=False).count(),
         'stats': {
             'order_count':     Order.objects.count(),
             'revenue':         sum(o.total for o in Order.objects.all()),
@@ -704,8 +858,10 @@ def admin_panel(request):
 
 # ── User Panel ─────────────────────────────────────────────────────────────────
 
-@login_required
+@login_required(login_url='/login/')
 def user_panel(request):
+    if request.user.is_staff:
+        return redirect('admin_panel')
     tab = request.GET.get('tab', 'orders')
 
     # Profile update
@@ -736,15 +892,31 @@ def user_panel(request):
         return redirect(f"{request.path}?tab=settings")
 
     wishlist    = Wishlist.objects.filter(user=request.user).select_related('product')
-    orders      = Order.objects.filter(user=request.user).order_by('-created_at')
+    orders      = Order.objects.filter(user=request.user).select_related('cancel_request').order_by('-created_at')
     total_spent = sum(o.total for o in orders)
 
+    # Reviews data
+    user_reviews = ratings.objects.filter(user=request.user).select_related('product').order_by('-created_at')
+    reviewed_pids = set(user_reviews.values_list('product_id', flat=True))
+
+    # Products from delivered orders that the user hasn't reviewed yet
+    delivered_orders = Order.objects.filter(user=request.user, status='delivered')
+    delivered_names  = set()
+    for o in delivered_orders:
+        for name in re.findall(r'• (.+?) ×\d', o.items_text):
+            delivered_names.add(name.strip())
+    can_review_products = list(
+        Product.objects.filter(name__in=delivered_names).exclude(pk__in=reviewed_pids)
+    ) if delivered_names else []
+
     return render(request, 'products/user_panel.html', {
-        'tab':            tab,
-        'orders':         orders,
-        'wishlist':       wishlist,
-        'total_spent':    total_spent,
-        'status_choices': [],
+        'tab':                  tab,
+        'orders':               orders,
+        'wishlist':             wishlist,
+        'total_spent':          total_spent,
+        'status_choices':       [],
+        'user_reviews':         user_reviews,
+        'can_review_products':  can_review_products,
     })
 
 

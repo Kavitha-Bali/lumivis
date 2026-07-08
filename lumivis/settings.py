@@ -172,3 +172,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
+
+# CSRF — ensure cookie is always accessible and never requires HTTPS in dev
+CSRF_COOKIE_HTTPONLY  = False   # must be readable by the browser
+CSRF_COOKIE_SAMESITE  = 'Lax'  # send cookie on same-site navigations (default, explicit)
+CSRF_COOKIE_SECURE    = False   # allow HTTP in development

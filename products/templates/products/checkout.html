@@ -1,933 +1,908 @@
 {% extends 'products/base.html' %}
-
 {% block title %}Checkout — Lumivis Pvt. Ltd.{% endblock %}
 
 {% block content %}
-<main class="main">
-  <h1 class="section-title" style="margin-bottom:28px;">Checkout</h1>
+<main class="main" style="max-width:860px;">
+
+  <!-- ── Wizard Progress ── -->
+  <div class="co-wizard-bar">
+    <div class="co-wizard-step-ind active" id="ind1">
+      <span class="co-wizard-num">1</span>
+      <span class="co-wizard-label">Shipping</span>
+    </div>
+    <div class="co-wizard-line" id="line1"></div>
+    <div class="co-wizard-step-ind" id="ind2">
+      <span class="co-wizard-num">2</span>
+      <span class="co-wizard-label">Payment</span>
+    </div>
+    <div class="co-wizard-line" id="line2"></div>
+    <div class="co-wizard-step-ind" id="ind3">
+      <span class="co-wizard-num">3</span>
+      <span class="co-wizard-label">Confirm</span>
+    </div>
+  </div>
 
   <div class="checkout-layout">
 
-    <!-- ── Shipping + Payment form ── -->
+    <!-- ── Single form wrapping all 3 steps ── -->
     <form method="POST" class="checkout-form" id="checkoutForm" novalidate enctype="multipart/form-data">
       {% csrf_token %}
 
-      <!-- Shipping Details -->
-      <div class="form-section">
-        <h2 class="form-section-title">Shipping Details</h2>
-        <div class="form-grid">
-
-          <div class="field">
-            <label for="full_name">Full Name</label>
-            <input type="text" id="full_name" name="full_name"
-              placeholder="Jane Doe"
-              value="{{ form_data.full_name|default:'' }}" required />
-          </div>
-
-          <div class="field">
-            <label for="email">Email</label>
-            <input type="email" id="email" name="email"
-              placeholder="jane@example.com"
-              value="{{ form_data.email|default:user.email }}" required />
-          </div>
-
-          <!-- Phone locked to +91 prefix -->
-          <div class="field">
-            <label for="phone_input">Phone Number</label>
-            <input type="tel" id="phone_input" name="phone_input"
-              autocomplete="tel"
-              maxlength="13"
-              placeholder="+91 9876543210"
-              value="{{ form_data.phone_input|default:'+91' }}"
-              required />
-            <p class="co-hint" id="phoneHint">Enter +91 followed by 10 digits</p>
-          </div>
-
-          <div class="field field-full">
-            <label for="address">Address</label>
-            <input type="text" id="address" name="address"
-              placeholder="House No., Street, Area"
-              value="{{ form_data.address|default:'' }}" required />
-          </div>
-
-          <div class="field">
-            <label for="city">City</label>
-            <input type="text" id="city" name="city"
-              placeholder="Hyderabad"
-              value="{{ form_data.city|default:'' }}"
-              oninput="detectZoneFromCity(this.value)"
-              onchange="detectZoneFromCity(this.value)"
-              required />
-          </div>
-
-          <div class="field">
-            <label for="pincode">PIN Code</label>
-            <input type="text" id="pincode" name="pincode"
-              placeholder="500001" maxlength="6"
-              value="{{ form_data.pincode|default:'' }}" required />
-          </div>
-
-        </div>
-      </div>
-
-      <!-- Delivery Zone -->
-      <div class="form-section">
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:14px;">
-          <h2 class="form-section-title" style="margin-bottom:0;">Delivery Location</h2>
-          <div class="dz-loc-badge" id="dzLocBadge">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            Enter your city above
-          </div>
-        </div>
-        <div class="dz-wrap">
-
-          <label class="dz-option" id="dz-inside">
-            <input type="radio" name="delivery_zone" value="inside" checked
-                   onchange="updateDeliveryCharge(this.value)" />
-            <div class="dz-card">
-              <div class="dz-icon">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                  <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
-                </svg>
-              </div>
-              <div class="dz-info">
-                <span class="dz-name">Inside Visakhapatnam</span>
-                <span class="dz-desc">Delivery within city limits</span>
-              </div>
-              <span class="dz-price">₹100</span>
-              <span class="dz-check">&#10003;</span>
-            </div>
-          </label>
-
-          <label class="dz-option" id="dz-outside">
-            <input type="radio" name="delivery_zone" value="outside"
-                   onchange="updateDeliveryCharge(this.value)" />
-            <div class="dz-card">
-              <div class="dz-icon">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                  <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
-                  <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-                </svg>
-              </div>
-              <div class="dz-info">
-                <span class="dz-name">Outside Visakhapatnam</span>
-                <span class="dz-desc">Delivery to other cities &amp; states</span>
-              </div>
-              <span class="dz-price">₹250</span>
-              <span class="dz-check">&#10003;</span>
-            </div>
-          </label>
-
-        </div>
-        <input type="hidden" name="delivery_charge" id="deliveryChargeHidden" value="100" />
-      </div>
-
-      <!-- Payment Method — UPI only -->
-      <div class="form-section">
-        <h2 class="form-section-title">Payment Method</h2>
-
-        <div class="co-pay-card">
-
-          <!-- Header -->
-          <div class="co-pay-hd">
-            <div class="co-pay-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="1" y="4" width="22" height="16" rx="2"/>
-                <line x1="1" y1="10" x2="23" y2="10"/>
-              </svg>
+      <!-- ════════════════════ STEP 1 — SHIPPING ════════════════════ -->
+      <div id="coStep1" class="co-panel">
+        <div class="form-section">
+          <div class="co-step-header">
+            <div class="co-step-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
             </div>
             <div>
-              <div class="co-pay-title">UPI Payment</div>
-              <div class="co-pay-sub">Paytm &nbsp;·&nbsp; PhonePe &nbsp;·&nbsp; GPay &nbsp;·&nbsp; BHIM</div>
-            </div>
-            <span class="co-pay-badge">&#10003; Active</span>
-          </div>
-
-          <!-- Step 1: Scan or copy UPI ID -->
-          <div class="co-pay-panel" id="upi-panel">
-            <div class="pay-step-label">
-              <span class="pay-step-num">1</span> Scan QR or copy UPI ID &amp; complete payment in your UPI app
-            </div>
-            <div class="upi-scan-wrap">
-              <div class="upi-qr-box">
-                {% load static %}
-                <img src="{% static 'scanner.png' %}" alt="UPI QR Code" class="upi-qr-img" />
-                <div class="upi-qr-label">Scan with any UPI app</div>
-                <div class="upi-qr-apps">
-                  <span>Paytm</span><span>PhonePe</span><span>GPay</span><span>BHIM</span>
-                </div>
-              </div>
-              <div class="upi-or-divider"><span>OR</span></div>
-              <div class="upi-id-box">
-                <div class="upi-id-label">Pay using UPI ID</div>
-                <div class="upi-id-row">
-                  <span class="upi-id-val" id="upiIdVal">hemanth022@ptyes</span>
-                  <button type="button" class="upi-copy-btn" onclick="copyUPI()" title="Copy UPI ID">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                    <span id="upiCopyLabel">Copy</span>
-                  </button>
-                </div>
-                <p class="upi-id-hint">Open UPI app → Pay → Enter UPI ID → Pay total amount</p>
-              </div>
+              <h2 class="co-step-title">Shipping Details</h2>
+              <p class="co-step-sub">All fields are required</p>
             </div>
           </div>
 
-          <!-- Divider -->
-          <div class="pay-divider">
-            <span>After payment, enter your details below</span>
+          <div class="form-grid" style="margin-top:20px;">
+
+            <div class="field">
+              <label for="full_name">Full Name <span class="req-star">*</span></label>
+              <input type="text" id="full_name" name="full_name"
+                placeholder="Jane Doe"
+                value="{{ form_data.full_name|default:'' }}"
+                oninput="shippingCheck()" />
+              <p class="field-hint" id="hint_name"></p>
+            </div>
+
+            <div class="field">
+              <label for="email">Email Address <span class="req-star">*</span></label>
+              <input type="email" id="email" name="email"
+                placeholder="jane@example.com"
+                value="{{ form_data.email|default:user.email }}"
+                oninput="shippingCheck()" />
+              <p class="field-hint" id="hint_email"></p>
+            </div>
+
+            <div class="field">
+              <label for="phone_input">Phone Number <span class="req-star">*</span></label>
+              <input type="tel" id="phone_input" name="phone_input"
+                autocomplete="tel" maxlength="13"
+                placeholder="+91 9876543210"
+                value="{{ form_data.phone_input|default:'+91' }}"
+                oninput="enforcePhone()" />
+              <p class="field-hint co-hint" id="phoneHint">Enter +91 followed by 10 digits</p>
+            </div>
+
+            <div class="field field-full">
+              <label for="address">Delivery Address <span class="req-star">*</span></label>
+              <input type="text" id="address" name="address"
+                placeholder="House No., Street, Area"
+                value="{{ form_data.address|default:'' }}"
+                oninput="shippingCheck()" />
+              <p class="field-hint" id="hint_address"></p>
+            </div>
+
+            <div class="field">
+              <label for="city">City <span class="req-star">*</span></label>
+              <input type="text" id="city" name="city"
+                placeholder="Hyderabad"
+                value="{{ form_data.city|default:'' }}"
+                oninput="detectZoneFromCity(this.value); shippingCheck()"
+                onchange="detectZoneFromCity(this.value)" />
+              <p class="field-hint" id="hint_city"></p>
+            </div>
+
+            <div class="field">
+              <label for="pincode">PIN Code <span class="req-star">*</span></label>
+              <input type="text" id="pincode" name="pincode"
+                placeholder="500001" maxlength="6"
+                value="{{ form_data.pincode|default:'' }}"
+                oninput="shippingCheck()" />
+              <p class="field-hint" id="hint_pincode"></p>
+            </div>
+
           </div>
-
-          <!-- Step 2: Enter UPI ID + Transaction ID — shown when form fields are valid -->
-          <div class="pay-upi-wrap" id="payUpiWrap" style="display:none;">
-            <div class="pay-step-label" style="padding:0 0 16px;">
-              <span class="pay-step-num">2</span> Enter your payment details
-            </div>
-
-            <!-- UPI ID -->
-            <div class="pay-upi-field">
-              <label class="pay-upi-label">Your UPI ID <span class="pay-field-req">*</span></label>
-              <input type="text" id="customerUpiId" name="upi_id" class="pay-upi-input"
-                     placeholder="e.g. yourname@okaxis or 9876543210@upi"
-                     oninput="checkUpiReady()" autocomplete="off" />
-            </div>
-
-            <!-- Transaction ID -->
-            <div class="pay-upi-field">
-              <label class="pay-upi-label">
-                Transaction / UTR ID <span class="pay-field-req">*</span>
-                <span class="pay-txn-hint-inline">12-digit number from your UPI app</span>
-              </label>
-              <div class="pay-txn-input-wrap">
-                <input type="text" id="customerTxnId" name="transaction_id" class="pay-upi-input pay-txn-input"
-                       placeholder="e.g. 426811234567"
-                       maxlength="20"
-                       oninput="checkUpiReady()" autocomplete="off" />
-                <span class="pay-txn-status" id="txnStatus"></span>
-              </div>
-              <p class="pay-txn-guide">Open your UPI app → Transaction History → Copy the 12-digit UTR/Reference number</p>
-            </div>
-
-            <div class="pay-upi-note">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-              Your payment will be verified by our team. Order confirmation will be sent once approved.
-            </div>
-          </div>
-
-          <input type="hidden" name="payment_method" value="upi" />
         </div>
-      </div>
 
-      <!-- Urgent Delivery -->
-      <div class="form-section">
-        <div class="ud-toggle-row">
-          <div class="ud-toggle-info">
-            <div class="ud-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"/>
-                <polyline points="12 6 12 12 16 14"/>
-              </svg>
+        <!-- Delivery Zone — auto-detected from city, read-only -->
+        <div class="form-section">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:14px;">
+            <h2 class="form-section-title" style="margin-bottom:0;">Delivery Zone</h2>
+            <span class="dz-auto-badge">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              Auto-detected · Locked
+            </span>
+          </div>
+
+          <div class="dz-readonly-card dz-pending" id="dzReadonlyCard">
+            <div class="dz-readonly-icon" id="dzReadonlyIcon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            </div>
+            <div class="dz-readonly-info">
+              <span class="dz-readonly-name" id="dzReadonlyName">Enter your city above</span>
+              <span class="dz-readonly-desc" id="dzReadonlyDesc">Delivery charge is set automatically based on your city</span>
+            </div>
+            <div class="dz-readonly-price-wrap">
+              <span class="dz-readonly-price" id="dzReadonlyPrice">—</span>
+              <span class="dz-readonly-lock">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                Locked
+              </span>
+            </div>
+          </div>
+
+          <div class="dz-readonly-notice" id="dzReadonlyNotice" style="display:none;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span id="dzReadonlyNoticeText"></span>
+          </div>
+
+          <input type="hidden" name="delivery_zone"   id="deliveryZoneHidden"   value="inside" />
+          <input type="hidden" name="delivery_charge" id="deliveryChargeHidden" value="100" />
+        </div>
+
+        <!-- Urgent Delivery (inside Step 1) -->
+        <div class="form-section">
+          <div class="ud-toggle-row">
+            <div class="ud-toggle-info">
+              <div class="ud-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+              <div><div class="ud-title">Urgent Delivery</div><div class="ud-sub">Choose a delivery date — extra charge applies</div></div>
+            </div>
+            <label class="ud-switch">
+              <input type="checkbox" id="urgentToggle" onchange="toggleUrgent(this)">
+              <span class="ud-slider"></span>
+            </label>
+          </div>
+          <div class="ud-panel" id="udPanel" style="display:none;">
+            <div class="ud-date-row">
+              <div class="field" style="margin-bottom:0;flex:1;">
+                <label for="delivery_date">Preferred Delivery Date</label>
+                <input type="date" id="delivery_date" name="delivery_date" class="ud-date-input" onchange="updateUrgentCharge()" />
+              </div>
+              <div class="ud-charge-box" id="urgentChargeBox">
+                <div class="ud-charge-label">Extra Charge</div>
+                <div class="ud-charge-val" id="urgentChargeVal">—</div>
+              </div>
+            </div>
+            <div class="ud-info-row" id="udInfoRow" style="display:none;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              <span id="udInfoText"></span>
+            </div>
+          </div>
+        </div>
+
+        <input type="hidden" name="urgent_delivery" id="urgentDeliveryHidden" value="no">
+        <input type="hidden" name="urgent_charge" id="urgentChargeHidden" value="0">
+
+        <!-- Promo Code (inside Step 1) -->
+        <div class="form-section">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:14px;">
+            <h2 class="form-section-title" style="margin-bottom:0;">Promo Code</h2>
+            <span class="promo-optional-tag">Optional</span>
+          </div>
+          <div class="promo-input-row">
+            <input type="text" id="promoCodeInput" class="promo-input"
+                   placeholder="Enter code, e.g. SAVE20"
+                   oninput="this.value=this.value.toUpperCase();clearPromo()"
+                   autocomplete="off" maxlength="50" />
+            <button type="button" class="promo-apply-btn" id="promoApplyBtn" onclick="applyPromoCode()">Apply</button>
+          </div>
+          <div id="promoFeedback" class="promo-feedback" style="display:none;"></div>
+          <input type="hidden" name="promo_code"     id="promoCodeHidden"     value="" />
+          <input type="hidden" name="promo_discount" id="promoDiscountHidden" value="0" />
+        </div>
+
+        <button type="button" class="co-next-btn" id="nextToPaymentBtn" onclick="goToPayment()" disabled>
+          Continue to Payment
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </button>
+      </div><!-- /coStep1 -->
+
+
+      <!-- ════════════════════ STEP 2 — PAYMENT ════════════════════ -->
+      <div id="coStep2" class="co-panel" style="display:none;">
+
+        <div class="form-section">
+          <div class="co-step-header">
+            <div class="co-step-icon" style="background:rgba(52,211,153,.15);color:#34d399;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
             </div>
             <div>
-              <div class="ud-title">Urgent Delivery</div>
-              <div class="ud-sub">Choose your delivery date — extra charge applies</div>
+              <h2 class="co-step-title">Payment</h2>
+              <p class="co-step-sub">Complete UPI payment and enter your details below</p>
             </div>
           </div>
-          <label class="ud-switch">
-            <input type="checkbox" id="urgentToggle" onchange="toggleUrgent(this)">
-            <span class="ud-slider"></span>
-          </label>
+
+          <div class="co-pay-card" style="margin-top:20px;">
+            <div class="co-pay-hd">
+              <div class="co-pay-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div>
+              <div><div class="co-pay-title">UPI Payment</div><div class="co-pay-sub">Paytm &nbsp;·&nbsp; PhonePe &nbsp;·&nbsp; GPay &nbsp;·&nbsp; BHIM</div></div>
+              <span class="co-pay-badge">✓ Active</span>
+            </div>
+
+            <!-- Scan / UPI ID -->
+            <div class="co-pay-panel">
+              <div class="pay-step-label"><span class="pay-step-num">1</span> Scan QR or copy UPI ID &amp; pay in your UPI app</div>
+              <div class="upi-scan-wrap">
+                <div class="upi-qr-box">
+                  {% load static %}
+                  <img src="{% static 'scanner.png' %}" alt="UPI QR Code" class="upi-qr-img" />
+                  <div class="upi-qr-label">Scan with any UPI app</div>
+                  <div class="upi-qr-apps"><span>Paytm</span><span>PhonePe</span><span>GPay</span><span>BHIM</span></div>
+                </div>
+                <div class="upi-or-divider"><span>OR</span></div>
+                <div class="upi-id-box">
+                  <div class="upi-id-label">Pay using UPI ID</div>
+                  <div class="upi-id-row">
+                    <span class="upi-id-val" id="upiIdVal">hemanth022@ptyes</span>
+                    <button type="button" class="upi-copy-btn" onclick="copyUPI()" title="Copy UPI ID">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                      <span id="upiCopyLabel">Copy</span>
+                    </button>
+                  </div>
+                  <p class="upi-id-hint">Open UPI app → Pay → Enter UPI ID → Pay total amount</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Divider -->
+            <div class="pay-divider"><span>After payment, fill details below</span></div>
+
+            <!-- Step 2 fields — REQUIRED -->
+            <div class="pay-upi-wrap" style="display:block;">
+              <div class="pay-step-label" style="padding:0 0 16px;"><span class="pay-step-num">2</span> Enter your payment details <span class="req-star" style="font-size:.8rem;">— both required</span></div>
+
+              <div class="pay-upi-field">
+                <label class="pay-upi-label">Your UPI ID <span class="req-star">*</span></label>
+                <input type="text" id="customerUpiId" name="upi_id" class="pay-upi-input"
+                       placeholder="e.g. yourname@okaxis or 9876543210@upi"
+                       oninput="paymentCheck()" autocomplete="off" />
+                <p class="field-hint" id="hint_upi"></p>
+              </div>
+
+              <div class="pay-upi-field">
+                <label class="pay-upi-label">Transaction / UTR ID <span class="req-star">*</span>
+                  <span class="pay-txn-hint-inline">12-digit number from your UPI app</span>
+                </label>
+                <div class="pay-txn-input-wrap">
+                  <input type="text" id="customerTxnId" name="transaction_id" class="pay-upi-input pay-txn-input"
+                         placeholder="e.g. 426811234567"
+                         maxlength="20"
+                         oninput="paymentCheck()" autocomplete="off" />
+                  <span class="pay-txn-status" id="txnStatus"></span>
+                </div>
+                <p class="pay-txn-guide">Open UPI app → Transaction History → Copy the 12-digit UTR/Reference number</p>
+                <p class="field-hint" id="hint_txn"></p>
+              </div>
+
+              <!-- Screenshot upload (optional) -->
+              <div class="pay-upi-field">
+                <label class="pay-upi-label">Payment Screenshot <span style="color:#64748b;font-weight:400;">(optional but speeds up verification)</span></label>
+                <input type="file" name="payment_screenshot" accept="image/*" class="co-file-input" />
+              </div>
+
+              <div class="pay-upi-note">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                Your payment will be verified by our team. Order confirmation will be sent once approved.
+              </div>
+            </div>
+
+            <input type="hidden" name="payment_method" value="upi" />
+          </div>
         </div>
 
-        <div class="ud-panel" id="udPanel" style="display:none;">
-          <div class="ud-date-row">
-            <div class="field" style="margin-bottom:0;flex:1;">
-              <label for="delivery_date">Preferred Delivery Date</label>
-              <input type="date" id="delivery_date" name="delivery_date"
-                     class="ud-date-input" onchange="updateUrgentCharge()" />
+        <div style="display:flex;gap:12px;flex-wrap:wrap;">
+          <button type="button" class="co-back-btn" onclick="goToStep(1)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            Edit Shipping
+          </button>
+          <button type="button" class="co-next-btn" id="nextToReviewBtn" onclick="goToReview()" disabled style="flex:1;">
+            Review My Order
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+        </div>
+      </div><!-- /coStep2 -->
+
+
+      <!-- ════════════════════ STEP 3 — CONFIRM ════════════════════ -->
+      <div id="coStep3" class="co-panel" style="display:none;">
+
+        <div class="co-review-card">
+          <div class="co-review-header">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            Review Your Order
+          </div>
+
+          <!-- Shipping Summary -->
+          <div class="co-review-section">
+            <div class="co-review-sec-title">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              Delivering To
+              <button type="button" class="co-review-edit-btn" onclick="goToStep(1)">Edit</button>
             </div>
-            <div class="ud-charge-box" id="urgentChargeBox">
-              <div class="ud-charge-label">Extra Charge</div>
-              <div class="ud-charge-val" id="urgentChargeVal">—</div>
+            <div class="co-review-grid">
+              <div class="co-rv-row"><span class="co-rv-lbl">Name</span><span class="co-rv-val" id="rv_name">—</span></div>
+              <div class="co-rv-row"><span class="co-rv-lbl">Phone</span><span class="co-rv-val" id="rv_phone">—</span></div>
+              <div class="co-rv-row"><span class="co-rv-lbl">Email</span><span class="co-rv-val" id="rv_email">—</span></div>
+              <div class="co-rv-row co-rv-full"><span class="co-rv-lbl">Address</span><span class="co-rv-val" id="rv_address">—</span></div>
+              <div class="co-rv-row"><span class="co-rv-lbl">City</span><span class="co-rv-val" id="rv_city">—</span></div>
+              <div class="co-rv-row"><span class="co-rv-lbl">PIN</span><span class="co-rv-val" id="rv_pincode">—</span></div>
+              <div class="co-rv-row"><span class="co-rv-lbl">Delivery Zone</span><span class="co-rv-val" id="rv_zone">—</span></div>
+              <div class="co-rv-row" id="rv_urgent_row" style="display:none;"><span class="co-rv-lbl">Delivery Date</span><span class="co-rv-val" id="rv_delivery_date">—</span></div>
             </div>
           </div>
-          <div class="ud-info-row" id="udInfoRow" style="display:none;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-            <span id="udInfoText"></span>
+
+          <!-- Items Summary -->
+          <div class="co-review-section">
+            <div class="co-review-sec-title">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+              Order Items
+            </div>
+            {% for item in items %}
+            <div class="co-rv-item">
+              <span>{{ item.product.name }} <em style="color:#64748b;">×{{ item.quantity }}</em></span>
+              <span style="color:#818cf8;font-weight:700;">₹{{ item.subtotal }}</span>
+            </div>
+            {% endfor %}
+            <div class="co-rv-item" style="border-top:1px solid #1e2d3d;margin-top:8px;padding-top:8px;">
+              <span style="color:#64748b;">Delivery Charge</span>
+              <span id="rv_delivery_charge">₹100</span>
+            </div>
+            <div class="co-rv-item" id="rv_urgent_charge_row" style="display:none;">
+              <span style="color:#f59e0b;">⚡ Urgent Delivery</span>
+              <span style="color:#f59e0b;" id="rv_urgent_charge">₹0</span>
+            </div>
+            <div class="co-rv-item" id="rv_promo_row" style="display:none;">
+              <span style="color:#34d399;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.5" style="vertical-align:middle;margin-right:4px;"><polyline points="20 6 9 17 4 12"/></svg>
+                Promo Discount
+              </span>
+              <span style="color:#34d399;font-weight:800;" id="rv_promo_discount">-₹0</span>
+            </div>
+            <div class="co-rv-item co-rv-total">
+              <span>Total</span>
+              <span id="rv_total">₹{{ total }}</span>
+            </div>
+          </div>
+
+          <!-- Payment Summary -->
+          <div class="co-review-section">
+            <div class="co-review-sec-title">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+              Payment Details
+              <button type="button" class="co-review-edit-btn" onclick="goToStep(2)">Edit</button>
+            </div>
+            <div class="co-review-grid">
+              <div class="co-rv-row"><span class="co-rv-lbl">Method</span><span class="co-rv-val">UPI</span></div>
+              <div class="co-rv-row"><span class="co-rv-lbl">Your UPI ID</span><span class="co-rv-val" id="rv_upi">—</span></div>
+              <div class="co-rv-row co-rv-full"><span class="co-rv-lbl">Transaction / UTR ID</span><span class="co-rv-val" id="rv_txn">—</span></div>
+            </div>
+          </div>
+
+          <!-- Confirm notice -->
+          <div class="co-review-notice">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            By confirming, you agree that the above details are correct. Your payment will be verified and order confirmed by our team.
           </div>
         </div>
-      </div>
 
-      <input type="hidden" name="urgent_delivery" id="urgentDeliveryHidden" value="no">
-      <input type="hidden" name="urgent_charge"   id="urgentChargeHidden"   value="0">
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:6px;">
+          <button type="button" class="co-back-btn" onclick="goToStep(2)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            Edit Payment
+          </button>
+          <button type="submit" class="co-place-btn" id="placeOrderBtn" style="flex:1;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Place Order — Confirm My Purchase
+          </button>
+        </div>
 
-      <button type="submit" class="btn btn-dark btn-lg place-order-btn" id="placeOrderBtn" style="display:none;width:100%;margin-top:16px;">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-3px;margin-right:8px;"><polyline points="20 6 9 17 4 12"/></svg>
-        Place Order — Confirm My Purchase
-      </button>
+      </div><!-- /coStep3 -->
     </form>
 
-    <!-- ── Order Summary ── -->
+    <!-- ── Order Summary Sidebar ── -->
     <aside class="cart-summary">
       <h2 class="summary-title">Your Order</h2>
-
       {% for item in items %}
       <div class="summary-item">
-        <span class="summary-item-name">
-          {{ item.product.name }} <em class="text-muted">×{{ item.quantity }}</em>
-        </span>
+        <span class="summary-item-name">{{ item.product.name }} <em class="text-muted">×{{ item.quantity }}</em></span>
         <span>₹{{ item.subtotal }}</span>
       </div>
       {% endfor %}
-
       <div class="summary-item" id="deliveryChargeRow">
         <span class="summary-item-name">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-          Delivery Charge
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          Delivery
         </span>
         <span id="summaryDeliveryCharge" style="color:#818cf8;font-weight:700;">₹100</span>
       </div>
-
       <div class="summary-item" id="urgentChargeRow" style="display:none;">
-        <span class="summary-item-name" style="color:#f59e0b;">
-          ⚡ Urgent Delivery
-        </span>
+        <span class="summary-item-name" style="color:#f59e0b;">⚡ Urgent</span>
         <span id="summaryUrgentCharge" style="color:#f59e0b;">₹0</span>
       </div>
-
+      <div class="summary-item" id="summaryPromoRow" style="display:none;">
+        <span class="summary-item-name" style="color:#34d399;">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          Promo Discount
+        </span>
+        <span id="summaryPromoDiscount" style="color:#34d399;font-weight:700;">-₹0</span>
+      </div>
       <div class="summary-total" style="margin-top:16px;">
         <span>Total</span>
         <span id="summaryTotal">₹{{ total }}</span>
+      </div>
+
+      <!-- Step indicator in sidebar -->
+      <div class="sidebar-step-status" id="sidebarStatus">
+        <div class="ss-row ss-done" id="ss1">
+          <span class="ss-dot"></span> Shipping details
+        </div>
+        <div class="ss-row" id="ss2">
+          <span class="ss-dot"></span> Payment details
+        </div>
+        <div class="ss-row" id="ss3">
+          <span class="ss-dot"></span> Order review
+        </div>
       </div>
     </aside>
 
   </div>
 </main>
 
-<!-- ── Checkout-specific styles ── -->
+
 <style>
-.co-hint { font-size:.72rem; color:#64748b; margin-top:5px; }
-.co-hint.err { color:#f87171; }
-
-/* Payment card */
-.co-pay-card {
-  border: 2px solid #6366f1;
-  border-radius: 14px;
-  overflow: hidden;
-  background: #0f172a;
-}
-.co-pay-hd {
+/* ── Wizard progress bar ── */
+.co-wizard-bar {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 16px 20px;
-  background: linear-gradient(90deg, rgba(99,102,241,.15), transparent);
-  border-bottom: 1px solid #1e2d3d;
+  justify-content: center;
+  gap: 0;
+  margin-bottom: 36px;
+  flex-wrap: nowrap;
 }
-.co-pay-icon {
-  width: 40px; height: 40px;
-  border-radius: 10px;
-  background: rgba(99,102,241,.2);
-  display: flex; align-items: center; justify-content: center;
-  color: #818cf8; flex-shrink: 0;
-}
-.co-pay-title { font-size: .95rem; font-weight: 700; color: #f1f5f9; }
-.co-pay-sub   { font-size: .73rem; color: #64748b; margin-top: 2px; }
-.co-pay-badge {
-  margin-left: auto;
-  background: rgba(52,211,153,.15);
-  color: #34d399;
-  border: 1px solid rgba(52,211,153,.3);
-  border-radius: 20px;
-  padding: 3px 12px;
-  font-size: .72rem;
-  font-weight: 700;
-  flex-shrink: 0;
-}
-
-/* Method tabs */
-.co-pay-tabs {
+.co-wizard-step-ind {
   display: flex;
-  gap: 10px;
-  padding: 14px 20px;
-  border-bottom: 1px solid #1e2d3d;
-  flex-wrap: wrap;
-}
-.co-tab {
-  padding: 7px 16px;
-  border: 1.5px solid #253347;
-  border-radius: 8px;
-  background: #111827;
-  color: #94a3b8;
-  font-size: .8rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all .15s;
-}
-.co-tab:hover    { border-color: #6366f1; color: #818cf8; }
-.co-tab-on       { background: rgba(99,102,241,.12); border-color: #6366f1; color: #818cf8; }
-
-/* Panel + inputs */
-.co-pay-panel  { padding: 16px 20px; }
-.co-pay-label  { display: block; font-size: .8rem; font-weight: 600; color: #94a3b8; margin-bottom: 6px; }
-.co-pay-input  { width: 100%; }
-
-/* Delivery Zone */
-.dz-loc-badge {
-  display: inline-flex;
+  flex-direction: column;
   align-items: center;
   gap: 6px;
-  padding: 5px 12px;
-  border-radius: 20px;
-  font-size: .72rem;
-  font-weight: 700;
-  background: rgba(99,102,241,.1);
-  border: 1px solid rgba(99,102,241,.25);
-  color: #818cf8;
-  transition: background .25s, color .25s, border-color .25s;
-}
-.dz-loc-badge.inside  { background:rgba(52,211,153,.1); border-color:rgba(52,211,153,.3); color:#34d399; }
-.dz-loc-badge.outside { background:rgba(245,158,11,.1); border-color:rgba(245,158,11,.3); color:#f59e0b; }
-.dz-loc-badge.denied  { background:rgba(100,116,139,.1); border-color:rgba(100,116,139,.3); color:#94a3b8; }
-@keyframes dzSpin { to { transform:rotate(360deg); } }
-.dz-loc-spin { animation: dzSpin 1s linear infinite; }
-.dz-wrap { display:flex; flex-direction:column; gap:12px; }
-.dz-option { cursor:pointer; }
-.dz-option input[type="radio"] { display:none; }
-.dz-card {
-  display:flex; align-items:center; gap:14px;
-  background:#0f172a; border:2px solid #1e2d3d;
-  border-radius:14px; padding:16px 18px;
-  transition:border-color .2s, background .2s;
-  position:relative;
-}
-.dz-option input:checked + .dz-card {
-  border-color:#6366f1;
-  background:rgba(99,102,241,.07);
-}
-.dz-icon {
-  width:44px; height:44px; border-radius:11px;
-  background:rgba(99,102,241,.12);
-  color:#818cf8;
-  display:flex; align-items:center; justify-content:center;
-  flex-shrink:0;
-}
-.dz-option input:checked + .dz-card .dz-icon {
-  background:rgba(99,102,241,.25); color:#a5b4fc;
-}
-.dz-info { flex:1; display:flex; flex-direction:column; gap:3px; }
-.dz-name { font-size:.92rem; font-weight:700; color:#e2e8f0; }
-.dz-desc { font-size:.72rem; color:#64748b; }
-.dz-price {
-  font-size:1.05rem; font-weight:800; color:#34d399;
-  flex-shrink:0;
-}
-.dz-check {
-  width:22px; height:22px; border-radius:50%;
-  border:2px solid #253347; color:transparent;
-  display:flex; align-items:center; justify-content:center;
-  font-size:.75rem; font-weight:800;
-  transition:all .2s; flex-shrink:0;
-}
-.dz-option input:checked + .dz-card .dz-check {
-  border-color:#6366f1; background:#6366f1; color:#fff;
-}
-
-/* UPI Scan & Pay */
-.upi-scan-wrap {
-  display: flex;
-  gap: 24px;
-  align-items: flex-start;
-  flex-wrap: wrap;
-}
-.upi-qr-box {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
   flex-shrink: 0;
 }
-.upi-qr-img {
-  width: 180px;
-  height: 180px;
-  border-radius: 14px;
-  border: 3px solid #00b9f1;
-  object-fit: contain;
-  background: #fff;
-  padding: 6px;
-}
-.upi-qr-label {
-  font-size: .72rem;
-  color: #94a3b8;
-  font-weight: 600;
-  text-align: center;
-}
-.upi-qr-apps {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-.upi-qr-apps span {
-  font-size: .65rem;
-  font-weight: 700;
-  color: #64748b;
-  background: #1e2d42;
-  border: 1px solid #253347;
-  border-radius: 6px;
-  padding: 3px 8px;
-}
-.upi-or-divider {
-  display: flex;
-  align-items: center;
-  flex-direction: column;
-  justify-content: center;
-  padding: 12px 0;
-  flex-shrink: 0;
-}
-.upi-or-divider span {
-  font-size: .75rem;
-  font-weight: 700;
-  color: #475569;
-  background: #0f172a;
-  padding: 6px 10px;
-  border: 1px solid #253347;
-  border-radius: 20px;
-}
-.upi-id-box {
-  flex: 1;
-  min-width: 180px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  justify-content: center;
-}
-.upi-id-label {
-  font-size: .78rem;
-  font-weight: 700;
-  color: #94a3b8;
-  text-transform: uppercase;
-  letter-spacing: .05em;
-}
-.upi-id-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: #111827;
-  border: 2px solid #00b9f1;
-  border-radius: 10px;
-  padding: 12px 14px;
-}
-.upi-id-val {
-  flex: 1;
-  font-size: 1rem;
-  font-weight: 800;
-  color: #00b9f1;
-  letter-spacing: .03em;
-  word-break: break-all;
-}
-.upi-copy-btn {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  background: rgba(0,185,241,.12);
-  border: 1px solid rgba(0,185,241,.35);
-  color: #00b9f1;
-  border-radius: 7px;
-  padding: 6px 12px;
-  font-size: .75rem;
-  font-weight: 700;
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: background .15s;
-}
-.upi-copy-btn:hover { background: rgba(0,185,241,.25); }
-.upi-id-hint {
-  font-size: .75rem;
-  color: #64748b;
-  line-height: 1.5;
-  margin: 0;
-}
-.upi-notice {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  margin-top: 16px;
-  padding: 10px 14px;
-  background: rgba(251,191,36,.07);
-  border: 1px solid rgba(251,191,36,.2);
-  border-radius: 8px;
-  font-size: .78rem;
-  color: #fde68a;
-  line-height: 1.5;
-}
-@media (max-width: 480px) {
-  .upi-scan-wrap { flex-direction: column; align-items: center; }
-  .upi-or-divider { flex-direction: row; width: 100%; }
-  .upi-or-divider span { margin: 0 auto; }
-}
-
-/* Urgent Delivery */
-.ud-toggle-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 16px 20px;
-  background: rgba(245,158,11,.06);
-  border: 1.5px solid rgba(245,158,11,.25);
-  border-radius: 14px;
-}
-.ud-toggle-info { display: flex; align-items: center; gap: 12px; }
-.ud-icon {
-  width: 40px; height: 40px;
-  border-radius: 10px;
-  background: rgba(245,158,11,.15);
-  color: #f59e0b;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-}
-.ud-title { font-size: .95rem; font-weight: 700; color: #f1f5f9; }
-.ud-sub   { font-size: .72rem; color: #64748b; margin-top: 2px; }
-
-/* Toggle switch */
-.ud-switch { position: relative; display: inline-block; width: 46px; height: 26px; flex-shrink: 0; }
-.ud-switch input { opacity: 0; width: 0; height: 0; }
-.ud-slider {
-  position: absolute; cursor: pointer; inset: 0;
-  background: #253347; border-radius: 26px;
-  transition: background .2s;
-}
-.ud-slider::before {
-  content: ''; position: absolute;
-  width: 18px; height: 18px; left: 4px; bottom: 4px;
-  background: #94a3b8; border-radius: 50%;
-  transition: transform .2s, background .2s;
-}
-.ud-switch input:checked + .ud-slider { background: rgba(245,158,11,.35); }
-.ud-switch input:checked + .ud-slider::before { transform: translateX(20px); background: #f59e0b; }
-
-/* Urgent panel */
-.ud-panel {
-  margin-top: 14px;
-  padding: 16px 20px;
-  background: #0f172a;
-  border: 1px solid #1e2d3d;
-  border-radius: 12px;
-}
-.ud-date-row { display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap; }
-.ud-date-input {
-  width: 100%;
-  background: #111827;
-  border: 1.5px solid #253347;
-  border-radius: 10px;
-  color: #f1f5f9;
-  padding: 10px 14px;
-  font-size: .9rem;
-  color-scheme: dark;
-}
-.ud-date-input:focus { outline: none; border-color: #f59e0b; }
-.ud-charge-box {
-  flex-shrink: 0;
-  min-width: 110px;
-  background: rgba(245,158,11,.1);
-  border: 1.5px solid rgba(245,158,11,.3);
-  border-radius: 10px;
-  padding: 10px 16px;
-  text-align: center;
-}
-.ud-charge-label { font-size: .68rem; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; }
-.ud-charge-val   { font-size: 1.1rem; font-weight: 800; color: #f59e0b; margin-top: 2px; }
-.ud-info-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 10px;
-  font-size: .78rem;
-  color: #94a3b8;
-}
-
-/* Payment step labels */
-.pay-step-label {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: .82rem;
-  font-weight: 700;
-  color: #94a3b8;
-  padding: 0 0 14px;
-}
-.pay-step-num {
-  width: 24px;
-  height: 24px;
+.co-wizard-num {
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  background: rgba(99,102,241,.2);
-  border: 1.5px solid rgba(99,102,241,.4);
-  color: #818cf8;
-  font-size: .75rem;
+  border: 2px solid #253347;
+  background: #111827;
+  color: #475569;
+  font-size: .85rem;
   font-weight: 800;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
+  transition: all .3s;
 }
-
-/* Divider between step 1 and step 2 */
-.pay-divider {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 0 20px;
-  margin: 4px 0;
-}
-.pay-divider::before,
-.pay-divider::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: rgba(37,51,71,.8);
-}
-.pay-divider span {
+.co-wizard-label {
   font-size: .7rem;
   font-weight: 700;
   color: #475569;
-  white-space: nowrap;
   text-transform: uppercase;
   letter-spacing: .06em;
+  transition: color .3s;
+  white-space: nowrap;
+}
+.co-wizard-step-ind.active .co-wizard-num {
+  border-color: #6366f1;
+  background: rgba(99,102,241,.15);
+  color: #818cf8;
+  box-shadow: 0 0 0 4px rgba(99,102,241,.12);
+}
+.co-wizard-step-ind.active .co-wizard-label { color: #818cf8; }
+.co-wizard-step-ind.done .co-wizard-num {
+  border-color: #10b981;
+  background: rgba(16,185,129,.15);
+  color: #34d399;
+}
+.co-wizard-step-ind.done .co-wizard-label { color: #34d399; }
+.co-wizard-line {
+  height: 2px;
+  width: 80px;
+  background: #1e2d3d;
+  margin: 0 6px;
+  margin-bottom: 22px;
+  transition: background .3s;
+  flex-shrink: 0;
+}
+.co-wizard-line.done { background: #10b981; }
+
+/* ── Step header ── */
+.co-step-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+.co-step-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(99,102,241,.15);
+  color: #818cf8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.co-step-title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #f1f5f9;
+  margin: 0 0 3px;
+}
+.co-step-sub {
+  font-size: .78rem;
+  color: #64748b;
+  margin: 0;
 }
 
-/* Step 2 WhatsApp confirm area */
-.pay-confirm-wrap {
-  padding: 18px 20px;
-  background: rgba(99,102,241,.06);
-  border-top: 1px solid #1e2d3d;
+/* ── Required star ── */
+.req-star { color: #f87171; margin-left: 2px; }
+
+/* ── Field hints ── */
+.field-hint {
+  font-size: .72rem;
+  color: #64748b;
+  margin: 4px 0 0;
+  min-height: 14px;
+  transition: color .15s;
 }
-.pay-confirm-btn {
+.field-hint.err  { color: #f87171 !important; }
+.field-hint.ok   { color: #34d399 !important; }
+
+/* ── Next / Back buttons ── */
+.co-next-btn {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
   width: 100%;
-  background: linear-gradient(135deg, #10b981, #059669);
-  color: #fff;
-  border: none;
-  border-radius: 12px;
-  padding: 15px 20px;
-  font-size: 1rem;
-  font-weight: 800;
-  cursor: pointer;
-  letter-spacing: .01em;
-  transition: background .15s, transform .15s, box-shadow .15s;
-  box-shadow: 0 4px 18px rgba(16,185,129,.3);
-}
-.pay-confirm-btn:hover {
-  background: linear-gradient(135deg, #059669, #047857);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 24px rgba(16,185,129,.45);
-}
-/* Step 3 UPI input area */
-.pay-upi-wrap {
-  padding: 18px 20px;
-  background: rgba(251,191,36,.04);
-  border-top: 1px solid #1e2d3d;
-}
-.pay-upi-label {
-  display: block;
-  font-size: .78rem;
-  font-weight: 600;
-  color: #94a3b8;
-  margin-bottom: 7px;
-  letter-spacing: .03em;
-}
-.pay-upi-input {
-  width: 100%;
-  background: #0f172a;
-  border: 1px solid #334155;
-  border-radius: 10px;
-  padding: 11px 14px;
-  color: #f1f5f9;
-  font-size: .92rem;
-  outline: none;
-  box-sizing: border-box;
-  margin-bottom: 14px;
-  transition: border-color .15s;
-}
-.pay-upi-input:focus { border-color: #6366f1; }
-.pay-upi-input.input-valid   { border-color: #10b981; }
-.pay-upi-input.input-invalid { border-color: #ef4444; }
-.pay-upi-note {
-  display: flex; align-items: flex-start; gap: 8px;
-  background: rgba(245,158,11,.07);
-  border: 1px solid rgba(245,158,11,.25);
-  border-radius: 10px;
-  padding: 10px 14px;
-  font-size: .78rem; color: #d97706; line-height: 1.5;
-  margin-top: 6px;
-}
-.pay-field-req { color: #f87171; margin-left: 2px; }
-.pay-txn-hint-inline {
-  font-size: .7rem; color: #475569; font-weight: 400;
-  margin-left: 8px; letter-spacing: 0;
-}
-.pay-txn-input-wrap {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-.pay-txn-input-wrap .pay-upi-input { margin-bottom: 6px; padding-right: 40px; }
-.pay-txn-status {
-  position: absolute; right: 12px; top: 50%;
-  transform: translateY(-60%);
-  font-size: 1.1rem; line-height: 1;
-}
-.pay-txn-guide {
-  font-size: .72rem; color: #475569;
-  margin: 0 0 14px; line-height: 1.5;
-}
-.pay-upi-continue-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
-  color: #fff;
-  border: none;
-  border-radius: 12px;
   padding: 14px 20px;
+  margin-top: 8px;
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  border: none;
+  border-radius: 12px;
+  color: #fff;
   font-size: .95rem;
-  font-weight: 800;
+  font-weight: 700;
+  font-family: inherit;
   cursor: pointer;
-  transition: background .15s, transform .15s, box-shadow .15s;
-  box-shadow: 0 4px 18px rgba(99,102,241,.3);
+  transition: opacity .2s, transform .12s, box-shadow .2s;
+  box-shadow: 0 4px 20px rgba(99,102,241,.35);
 }
-.pay-upi-continue-btn:disabled {
-  opacity: .45;
+.co-next-btn:disabled {
+  opacity: .4;
   cursor: not-allowed;
   transform: none !important;
   box-shadow: none !important;
 }
-.pay-upi-continue-btn:not(:disabled):hover {
-  background: linear-gradient(135deg, #4f46e5, #7c3aed);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 24px rgba(99,102,241,.45);
+.co-next-btn:not(:disabled):hover {
+  opacity: .92;
+  box-shadow: 0 6px 28px rgba(99,102,241,.5);
 }
-.pay-step2-wrap {
-  padding: 18px 20px;
-  background: rgba(37,211,102,.04);
-  border-top: 1px solid #1e2d3d;
+.co-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 20px;
+  margin-top: 8px;
+  background: transparent;
+  border: 1.5px solid #253347;
+  border-radius: 12px;
+  color: #94a3b8;
+  font-size: .88rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color .15s, color .15s;
+  white-space: nowrap;
 }
-.pay-wa-btn {
+.co-back-btn:hover { border-color: #6366f1; color: #818cf8; }
+
+/* ── Place Order button ── */
+.co-place-btn {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  width: 100%;
-  background: #25d366;
-  color: #fff;
+  padding: 15px 24px;
+  margin-top: 8px;
+  background: linear-gradient(135deg, #10b981, #059669);
   border: none;
   border-radius: 12px;
-  padding: 15px 20px;
+  color: #fff;
   font-size: 1rem;
   font-weight: 800;
+  font-family: inherit;
   cursor: pointer;
+  transition: transform .12s, box-shadow .2s, opacity .2s;
+  box-shadow: 0 4px 20px rgba(16,185,129,.35);
   letter-spacing: .01em;
-  transition: background .15s, transform .15s, box-shadow .15s;
-  box-shadow: 0 4px 18px rgba(37,211,102,.3);
 }
-.pay-wa-btn:hover {
-  background: #1ebe5a;
+.co-place-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 24px rgba(37,211,102,.45);
+  box-shadow: 0 8px 28px rgba(16,185,129,.5);
 }
-.pay-wa-hint {
-  text-align: center;
-  font-size: .73rem;
-  color: #64748b;
-  margin: 10px 0 0;
-}
+.co-place-btn:active { transform: scale(.98); }
 
-/* Step 2 done state */
-.pay-wa-done {
+/* ── Review card ── */
+.co-review-card {
+  background: #0f172a;
+  border: 1.5px solid rgba(99,102,241,.2);
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+.co-review-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 18px 22px;
+  background: linear-gradient(90deg, rgba(99,102,241,.12), rgba(99,102,241,.04));
+  border-bottom: 1px solid #1e2d3d;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #f1f5f9;
+}
+.co-review-section {
+  padding: 18px 22px;
+  border-bottom: 1px solid #1e2d3d;
+}
+.co-review-section:last-of-type { border-bottom: none; }
+.co-review-sec-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: .75rem;
+  font-weight: 800;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  margin-bottom: 14px;
+}
+.co-review-edit-btn {
+  margin-left: auto;
+  background: rgba(99,102,241,.1);
+  border: 1px solid rgba(99,102,241,.25);
+  color: #818cf8;
+  border-radius: 6px;
+  padding: 3px 10px;
+  font-size: .72rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .15s;
+  font-family: inherit;
+}
+.co-review-edit-btn:hover { background: rgba(99,102,241,.2); }
+.co-review-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 16px;
+}
+.co-rv-row {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.co-rv-full { grid-column: 1 / -1; }
+.co-rv-lbl {
+  font-size: .68rem;
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+.co-rv-val {
+  font-size: .88rem;
+  color: #e2e8f0;
+  font-weight: 600;
+  word-break: break-word;
+}
+.co-rv-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: .88rem;
+  color: #cbd5e1;
+  padding: 5px 0;
+}
+.co-rv-total {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #f1f5f9;
+  border-top: 1px solid #1e2d3d;
+  margin-top: 8px;
+  padding-top: 12px;
+}
+.co-review-notice {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  padding: 16px 20px;
-  background: rgba(52,211,153,.07);
-  border-top: 1px solid rgba(52,211,153,.2);
-}
-.pay-wa-done-title {
-  font-size: .9rem;
-  font-weight: 800;
-  color: #34d399;
-}
-.pay-wa-done-sub {
+  gap: 10px;
+  padding: 14px 22px;
+  background: rgba(99,102,241,.06);
   font-size: .78rem;
   color: #94a3b8;
-  margin-top: 3px;
+  line-height: 1.55;
 }
-.pay-wa-done-sub strong { color: #e2e8f0; }
 
-/* Place order button — animated reveal */
-.place-order-btn {
-  animation: slideUp .35s ease;
+/* ── File input ── */
+.co-file-input {
+  display: block;
+  width: 100%;
+  color: #94a3b8;
+  font-size: .82rem;
+  padding: 9px 0;
+  margin-bottom: 14px;
 }
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(14px); }
-  to   { opacity: 1; transform: translateY(0); }
+
+/* ── Sidebar step status ── */
+.sidebar-step-status {
+  margin-top: 24px;
+  border-top: 1px solid #1e2d3d;
+  padding-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ss-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: .78rem;
+  color: #334155;
+  font-weight: 600;
+  transition: color .2s;
+}
+.ss-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #253347;
+  flex-shrink: 0;
+  transition: background .2s;
+}
+.ss-row.ss-active { color: #818cf8; }
+.ss-row.ss-active .ss-dot { background: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.2); }
+.ss-row.ss-done { color: #34d399; }
+.ss-row.ss-done .ss-dot { background: #10b981; }
+
+/* ── Reused from original ── */
+.co-hint { font-size:.72rem; color:#64748b; margin-top:5px; }
+.co-hint.err { color:#f87171; }
+.co-pay-card { border:2px solid #6366f1; border-radius:14px; overflow:hidden; background:#0f172a; }
+.co-pay-hd { display:flex; align-items:center; gap:14px; padding:16px 20px; background:linear-gradient(90deg, rgba(99,102,241,.15), transparent); border-bottom:1px solid #1e2d3d; }
+.co-pay-icon { width:40px; height:40px; border-radius:10px; background:rgba(99,102,241,.2); display:flex; align-items:center; justify-content:center; color:#818cf8; flex-shrink:0; }
+.co-pay-title { font-size:.95rem; font-weight:700; color:#f1f5f9; }
+.co-pay-sub   { font-size:.73rem; color:#64748b; margin-top:2px; }
+.co-pay-badge { margin-left:auto; background:rgba(52,211,153,.15); color:#34d399; border:1px solid rgba(52,211,153,.3); border-radius:20px; padding:3px 12px; font-size:.72rem; font-weight:700; flex-shrink:0; }
+.co-pay-panel { padding:16px 20px; }
+/* ── Delivery zone — auto-detect badge ── */
+.dz-auto-badge { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:20px; font-size:.65rem; font-weight:800; background:rgba(52,211,153,.1); border:1px solid rgba(52,211,153,.25); color:#34d399; letter-spacing:.05em; text-transform:uppercase; }
+/* ── Delivery zone — read-only card ── */
+.dz-readonly-card { display:flex; align-items:center; gap:14px; background:#0f172a; border:2px solid #1e2d3d; border-radius:14px; padding:16px 18px; transition:border-color .25s, background .25s; user-select:none; pointer-events:none; }
+.dz-readonly-card.dz-inside  { border-color:rgba(52,211,153,.45); background:rgba(52,211,153,.04); }
+.dz-readonly-card.dz-outside { border-color:rgba(245,158,11,.45);  background:rgba(245,158,11,.04); }
+.dz-readonly-icon { width:44px; height:44px; border-radius:11px; background:rgba(99,102,241,.12); color:#818cf8; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:background .25s, color .25s; }
+.dz-readonly-card.dz-inside  .dz-readonly-icon { background:rgba(52,211,153,.15); color:#34d399; }
+.dz-readonly-card.dz-outside .dz-readonly-icon { background:rgba(245,158,11,.15);  color:#f59e0b; }
+.dz-readonly-info { flex:1; display:flex; flex-direction:column; gap:3px; }
+.dz-readonly-name { font-size:.92rem; font-weight:700; color:#e2e8f0; }
+.dz-readonly-desc { font-size:.72rem; color:#64748b; }
+.dz-readonly-price-wrap { display:flex; flex-direction:column; align-items:flex-end; gap:5px; flex-shrink:0; }
+.dz-readonly-price { font-size:1.1rem; font-weight:800; color:#475569; transition:color .25s; }
+.dz-readonly-card.dz-inside  .dz-readonly-price { color:#34d399; }
+.dz-readonly-card.dz-outside .dz-readonly-price { color:#f59e0b; }
+.dz-readonly-lock { display:inline-flex; align-items:center; gap:4px; font-size:.62rem; font-weight:800; color:#475569; text-transform:uppercase; letter-spacing:.06em; }
+.dz-readonly-notice { display:flex; align-items:flex-start; gap:8px; margin-top:10px; padding:10px 14px; border-radius:10px; font-size:.76rem; line-height:1.55; }
+.dz-readonly-notice.dz-inside  { background:rgba(52,211,153,.06); border:1px solid rgba(52,211,153,.2); color:#34d399; }
+.dz-readonly-notice.dz-outside { background:rgba(245,158,11,.06);  border:1px solid rgba(245,158,11,.2); color:#d97706; }
+.upi-scan-wrap { display:flex; gap:24px; align-items:flex-start; flex-wrap:wrap; }
+.upi-qr-box { display:flex; flex-direction:column; align-items:center; gap:10px; flex-shrink:0; }
+.upi-qr-img { width:180px; height:180px; border-radius:14px; border:3px solid #00b9f1; object-fit:contain; background:#fff; padding:6px; }
+.upi-qr-label { font-size:.72rem; color:#94a3b8; font-weight:600; text-align:center; }
+.upi-qr-apps { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+.upi-qr-apps span { font-size:.65rem; font-weight:700; color:#64748b; background:#1e2d42; border:1px solid #253347; border-radius:6px; padding:3px 8px; }
+.upi-or-divider { display:flex; align-items:center; flex-direction:column; justify-content:center; padding:12px 0; flex-shrink:0; }
+.upi-or-divider span { font-size:.75rem; font-weight:700; color:#475569; background:#0f172a; padding:6px 10px; border:1px solid #253347; border-radius:20px; }
+.upi-id-box { flex:1; min-width:180px; display:flex; flex-direction:column; gap:10px; justify-content:center; }
+.upi-id-label { font-size:.78rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:.05em; }
+.upi-id-row { display:flex; align-items:center; gap:10px; background:#111827; border:2px solid #00b9f1; border-radius:10px; padding:12px 14px; }
+.upi-id-val { flex:1; font-size:1rem; font-weight:800; color:#00b9f1; letter-spacing:.03em; word-break:break-all; }
+.upi-copy-btn { display:flex; align-items:center; gap:5px; background:rgba(0,185,241,.12); border:1px solid rgba(0,185,241,.35); color:#00b9f1; border-radius:7px; padding:6px 12px; font-size:.75rem; font-weight:700; cursor:pointer; flex-shrink:0; transition:background .15s; }
+.upi-copy-btn:hover { background:rgba(0,185,241,.25); }
+.upi-id-hint { font-size:.75rem; color:#64748b; line-height:1.5; margin:0; }
+.pay-step-label { display:flex; align-items:center; gap:10px; font-size:.82rem; font-weight:700; color:#94a3b8; padding:0 0 14px; }
+.pay-step-num { width:24px; height:24px; border-radius:50%; background:rgba(99,102,241,.2); border:1.5px solid rgba(99,102,241,.4); color:#818cf8; font-size:.75rem; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.pay-divider { display:flex; align-items:center; gap:10px; padding:0 20px; margin:4px 0; }
+.pay-divider::before,.pay-divider::after { content:''; flex:1; height:1px; background:rgba(37,51,71,.8); }
+.pay-divider span { font-size:.7rem; font-weight:700; color:#475569; white-space:nowrap; text-transform:uppercase; letter-spacing:.06em; }
+.pay-upi-wrap { padding:18px 20px; background:rgba(251,191,36,.04); border-top:1px solid #1e2d3d; }
+.pay-upi-field { margin-bottom:14px; }
+.pay-upi-label { display:block; font-size:.78rem; font-weight:600; color:#94a3b8; margin-bottom:7px; letter-spacing:.03em; }
+.pay-upi-input { width:100%; background:#0f172a; border:1px solid #334155; border-radius:10px; padding:11px 14px; color:#f1f5f9; font-size:.92rem; outline:none; box-sizing:border-box; margin-bottom:0; transition:border-color .15s; }
+.pay-upi-input:focus { border-color:#6366f1; }
+.pay-upi-input.input-valid { border-color:#10b981; }
+.pay-upi-input.input-invalid { border-color:#ef4444; }
+.pay-upi-note { display:flex; align-items:flex-start; gap:8px; background:rgba(245,158,11,.07); border:1px solid rgba(245,158,11,.25); border-radius:10px; padding:10px 14px; font-size:.78rem; color:#d97706; line-height:1.5; margin-top:6px; }
+.pay-field-req { color:#f87171; margin-left:2px; }
+.pay-txn-hint-inline { font-size:.7rem; color:#475569; font-weight:400; margin-left:8px; letter-spacing:0; }
+.pay-txn-input-wrap { position:relative; display:flex; align-items:center; }
+.pay-txn-input-wrap .pay-upi-input { padding-right:40px; }
+.pay-txn-status { position:absolute; right:12px; top:50%; transform:translateY(-60%); font-size:1.1rem; line-height:1; }
+.pay-txn-guide { font-size:.72rem; color:#475569; margin:6px 0 0; line-height:1.5; }
+.req-star { color:#f87171; }
+.ud-toggle-row { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:16px 20px; background:rgba(245,158,11,.06); border:1.5px solid rgba(245,158,11,.25); border-radius:14px; }
+.ud-toggle-info { display:flex; align-items:center; gap:12px; }
+.ud-icon { width:40px; height:40px; border-radius:10px; background:rgba(245,158,11,.15); color:#f59e0b; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.ud-title { font-size:.95rem; font-weight:700; color:#f1f5f9; }
+.ud-sub   { font-size:.72rem; color:#64748b; margin-top:2px; }
+.ud-switch { position:relative; display:inline-block; width:46px; height:26px; flex-shrink:0; }
+.ud-switch input { opacity:0; width:0; height:0; }
+.ud-slider { position:absolute; cursor:pointer; inset:0; background:#253347; border-radius:26px; transition:background .2s; }
+.ud-slider::before { content:''; position:absolute; width:18px; height:18px; left:4px; bottom:4px; background:#94a3b8; border-radius:50%; transition:transform .2s, background .2s; }
+.ud-switch input:checked + .ud-slider { background:rgba(245,158,11,.35); }
+.ud-switch input:checked + .ud-slider::before { transform:translateX(20px); background:#f59e0b; }
+.ud-panel { margin-top:14px; padding:16px 20px; background:#0f172a; border:1px solid #1e2d3d; border-radius:12px; }
+.ud-date-row { display:flex; gap:16px; align-items:flex-end; flex-wrap:wrap; }
+.ud-date-input { width:100%; background:#111827; border:1.5px solid #253347; border-radius:10px; color:#f1f5f9; padding:10px 14px; font-size:.9rem; color-scheme:dark; }
+.ud-date-input:focus { outline:none; border-color:#f59e0b; }
+.ud-charge-box { flex-shrink:0; min-width:110px; background:rgba(245,158,11,.1); border:1.5px solid rgba(245,158,11,.3); border-radius:10px; padding:10px 16px; text-align:center; }
+.ud-charge-label { font-size:.68rem; color:#94a3b8; font-weight:600; text-transform:uppercase; letter-spacing:.05em; }
+.ud-charge-val { font-size:1.1rem; font-weight:800; color:#f59e0b; margin-top:2px; }
+.ud-info-row { display:flex; align-items:center; gap:6px; margin-top:10px; font-size:.78rem; color:#94a3b8; }
+/* ── Promo code ── */
+.promo-optional-tag { display:inline-flex; align-items:center; padding:3px 10px; border-radius:20px; font-size:.65rem; font-weight:800; background:rgba(99,102,241,.1); border:1px solid rgba(99,102,241,.2); color:#818cf8; letter-spacing:.05em; text-transform:uppercase; }
+.promo-input-row { display:flex; gap:8px; }
+.promo-input { flex:1; background:#111827; border:1.5px solid #253347; border-radius:10px; padding:11px 14px; color:#f1f5f9; font-size:.92rem; outline:none; transition:border-color .15s; font-family:inherit; letter-spacing:.04em; text-transform:uppercase; }
+.promo-input:focus { border-color:#6366f1; }
+.promo-input.promo-valid   { border-color:#10b981; }
+.promo-input.promo-invalid { border-color:#ef4444; }
+.promo-apply-btn { padding:11px 20px; background:linear-gradient(135deg,#6366f1,#4f46e5); border:none; border-radius:10px; color:#fff; font-size:.88rem; font-weight:700; font-family:inherit; cursor:pointer; flex-shrink:0; transition:opacity .15s; }
+.promo-apply-btn:hover:not(:disabled) { opacity:.88; }
+.promo-apply-btn:disabled { opacity:.5; cursor:not-allowed; }
+.promo-feedback { font-size:.8rem; font-weight:600; margin-top:9px; padding:9px 13px; border-radius:9px; }
+.promo-feedback.promo-ok  { background:rgba(16,185,129,.1);  border:1px solid rgba(16,185,129,.3); color:#34d399; }
+.promo-feedback.promo-err { background:rgba(239,68,68,.1);   border:1px solid rgba(239,68,68,.3);  color:#f87171; }
+@media(max-width:480px){
+  .upi-scan-wrap{flex-direction:column;align-items:center;}
+  .co-wizard-line{width:40px;}
+  .co-review-grid{grid-template-columns:1fr;}
+  .co-rv-full{grid-column:1;}
 }
 </style>
 
-<!-- ── Phone + tab JS ── -->
 <script>
-/* --- Copy UPI ID --- */
-function copyUPI() {
-  navigator.clipboard.writeText('hemanth022@ptyes').then(function() {
-    var lbl = document.getElementById('upiCopyLabel');
-    lbl.textContent = 'Copied!';
-    setTimeout(function(){ lbl.textContent = 'Copy'; }, 2000);
-  }).catch(function() {});
-}
-
-/* --- Tab switcher --- */
-function switchTab(btn) {
-  document.querySelectorAll('.co-tab').forEach(function(b) { b.classList.remove('co-tab-on'); });
-  btn.classList.add('co-tab-on');
-  document.querySelectorAll('.co-pay-panel').forEach(function(p) { p.style.display = 'none'; });
-  var panel = document.getElementById(btn.getAttribute('data-panel'));
-  if (panel) panel.style.display = 'block';
-}
-
-/* --- Phone: always starts with +91 --- */
+var PFX = '+91';
 var phoneEl   = document.getElementById('phone_input');
 var phoneHint = document.getElementById('phoneHint');
-var PFX       = '+91';
 
+/* ═══════════════════════════════════════
+   PHONE ENFORCEMENT
+═══════════════════════════════════════ */
 function enforcePhone() {
   if (!phoneEl.value.startsWith(PFX)) phoneEl.value = PFX;
   var tail = phoneEl.value.slice(PFX.length).replace(/\D/g, '').slice(0, 10);
   phoneEl.value = PFX + tail;
   if (tail.length === 0) {
     phoneHint.textContent = 'Enter +91 followed by 10 digits';
-    phoneHint.className = 'co-hint';
+    phoneHint.className = 'co-hint field-hint';
   } else if (/^[6-9][0-9]{9}$/.test(tail)) {
     phoneHint.textContent = '✓ Valid number';
-    phoneHint.className = 'co-hint';
-    phoneHint.style.color = '#34d399';
+    phoneHint.className = 'co-hint field-hint ok';
   } else {
     phoneHint.textContent = 'Must be 10 digits, starting 6–9';
-    phoneHint.className = 'co-hint err';
-    phoneHint.style.color = '';
+    phoneHint.className = 'co-hint field-hint err';
   }
+  shippingCheck();
 }
-
 if (phoneEl) {
   phoneEl.addEventListener('input', enforcePhone);
   phoneEl.addEventListener('keydown', function(e) {
-    if ((e.key === 'Backspace' || e.key === 'Delete') && this.selectionStart <= PFX.length) {
-      e.preventDefault();
-    }
+    if ((e.key === 'Backspace' || e.key === 'Delete') && this.selectionStart <= PFX.length) e.preventDefault();
   });
   phoneEl.addEventListener('click', function() {
     if (this.selectionStart < PFX.length) this.setSelectionRange(PFX.length, PFX.length);
@@ -935,35 +910,210 @@ if (phoneEl) {
   enforcePhone();
 }
 
-/* --- Form submit: inject hidden phone field --- */
+/* ═══════════════════════════════════════
+   STEP 1 — SHIPPING VALIDATION
+═══════════════════════════════════════ */
+function hint(id, msg, ok) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = msg;
+  el.className = 'field-hint' + (msg ? (ok ? ' ok' : ' err') : '');
+}
+
+function shippingCheck() {
+  var name    = (document.getElementById('full_name')  || {}).value || '';
+  var email   = (document.getElementById('email')      || {}).value || '';
+  var address = (document.getElementById('address')    || {}).value || '';
+  var city    = (document.getElementById('city')       || {}).value || '';
+  var pincode = (document.getElementById('pincode')    || {}).value || '';
+  var tail    = phoneEl ? phoneEl.value.slice(PFX.length).replace(/\D/g, '') : '';
+
+  var nameOk    = name.trim().length >= 2;
+  var emailOk   = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+  var addressOk = address.trim().length >= 4;
+  var cityOk    = city.trim().length >= 2;
+  var pincodeOk = /^[1-9][0-9]{5}$/.test(pincode.trim());
+  var phoneOk   = /^[6-9][0-9]{9}$/.test(tail);
+
+  if (name.length > 0)    hint('hint_name',    nameOk    ? '✓' : 'Enter your full name (min 2 chars)', nameOk);
+  if (email.length > 0)   hint('hint_email',   emailOk   ? '✓' : 'Enter a valid email address', emailOk);
+  if (address.length > 0) hint('hint_address', addressOk ? '✓' : 'Enter your full delivery address', addressOk);
+  if (city.length > 0)    hint('hint_city',    cityOk    ? '✓' : 'Enter your city name', cityOk);
+  if (pincode.length > 0) hint('hint_pincode', pincodeOk ? '✓' : '6-digit PIN code required', pincodeOk);
+
+  var allOk = nameOk && emailOk && addressOk && cityOk && pincodeOk && phoneOk;
+  var btn = document.getElementById('nextToPaymentBtn');
+  if (btn) btn.disabled = !allOk;
+  return allOk;
+}
+
+/* ═══════════════════════════════════════
+   STEP 2 — PAYMENT VALIDATION
+═══════════════════════════════════════ */
+function validateTxnId(val) { return /^[A-Za-z0-9]{8,20}$/.test(val.trim()); }
+
+function paymentCheck() {
+  var upiEl  = document.getElementById('customerUpiId');
+  var txnEl  = document.getElementById('customerTxnId');
+  var status = document.getElementById('txnStatus');
+  if (!upiEl || !txnEl) return false;
+
+  var upiVal = upiEl.value.trim();
+  var txnVal = txnEl.value.trim();
+  var upiOk  = upiVal.length >= 3;
+  var txnOk  = validateTxnId(txnVal);
+
+  upiEl.classList.toggle('input-valid',   upiVal.length > 0 && upiOk);
+  upiEl.classList.toggle('input-invalid', upiVal.length > 0 && !upiOk);
+  txnEl.classList.toggle('input-valid',   txnVal.length > 0 && txnOk);
+  txnEl.classList.toggle('input-invalid', txnVal.length > 0 && !txnOk);
+
+  if (status) {
+    status.textContent = txnVal.length === 0 ? '' : txnOk ? '✓' : '✗';
+    status.style.color = txnOk ? '#10b981' : '#ef4444';
+  }
+  hint('hint_upi', upiVal.length > 0 ? (upiOk ? '✓ UPI ID looks good' : 'Enter a valid UPI ID') : '', upiOk);
+  hint('hint_txn', txnVal.length > 0 ? (txnOk ? '✓ UTR ID looks good' : '8–20 alphanumeric characters required') : '', txnOk);
+
+  var allOk = upiOk && txnOk;
+  var btn = document.getElementById('nextToReviewBtn');
+  if (btn) btn.disabled = !allOk;
+  return allOk;
+}
+
+/* ═══════════════════════════════════════
+   WIZARD NAVIGATION
+═══════════════════════════════════════ */
+var currentStep = 1;
+
+function goToStep(n) {
+  ['coStep1','coStep2','coStep3'].forEach(function(id, i) {
+    document.getElementById(id).style.display = (i + 1 === n) ? 'block' : 'none';
+  });
+  ['ind1','ind2','ind3'].forEach(function(id, i) {
+    var el = document.getElementById(id);
+    el.classList.remove('active','done');
+    if (i + 1 < n)  el.classList.add('done');
+    if (i + 1 === n) el.classList.add('active');
+  });
+  ['line1','line2'].forEach(function(id, i) {
+    var el = document.getElementById(id);
+    el.classList.toggle('done', i + 1 < n);
+  });
+  // Sidebar status
+  ['ss1','ss2','ss3'].forEach(function(id, i) {
+    var el = document.getElementById(id);
+    el.classList.remove('ss-active','ss-done');
+    if (i + 1 < n)  el.classList.add('ss-done');
+    if (i + 1 === n) el.classList.add('ss-active');
+  });
+  currentStep = n;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function goToPayment() {
+  if (!shippingCheck()) return;
+  // Validate urgent delivery date if toggled
+  var toggle = document.getElementById('urgentToggle');
+  if (toggle && toggle.checked) {
+    if (!document.getElementById('delivery_date').value) {
+      alert('Please select a delivery date for Urgent Delivery.');
+      return;
+    }
+    document.getElementById('urgentDeliveryHidden').value = 'yes';
+  }
+  goToStep(2);
+}
+
+function goToReview() {
+  if (!paymentCheck()) return;
+  populateReview();
+  goToStep(3);
+}
+
+/* ═══════════════════════════════════════
+   POPULATE REVIEW SUMMARY
+═══════════════════════════════════════ */
+function rv(id, val) {
+  var el = document.getElementById(id);
+  if (el) el.textContent = val || '—';
+}
+
+function populateReview() {
+  rv('rv_name',    document.getElementById('full_name').value.trim());
+  rv('rv_phone',   phoneEl ? phoneEl.value : '');
+  rv('rv_email',   document.getElementById('email').value.trim());
+  rv('rv_address', document.getElementById('address').value.trim());
+  rv('rv_city',    document.getElementById('city').value.trim());
+  rv('rv_pincode', document.getElementById('pincode').value.trim());
+
+  var zoneVal = (document.getElementById('deliveryZoneHidden') || {}).value || '';
+  rv('rv_zone', zoneVal === 'inside' ? 'Inside Visakhapatnam (₹100)' : zoneVal === 'outside' ? 'Outside Visakhapatnam (₹250)' : '—');
+
+  rv('rv_upi', document.getElementById('customerUpiId').value.trim());
+  rv('rv_txn', document.getElementById('customerTxnId').value.trim());
+
+  // Urgent
+  var urgentOn = document.getElementById('urgentToggle').checked;
+  var urgentRow = document.getElementById('rv_urgent_row');
+  var urgentChargeRow = document.getElementById('rv_urgent_charge_row');
+  if (urgentOn) {
+    rv('rv_delivery_date', document.getElementById('delivery_date').value);
+    if (urgentRow) urgentRow.style.display = 'flex';
+    var uCharge = parseInt(document.getElementById('urgentChargeHidden').value) || 0;
+    rv('rv_urgent_charge', '₹' + uCharge);
+    if (urgentChargeRow) urgentChargeRow.style.display = 'flex';
+  } else {
+    if (urgentRow) urgentRow.style.display = 'none';
+    if (urgentChargeRow) urgentChargeRow.style.display = 'none';
+  }
+
+  // Promo discount
+  var promoDiscount = appliedPromoDiscount || 0;
+  var rvPromoRow = document.getElementById('rv_promo_row');
+  if (rvPromoRow) rvPromoRow.style.display = promoDiscount > 0 ? 'flex' : 'none';
+  if (promoDiscount > 0) {
+    rv('rv_promo_discount', '-₹' + promoDiscount.toFixed(2) + ' (' + appliedPromoCode + ')');
+  }
+
+  // Totals
+  var deliveryCharge = parseInt(document.getElementById('deliveryChargeHidden').value) || 100;
+  var urgentCharge   = parseInt(document.getElementById('urgentChargeHidden').value)   || 0;
+  var base           = parseFloat('{{ total }}') || 0;
+  rv('rv_delivery_charge', '₹' + deliveryCharge);
+  rv('rv_total', '₹' + Math.max(0, base - promoDiscount + deliveryCharge + urgentCharge).toFixed(2));
+}
+
+/* ═══════════════════════════════════════
+   FORM SUBMIT — FINAL VALIDATION
+═══════════════════════════════════════ */
 document.getElementById('checkoutForm').addEventListener('submit', function(e) {
+  // Inject phone as hidden field
   var tail = phoneEl ? phoneEl.value.slice(PFX.length).replace(/\D/g, '') : '';
   if (!/^[6-9][0-9]{9}$/.test(tail)) {
     e.preventDefault();
-    phoneHint.textContent = '✗ Valid Indian mobile number required (+91 + 10 digits)';
-    phoneHint.className = 'co-hint err';
-    phoneHint.style.color = '';
-    phoneEl.focus();
+    alert('Phone number is invalid. Please go back to Step 1 and fix it.');
+    goToStep(1);
     return;
   }
   var h = document.createElement('input');
   h.type = 'hidden'; h.name = 'phone'; h.value = PFX + tail;
   this.appendChild(h);
 
-  /* Urgent delivery validation */
-  var toggle = document.getElementById('urgentToggle');
-  if (toggle && toggle.checked) {
-    var dv = document.getElementById('delivery_date').value;
-    if (!dv) {
-      e.preventDefault();
-      alert('Please select a delivery date for Urgent Delivery.');
-      return;
-    }
-    document.getElementById('urgentDeliveryHidden').value = 'yes';
+  // Validate UPI fields
+  var upiId = (document.getElementById('customerUpiId') || {}).value || '';
+  var txnId = (document.getElementById('customerTxnId') || {}).value || '';
+  if (!upiId.trim() || !validateTxnId(txnId)) {
+    e.preventDefault();
+    alert('Payment details are incomplete. Please go back to Step 2.');
+    goToStep(2);
+    return;
   }
 });
 
-/* --- Urgent delivery toggle --- */
+/* ═══════════════════════════════════════
+   URGENT DELIVERY
+═══════════════════════════════════════ */
 function toggleUrgent(cb) {
   var panel = document.getElementById('udPanel');
   if (!panel) return;
@@ -974,7 +1124,6 @@ function toggleUrgent(cb) {
     document.getElementById('urgentChargeRow').style.display = 'none';
     updateSummaryTotal(0);
   } else {
-    /* Set min = tomorrow, max = 14 days */
     var inp = document.getElementById('delivery_date');
     var tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
     var maxDay   = new Date(); maxDay.setDate(maxDay.getDate() + 14);
@@ -991,39 +1140,30 @@ function updateUrgentCharge() {
   if (!dv) return;
   var today    = new Date(); today.setHours(0,0,0,0);
   var selected = new Date(dv);
-  var diff     = Math.round((selected - today) / 86400000); /* days */
-
+  var diff     = Math.round((selected - today) / 86400000);
   var charge = 0, label = '';
   if (diff <= 1)      { charge = 199; label = 'Next-day delivery — ₹199 extra'; }
   else if (diff <= 2) { charge = 149; label = '2-day delivery — ₹149 extra'; }
-  else if (diff <= 3) { charge = 99;  label = '3-day delivery — ₹99 extra'; }
-  else if (diff <= 7) { charge = 49;  label = diff + '-day delivery — ₹49 extra'; }
-  else                { charge = 0;   label = 'Standard window — no extra charge'; }
-
+  else if (diff <= 3) { charge =  99; label = '3-day delivery — ₹99 extra'; }
+  else if (diff <= 7) { charge =  49; label = diff + '-day delivery — ₹49 extra'; }
+  else                { charge =   0; label = 'Standard window — no extra charge'; }
   document.getElementById('urgentChargeVal').textContent = charge > 0 ? '₹' + charge : 'Free';
   document.getElementById('urgentChargeHidden').value    = charge;
-
-  var infoRow = document.getElementById('udInfoRow');
   document.getElementById('udInfoText').textContent = label;
-  infoRow.style.display = 'flex';
-
-  /* Update summary sidebar */
+  document.getElementById('udInfoRow').style.display = 'flex';
   var row = document.getElementById('urgentChargeRow');
-  if (charge > 0) {
-    row.style.display = 'flex';
-    document.getElementById('summaryUrgentCharge').textContent = '₹' + charge;
-  } else {
-    row.style.display = 'none';
-  }
+  if (charge > 0) { row.style.display = 'flex'; document.getElementById('summaryUrgentCharge').textContent = '₹' + charge; }
+  else            { row.style.display = 'none'; }
   updateSummaryTotal(charge);
 }
 
-/* --- Delivery zone switcher --- */
+/* ═══════════════════════════════════════
+   DELIVERY ZONE + SUMMARY
+═══════════════════════════════════════ */
 function updateDeliveryCharge(zone) {
   var charge = zone === 'outside' ? 250 : 100;
   document.getElementById('deliveryChargeHidden').value = charge;
   document.getElementById('summaryDeliveryCharge').textContent = '₹' + charge;
-  /* Recalculate total with current urgent charge */
   var urgentVal = parseInt(document.getElementById('urgentChargeHidden').value) || 0;
   updateSummaryTotal(urgentVal);
 }
@@ -1031,149 +1171,179 @@ function updateDeliveryCharge(zone) {
 function updateSummaryTotal(urgentCharge) {
   var base     = parseFloat('{{ total }}') || 0;
   var delivery = parseInt(document.getElementById('deliveryChargeHidden').value) || 100;
-  document.getElementById('summaryTotal').textContent = '₹' + (base + delivery + urgentCharge).toFixed(2);
+  var discount = appliedPromoDiscount || 0;
+  var promoRow = document.getElementById('summaryPromoRow');
+  var promoAmt = document.getElementById('summaryPromoDiscount');
+  if (promoRow) promoRow.style.display = discount > 0 ? 'flex' : 'none';
+  if (promoAmt) promoAmt.textContent = '-₹' + discount.toFixed(2);
+  document.getElementById('summaryTotal').textContent = '₹' + Math.max(0, base - discount + delivery + urgentCharge).toFixed(2);
 }
 
-/* Init: apply delivery charge to total on page load */
-(function() {
-  var urgentVal = parseInt(document.getElementById('urgentChargeHidden').value) || 0;
-  updateSummaryTotal(urgentVal);
-}());
+/* ═══════════════════════════════════════
+   PROMO CODE
+═══════════════════════════════════════ */
+var appliedPromoDiscount = 0;
+var appliedPromoCode     = '';
 
-/* --- City-based delivery zone auto-detection --- */
-var VIZAG_KEYWORDS = [
-  'visakhapatnam', 'vizag', 'vishakhapatnam', 'vishakapatnam',
-  'visakha', 'vskp', 'waltair'
-];
+function applyPromoCode() {
+  var input    = document.getElementById('promoCodeInput');
+  var btn      = document.getElementById('promoApplyBtn');
+  var code     = (input.value || '').trim().toUpperCase();
+  if (!code) { showPromoFeedback('Please enter a promo code.', false); return; }
 
+  btn.disabled    = true;
+  btn.textContent = 'Checking…';
+  input.classList.remove('promo-valid', 'promo-invalid');
+
+  var csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
+  fetch('/apply-promo/', {
+    method:  'POST',
+    headers: { 'X-CSRFToken': csrf, 'Content-Type': 'application/x-www-form-urlencoded' },
+    body:    'code=' + encodeURIComponent(code),
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    btn.disabled    = false;
+    btn.textContent = 'Apply';
+    if (data.valid) {
+      var base        = parseFloat('{{ total }}') || 0;
+      var discountAmt = Math.round(base * data.discount_pct / 100 * 100) / 100;
+      appliedPromoDiscount = discountAmt;
+      appliedPromoCode     = data.code;
+      document.getElementById('promoCodeHidden').value     = data.code;
+      document.getElementById('promoDiscountHidden').value = discountAmt;
+      input.classList.add('promo-valid');
+      showPromoFeedback('✓ ' + data.message + ' — you save ₹' + discountAmt.toFixed(2), true);
+      btn.textContent = 'Remove';
+      btn.onclick     = removePromo;
+    } else {
+      appliedPromoDiscount = 0;
+      appliedPromoCode     = '';
+      document.getElementById('promoCodeHidden').value     = '';
+      document.getElementById('promoDiscountHidden').value = '0';
+      input.classList.add('promo-invalid');
+      showPromoFeedback('✗ ' + data.message, false);
+    }
+    updateSummaryTotal(parseInt(document.getElementById('urgentChargeHidden').value) || 0);
+  })
+  .catch(function() {
+    btn.disabled    = false;
+    btn.textContent = 'Apply';
+    showPromoFeedback('Connection error. Please try again.', false);
+  });
+}
+
+function showPromoFeedback(msg, ok) {
+  var fb = document.getElementById('promoFeedback');
+  fb.textContent = msg;
+  fb.className   = 'promo-feedback ' + (ok ? 'promo-ok' : 'promo-err');
+  fb.style.display = 'block';
+}
+
+function clearPromo() {
+  if (appliedPromoCode) {
+    removePromo();
+  }
+}
+
+function removePromo() {
+  appliedPromoDiscount = 0;
+  appliedPromoCode     = '';
+  var input = document.getElementById('promoCodeInput');
+  if (input) { input.value = ''; input.classList.remove('promo-valid', 'promo-invalid'); }
+  document.getElementById('promoCodeHidden').value     = '';
+  document.getElementById('promoDiscountHidden').value = '0';
+  document.getElementById('promoFeedback').style.display = 'none';
+  var btn = document.getElementById('promoApplyBtn');
+  if (btn) { btn.textContent = 'Apply'; btn.onclick = applyPromoCode; }
+  updateSummaryTotal(parseInt(document.getElementById('urgentChargeHidden').value) || 0);
+}
+
+/* ═══════════════════════════════════════
+   CITY → ZONE AUTO-DETECT
+═══════════════════════════════════════ */
+var VIZAG_KEYWORDS = ['visakhapatnam','vizag','vishakhapatnam','vishakapatnam','visakha','vskp','waltair'];
 function isVizagCity(city) {
   var c = city.toLowerCase().trim();
-  for (var i = 0; i < VIZAG_KEYWORDS.length; i++) {
-    if (c.indexOf(VIZAG_KEYWORDS[i]) !== -1) return true;
-  }
-  return false;
+  return VIZAG_KEYWORDS.some(function(k){ return c.indexOf(k) !== -1; });
 }
-
 function setZoneBadge(zone) {
-  var badge = document.getElementById('dzLocBadge');
-  if (!badge) return;
-  badge.classList.remove('inside', 'outside', 'denied');
-  var checkSvg = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>';
+  var card       = document.getElementById('dzReadonlyCard');
+  var nameEl     = document.getElementById('dzReadonlyName');
+  var descEl     = document.getElementById('dzReadonlyDesc');
+  var priceEl    = document.getElementById('dzReadonlyPrice');
+  var notice     = document.getElementById('dzReadonlyNotice');
+  var noticeText = document.getElementById('dzReadonlyNoticeText');
+  if (!card) return;
+  card.classList.remove('dz-inside', 'dz-outside', 'dz-pending');
+  if (notice) notice.classList.remove('dz-inside', 'dz-outside');
   if (zone === 'inside') {
-    badge.classList.add('inside');
-    badge.innerHTML = checkSvg + ' Inside Visakhapatnam — ₹100';
+    card.classList.add('dz-inside');
+    if (nameEl)  nameEl.textContent  = 'Inside Visakhapatnam';
+    if (descEl)  descEl.textContent  = 'Delivery within Visakhapatnam city limits';
+    if (priceEl) priceEl.textContent = '₹100';
+    if (notice && noticeText) {
+      notice.classList.add('dz-inside');
+      notice.style.display = 'flex';
+      noticeText.textContent = 'Delivery charge ₹100 applied automatically — your city is within Visakhapatnam.';
+    }
   } else if (zone === 'outside') {
-    badge.classList.add('outside');
-    badge.innerHTML = checkSvg + ' Outside Visakhapatnam — ₹250';
+    card.classList.add('dz-outside');
+    if (nameEl)  nameEl.textContent  = 'Outside Visakhapatnam';
+    if (descEl)  descEl.textContent  = 'Delivery to other cities & states';
+    if (priceEl) priceEl.textContent = '₹250';
+    if (notice && noticeText) {
+      notice.classList.add('dz-outside');
+      notice.style.display = 'flex';
+      noticeText.textContent = 'Delivery charge ₹250 applied automatically — your city is outside Visakhapatnam.';
+    }
   } else {
-    badge.classList.add('denied');
-    badge.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> Enter your city above';
+    card.classList.add('dz-pending');
+    if (nameEl)  nameEl.textContent  = 'Enter your city above';
+    if (descEl)  descEl.textContent  = 'Delivery charge is set automatically based on your city';
+    if (priceEl) priceEl.textContent = '—';
+    if (notice)  notice.style.display = 'none';
   }
 }
-
 function applyZone(zone) {
-  var radio = document.querySelector('input[name="delivery_zone"][value="' + zone + '"]');
-  if (radio) { radio.checked = true; updateDeliveryCharge(zone); }
+  var zoneHidden = document.getElementById('deliveryZoneHidden');
+  if (zoneHidden) zoneHidden.value = zone;
+  updateDeliveryCharge(zone);
   setZoneBadge(zone);
 }
-
 function detectZoneFromCity(city) {
   if (!city || city.trim().length < 2) { setZoneBadge(''); return; }
   applyZone(isVizagCity(city) ? 'inside' : 'outside');
 }
 
-/* Run on page load if city field is pre-filled (e.g. form re-render) */
+/* ═══════════════════════════════════════
+   COPY UPI
+═══════════════════════════════════════ */
+function copyUPI() {
+  navigator.clipboard.writeText('hemanth022@ptyes').then(function() {
+    var lbl = document.getElementById('upiCopyLabel');
+    lbl.textContent = 'Copied!';
+    setTimeout(function(){ lbl.textContent = 'Copy'; }, 2000);
+  }).catch(function(){});
+}
+
+/* ═══════════════════════════════════════
+   INIT
+═══════════════════════════════════════ */
 (function() {
   var cityEl = document.getElementById('city');
-  if (cityEl && cityEl.value.trim().length >= 2) {
-    detectZoneFromCity(cityEl.value);
-  }
+  if (cityEl && cityEl.value.trim().length >= 2) detectZoneFromCity(cityEl.value);
+  updateSummaryTotal(0);
+  shippingCheck();
 
-  /* GPS as bonus — works only on HTTPS/localhost */
   if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-      function(pos) {
-        /* Only use GPS if city field is still empty */
-        var cityEl2 = document.getElementById('city');
-        if (cityEl2 && cityEl2.value.trim().length >= 2) return;
-        var lat = pos.coords.latitude;
-        var lng = pos.coords.longitude;
-        var insideVizag = (lat >= 17.55 && lat <= 17.85 && lng >= 83.10 && lng <= 83.55);
-        applyZone(insideVizag ? 'inside' : 'outside');
-      },
-      function() { /* GPS denied — city field is the primary trigger */ },
-      { timeout: 5000, maximumAge: 60000 }
-    );
+    navigator.geolocation.getCurrentPosition(function(pos) {
+      var cityEl2 = document.getElementById('city');
+      if (cityEl2 && cityEl2.value.trim().length >= 2) return;
+      applyZone((pos.coords.latitude >= 17.55 && pos.coords.latitude <= 17.85 && pos.coords.longitude >= 83.10 && pos.coords.longitude <= 83.55) ? 'inside' : 'outside');
+    }, function(){}, { timeout: 5000, maximumAge: 60000 });
   }
 }());
-
-/* --- Step 1: Show UPI details section when all form fields are valid --- */
-function checkFormReady() {
-  var name    = (document.getElementById('full_name')  || {}).value || '';
-  var email   = (document.getElementById('email')      || {}).value || '';
-  var address = (document.getElementById('address')    || {}).value || '';
-  var city    = (document.getElementById('city')       || {}).value || '';
-  var phone   = phoneEl ? phoneEl.value : '';
-  var tail    = phone.slice(PFX.length).replace(/\D/g, '');
-
-  var formReady = name.trim().length  >= 2 &&
-                  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) &&
-                  address.trim().length >= 4 &&
-                  city.trim().length    >= 2 &&
-                  /^[6-9][0-9]{9}$/.test(tail);
-
-  var upiWrap = document.getElementById('payUpiWrap');
-  if (upiWrap) upiWrap.style.display = formReady ? 'block' : 'none';
-  if (!formReady) {
-    var placeBtn = document.getElementById('placeOrderBtn');
-    if (placeBtn) placeBtn.style.display = 'none';
-  }
-  checkUpiReady();
-}
-
-/* --- Step 2: Validate UPI ID + Transaction ID, enable Place Order --- */
-function validateTxnId(val) {
-  return /^[A-Za-z0-9]{8,20}$/.test(val.trim());
-}
-
-function checkUpiReady() {
-  var upiEl  = document.getElementById('customerUpiId');
-  var txnEl  = document.getElementById('customerTxnId');
-  var status = document.getElementById('txnStatus');
-  var placeBtn = document.getElementById('placeOrderBtn');
-  if (!upiEl || !txnEl) return;
-
-  var upiOk  = upiEl.value.trim().length >= 3;
-  var txnVal = txnEl.value.trim();
-  var txnOk  = validateTxnId(txnVal);
-
-  txnEl.classList.toggle('input-valid',   txnVal.length > 0 && txnOk);
-  txnEl.classList.toggle('input-invalid', txnVal.length > 0 && !txnOk);
-  if (status) {
-    status.textContent = txnVal.length === 0 ? '' : txnOk ? '✓' : '✗';
-    status.style.color = txnOk ? '#10b981' : '#ef4444';
-  }
-
-  var allReady = upiOk && txnOk;
-  if (placeBtn) {
-    placeBtn.style.display = allReady ? 'block' : 'none';
-    if (allReady) {
-      setTimeout(function() {
-        placeBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 200);
-    }
-  }
-}
-
-/* Wire events */
-['full_name', 'email', 'address', 'city'].forEach(function(id) {
-  var el = document.getElementById(id);
-  if (el) el.addEventListener('input', checkFormReady);
-});
-if (phoneEl) phoneEl.addEventListener('input', checkFormReady);
-
-/* Run once on load */
-checkFormReady();
-
 </script>
+
 {% endblock %}

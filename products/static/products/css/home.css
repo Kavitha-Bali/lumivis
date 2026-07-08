@@ -369,19 +369,29 @@ h1, h2, h3, .hero-title, .section-title {
 
 /* ─── Video Banner ───────────────────────────────────────────── */
 .video-banner {
+  position: relative;         /* anchor for the absolute video */
   width: 100%;
+  /* 56.25 vw = exactly 16 : 9 of the viewport width; cap at 90 vh */
+  height: min(56.25vw, 90vh);
   background: #000;
-  line-height: 0;
-  padding: 0;
-  margin: 0;
   overflow: hidden;
+  margin: 0;
+  padding: 0;
+  line-height: 0;
 }
 .video-banner-el {
-  display: block;
+  position: absolute;
+  inset: 0;                   /* top:0 right:0 bottom:0 left:0  */
   width: 100%;
-  height: auto;
-  aspect-ratio: 16 / 9;
-  object-fit: contain;
+  height: 100%;
+  object-fit: cover;          /* fills every pixel, zero black bars */
+  object-position: center center;
+  display: block;
+}
+
+/* ─── Secondary video banner (video3.mp4) ────────────────────── */
+.video-banner-secondary {
+  margin-top: 0;
 }
 
 /* ─── Promo Banner + Countdown ───────────────────────────────── */
@@ -639,6 +649,7 @@ h1, h2, h3, .hero-title, .section-title {
   cursor: pointer; transition: background .15s, border-color .15s, color .15s; padding: 0;
 }
 .type-card-add:hover { background: #6366f1; border-color: #6366f1; color: #fff; }
+.type-card-add--guest { text-decoration: none; }
 .type-card-buynow {
   height: 30px; padding: 0 10px; border-radius: 8px;
   background: #6366f1; border: 1px solid #6366f1;

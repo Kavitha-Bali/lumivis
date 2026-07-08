@@ -6,8 +6,20 @@
 <main class="main">
   <div class="auth-card">
     <div class="auth-header">
+      {% if 'admin' in next %}
+      <div style="display:inline-flex;align-items:center;gap:7px;background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.3);border-radius:20px;padding:5px 14px;font-size:.7rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#818cf8;margin-bottom:14px;">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Admin Login
+      </div>
+      {% endif %}
       <h1 class="auth-title">Welcome back</h1>
-      <p class="auth-sub">Sign in to your Lumivis Pvt. Ltd. account</p>
+      <p class="auth-sub">
+        {% if 'admin' in next %}
+          Sign in with your administrator credentials
+        {% else %}
+          Sign in to your Lumivis Pvt. Ltd. account
+        {% endif %}
+      </p>
     </div>
 
     <form method="POST" class="auth-form">

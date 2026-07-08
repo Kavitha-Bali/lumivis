@@ -4,24 +4,24 @@
 {% block title %}Lumivis Pvt. Ltd. — Shop{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'products/css/home.css' %}?v=29" />
+<link rel="stylesheet" href="{% static 'products/css/home.css' %}?v=32" />
 {% endblock %}
 
 {% block content %}
 
-<!-- Autoplay Video Banner — directly below navbar -->
-<section class="video-banner">
-  <video
-    autoplay
-    muted
-    loop
-    playsinline
-    preload="auto"
-    class="video-banner-el">
+<!-- ── Video Banner 1 — directly below navbar ── -->
+<!-- <section class="video-banner">
+  <video class="video-banner-el" autoplay muted loop playsinline preload="auto">
     <source src="{% static 'video.mp4' %}" type="video/mp4" />
   </video>
-</section>
+</section> -->
 
+<!-- ── Video Banner 2 — video3.mp4 ── -->
+ <section class="video-banner video-banner-secondary">
+  <video class="video-banner-el" autoplay muted loop playsinline preload="auto">
+    <source src="{% static 'video3.mp4' %}" type="video/mp4" />
+  </video>
+</section>
 
 {% if query %}
 <div class="type-search-header">
@@ -61,6 +61,7 @@
             </div>
           {% endif %}
           {% if forloop.counter <= 2 %}<span class="type-card-new">NEW</span>{% endif %}
+          {% if user.is_authenticated %}
           <form method="POST" action="{% url 'toggle_wishlist' product.pk %}" class="type-card-wish-form">
             {% csrf_token %}
             <input type="hidden" name="next" value="/" />
@@ -68,11 +69,17 @@
               <svg width="13" height="13" viewBox="0 0 24 24" fill="{% if product.pk in wishlisted_ids %}currentColor{% else %}none{% endif %}" stroke="currentColor" stroke-width="2.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
             </button>
           </form>
+          {% else %}
+          <a href="{% url 'login' %}?next={% url 'product_detail' product.pk %}" class="type-card-wish" title="Login to wishlist">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          </a>
+          {% endif %}
         </a>
         <div class="type-card-body">
           <p class="type-card-name">{{ product.name|truncatechars:28 }}</p>
           <div class="type-card-row">
             <span class="type-card-price">₹{{ product.price }}</span>
+            {% if user.is_authenticated %}
             <form method="POST" action="{% url 'add_to_cart' product.pk %}">
               {% csrf_token %}
               <input type="hidden" name="next" value="home" />
@@ -80,6 +87,11 @@
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
               </button>
             </form>
+            {% else %}
+            <a href="{% url 'login' %}?next={% url 'product_detail' product.pk %}" class="type-card-add type-card-add--guest" title="Login to add to cart">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+            </a>
+            {% endif %}
           </div>
         </div>
       </article>
@@ -192,16 +204,27 @@
 
     <!-- Buy Now button — outside image panel, sits below it -->
     {% if popup_offer and popup_offer.product %}
-    <form class="popup-buy-form" method="POST" action="{% url 'buy_now' popup_offer.product.pk %}">
-      {% csrf_token %}
-      <button type="submit" class="popup-btn-buy">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-          <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
-          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
-        </svg>
-        Buy Now
-      </button>
-    </form>
+      {% if user.is_authenticated %}
+      <form class="popup-buy-form" method="POST" action="{% url 'buy_now' popup_offer.product.pk %}">
+        {% csrf_token %}
+        <button type="submit" class="popup-btn-buy">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+          </svg>
+          Buy Now
+        </button>
+      </form>
+      {% else %}
+      <div class="popup-buy-form">
+        <a href="{% url 'login' %}?next={% url 'product_detail' popup_offer.product.pk %}" class="popup-btn-buy">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+          </svg>
+          Login to Buy
+        </a>
+      </div>
+      {% endif %}
     {% else %}
     <div class="popup-buy-form">
       <a href="{% url 'products' %}" class="popup-btn-buy">
@@ -209,7 +232,7 @@
           <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
           <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
         </svg>
-        Buy Now
+        Shop Now
       </a>
     </div>
     {% endif %}

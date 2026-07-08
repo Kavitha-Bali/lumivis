@@ -1,5 +1,6 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.contrib.auth import get_user_model
+from django.shortcuts import redirect
 
 from django.utils.html import format_html, mark_safe
 from django.utils.timezone import now
@@ -12,6 +13,26 @@ class LumivisAdminSite(admin.AdminSite):
     site_header = "Lumivis Administration"
     site_title  = "Lumivis Admin"
     index_title = "Dashboard"
+
+    def login(self, request, extra_context=None):
+        """
+        Delegate all authentication to /login/ which has proper CSRF handling
+        via @ensure_csrf_cookie.  Avoids the token-mismatch problem that arises
+        when Django admin's LoginView and CsrfViewMiddleware double-process CSRF.
+        """
+        # Already logged in with staff access → straight to admin index
+        if request.user.is_authenticated:
+            if self.has_permission(request):
+                return redirect('/admin/')
+            # Authenticated but not staff
+            messages.error(request, 'Access denied. Admin privileges required.')
+            return redirect('home')
+
+        # Not authenticated → send to the site's login page with next preserved
+        next_url = request.GET.get('next', '/admin/')
+        if not next_url.startswith('/'):
+            next_url = '/admin/'
+        return redirect(f'/login/?next={next_url}')
 
     def index(self, request, extra_context=None):
         User = get_user_model()

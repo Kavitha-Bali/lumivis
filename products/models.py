@@ -71,6 +71,8 @@ class Order(models.Model):
     urgent_charge  = models.DecimalField(max_digits=8, decimal_places=2, default=0)
     delivery_zone       = models.CharField(max_length=20, default='inside')
     delivery_charge     = models.DecimalField(max_digits=8, decimal_places=2, default=100)
+    promo_code     = models.CharField(max_length=50, blank=True, default='')
+    promo_discount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     payment_screenshot  = models.ImageField(upload_to='payments/screenshots/', null=True, blank=True)
     upi_id          = models.CharField(max_length=100, blank=True, default='')
     transaction_id  = models.CharField(max_length=50, blank=True, default='')
@@ -93,14 +95,27 @@ class CancelRequest(models.Model):
         ('approved', 'Approved'),
         ('rejected', 'Rejected'),
     ]
-    order        = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='cancel_request')
-    reason       = models.TextField()
-    status       = models.CharField(max_length=20, choices=CANCEL_STATUS, default='pending')
-    requested_at = models.DateTimeField(auto_now_add=True)
-    reviewed_at  = models.DateTimeField(null=True, blank=True)
+    order          = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='cancel_request')
+    reason         = models.TextField()
+    status         = models.CharField(max_length=20, choices=CANCEL_STATUS, default='pending')
+    admin_response = models.TextField(blank=True, default='')
+    requested_at   = models.DateTimeField(auto_now_add=True)
+    reviewed_at    = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return f"Cancel — {self.order.order_id} [{self.status}]"
+
+
+class ContactMessage(models.Model):
+    name       = models.CharField(max_length=100)
+    email      = models.EmailField()
+    subject    = models.CharField(max_length=200, blank=True, default='')
+    message    = models.TextField()
+    is_read    = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.name}: {self.subject or 'No Subject'}"
 
 
 class PopupOffer(models.Model):

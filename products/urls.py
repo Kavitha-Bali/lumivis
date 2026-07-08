@@ -43,4 +43,11 @@ urlpatterns = [
 
     # Live search
     path('search/suggest/', views.search_suggestions, name='search_suggest'),
+
+    # Promo code AJAX
+    path('apply-promo/', views.apply_promo, name='apply_promo'),
+
+    # Reviews
+    path('product/<int:product_pk>/review/', views.submit_review, name='submit_review'),
+    path('review/<int:review_pk>/delete/',   views.delete_review,  name='delete_review'),
 ]
