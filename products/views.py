@@ -3,22 +3,45 @@ import uuid
 from decimal import Decimal
 from functools import wraps
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import login, logout, update_session_auth_hash
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.decorators import login_not_required, login_required
+from django.contrib.auth.forms import AuthenticationForm, SetPasswordForm
 from django.contrib.auth.models import User
+from django.contrib.auth.tokens import default_token_generator
 from django.db.models import Q, Avg
-from django.http import JsonResponse
+from django.http import Http404, JsonResponse, StreamingHttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.templatetags.static import static
 from django.urls import reverse
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.csrf import csrf_exempt
 
 from django.utils import timezone
 
-from .forms import CustomRegisterForm
+from messaging.smtp import send_templated_email
+
+from .storage_backends import _blob_client
+
+from .forms import CustomRegisterForm, ForgotPasswordForm
 from .models import CancelRequest, ContactMessage, Order, PopupOffer, Product, ProductImage, UserProfile, Wishlist, promocode, ratings
+
+
+# ── Media proxy ──────────────────────────────────────────────────────────────
+
+@login_not_required
+def serve_media(request, path):
+    """Proxy /media/* — streams from Azure, never exposes the blob URL."""
+    try:
+        download = _blob_client(path).download_blob()
+        props = download.properties
+        content_type = (props.get('content_settings') or {}).get('content_type') or 'application/octet-stream'
+        return StreamingHttpResponse(download.chunks(), content_type=content_type)
+    except Exception:
+        raise Http404
 
 
 # ── Access-control decorators ─────────────────────────────────────────────────
@@ -655,6 +678,69 @@ def logout_view(request):
     logout(request)
     messages.info(request, 'You have been logged out.')
     return redirect('home')
+
+
+def forgot_password_view(request):
+    """
+    GET  /forgot-password/  — email entry form.
+    POST /forgot-password/  — email a reset link via the Samanyastra mailer.
+    """
+    if request.user.is_authenticated:
+        return redirect('home')
+
+    form = ForgotPasswordForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        email = form.cleaned_data['email']
+        user = User.objects.filter(email__iexact=email).first()
+        if user is not None:
+            uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
+            token = default_token_generator.make_token(user)
+            # Built from SITE_BASE_URL (not request.build_absolute_uri) — this
+            # email is opened outside any request, often on another device, so
+            # the logo <img> src must be a publicly reachable URL rather than
+            # whatever Host header happened to hit this view (e.g. localhost).
+            site_base = settings.SITE_BASE_URL.rstrip('/')
+            reset_link = f"{site_base}{reverse('reset_password', args=[uidb64, token])}"
+            logo_url = f"{site_base}{static('logoo.png')}"
+            send_templated_email(
+                template_name='lumivis_forgot_password',
+                subject='Reset your Lumivis password',
+                recipients=[user.email],
+                context={'reset_link': reset_link, 'logo_url': logo_url},
+            )
+        # Same message whether or not the email is registered — avoids leaking
+        # which addresses have accounts.
+        messages.success(
+            request,
+            "If an account exists for that email, we've sent a password reset link."
+        )
+        return redirect('login')
+
+    return render(request, 'products/forgot_password.html', {'form': form})
+
+
+def reset_password_view(request, uidb64, token):
+    """
+    GET  /reset-password/<uidb64>/<token>/  — set-new-password form.
+    POST /reset-password/<uidb64>/<token>/  — apply the new password.
+    """
+    try:
+        uid = urlsafe_base64_decode(uidb64).decode()
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    if user is None or not default_token_generator.check_token(user, token):
+        messages.error(request, 'This password reset link is invalid or has expired.')
+        return redirect('forgot_password')
+
+    form = SetPasswordForm(user, request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, 'Your password has been reset. Please sign in.')
+        return redirect('login')
+
+    return render(request, 'products/reset_password.html', {'form': form})
 
 
 # ── User Panel ────────────────────────────────────────────────────────────────

@@ -46,10 +46,14 @@
         {% endif %}
       </div>
 
+      <p style="text-align:right;margin:-8px 0 4px;">
+        <a href="{% url 'forgot_password' %}" style="font-size:.82rem;color:#818cf8;">Forgot password?</a>
+      </p>
+
       <button type="submit" class="btn btn-dark btn-lg" style="width:100%;">Sign In</button>
     </form>
 
-    {% if 'admin' not in request.GET.next %}
+    {% if 'admin' not in next %}
     <p class="auth-switch">
       Don't have an account? <a href="{% url 'register' %}">Create one</a>
     </p>
