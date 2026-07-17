@@ -1715,22 +1715,67 @@ function previewImage(input, previewId) {
   }
 }
 
+/*
+ * Gallery picker keeps a running list of files on the input itself (input._galleryFiles),
+ * merging each new selection into it rather than replacing it. This means an admin who
+ * doesn't know to Ctrl/Shift-click in the OS file dialog can still build up a multi-image
+ * selection by reopening the picker and choosing one (or a few) images at a time.
+ */
 function previewGallery(input, containerId) {
+  if (!input._galleryFiles) input._galleryFiles = [];
+  Array.from(input.files || []).forEach(file => {
+    const alreadyAdded = input._galleryFiles.some(f =>
+      f.name === file.name && f.size === file.size && f.lastModified === file.lastModified
+    );
+    if (!alreadyAdded) input._galleryFiles.push(file);
+  });
+  syncGalleryInput(input, containerId);
+}
+
+function removeGalleryFile(input, containerId, index) {
+  input._galleryFiles.splice(index, 1);
+  syncGalleryInput(input, containerId);
+}
+
+function syncGalleryInput(input, containerId) {
   const container = document.getElementById(containerId);
+
+  // Rebuild input.files from the accumulated list so the form submits every picked image.
+  const dt = new DataTransfer();
+  input._galleryFiles.forEach(f => dt.items.add(f));
+  input.files = dt.files;
+
   container.innerHTML = '';
-  if (!input.files || !input.files.length) return;
-  Array.from(input.files).forEach(file => {
+  input._galleryFiles.forEach((file, index) => {
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'position:relative;width:70px;height:70px;';
+    container.appendChild(wrap);
+
     const reader = new FileReader();
     reader.onload = e => {
+      wrap.innerHTML = '';
       const img = document.createElement('img');
       img.src = e.target.result;
-      img.style.cssText = 'width:70px;height:70px;object-fit:cover;border-radius:8px;border:1px solid #e2e8f0;';
-      container.appendChild(img);
+      img.style.cssText = 'width:70px;height:70px;object-fit:cover;border-radius:8px;border:1px solid #e2e8f0;display:block;';
+      const removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.textContent = '×';
+      removeBtn.title = 'Remove';
+      removeBtn.style.cssText = 'position:absolute;top:-8px;right:-8px;width:20px;height:20px;border-radius:50%;'
+        + 'background:#ef4444;color:#fff;border:2px solid #fff;font-size:0.7rem;line-height:1;cursor:pointer;padding:0;';
+      removeBtn.onclick = () => removeGalleryFile(input, containerId, index);
+      wrap.appendChild(img);
+      wrap.appendChild(removeBtn);
     };
     reader.readAsDataURL(file);
   });
+
   const label = input.nextElementSibling.querySelector('span');
-  if (label) label.textContent = `${input.files.length} image(s) selected`;
+  if (label) {
+    label.textContent = input._galleryFiles.length
+      ? `${input._galleryFiles.length} image(s) selected — click to add more`
+      : 'Choose multiple images';
+  }
 }
 </script>
 {% endblock %}

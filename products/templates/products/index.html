@@ -249,7 +249,8 @@
   var backdrop = document.getElementById('popupBackdrop');
   if (!backdrop) return;
 
-  /* Always show popup on every page load after 600ms */
+  /* Show the popup every time the homepage loads (including refresh). It's only
+     ever included on the homepage template, so it never appears on other pages. */
   setTimeout(function () {
     backdrop.classList.add('popup-visible');
   }, 600);

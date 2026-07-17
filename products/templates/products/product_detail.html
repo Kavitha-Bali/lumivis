@@ -121,31 +121,41 @@
   <div class="detail-grid">
 
     <!-- Image -->
-    <div class="detail-img-wrap">
-      {% if product.image %}
-        <img id="mainProductImage" src="{{ product.image.url }}" alt="{{ product.name }}" />
-      {% else %}
-        <div class="detail-placeholder">
-          <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
-            <rect x="3" y="3" width="18" height="18" rx="2"/>
-            <circle cx="8.5" cy="8.5" r="1.5"/>
-            <polyline points="21 15 16 10 5 21"/>
-          </svg>
-        </div>
-      {% endif %}
+    <div>
+      <div class="detail-img-wrap" style="position:relative;">
+        {% if product.image %}
+          <img id="mainProductImage" src="{{ product.image.url }}" alt="{{ product.name }}" />
+        {% else %}
+          <div class="detail-placeholder">
+            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <circle cx="8.5" cy="8.5" r="1.5"/>
+              <polyline points="21 15 16 10 5 21"/>
+            </svg>
+          </div>
+        {% endif %}
+        {% if product.gallery_images.all %}
+        <button type="button" class="detail-gallery-nav" id="galleryPrevBtn" aria-label="Previous image"
+                style="position:absolute;top:50%;left:12px;transform:translateY(-50%);width:38px;height:38px;border-radius:50%;background:rgba(15,23,42,.65);border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <button type="button" class="detail-gallery-nav" id="galleryNextBtn" aria-label="Next image"
+                style="position:absolute;top:50%;right:12px;transform:translateY(-50%);width:38px;height:38px;border-radius:50%;background:rgba(15,23,42,.65);border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+        {% endif %}
+      </div>
       {% if product.gallery_images.all %}
       <div class="detail-gallery-thumbs" style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
         {% if product.image %}
         <img src="{{ product.image.url }}" alt="{{ product.name }}"
              class="detail-gallery-thumb active"
-             style="width:64px;height:64px;object-fit:cover;border-radius:8px;cursor:pointer;border:2px solid #6366f1;"
-             onclick="document.getElementById('mainProductImage').src=this.src; document.querySelectorAll('.detail-gallery-thumb').forEach(t=>t.style.borderColor='transparent'); this.style.borderColor='#6366f1';" />
+             style="width:64px;height:64px;object-fit:cover;border-radius:8px;cursor:pointer;border:2px solid #6366f1;flex-shrink:0;" />
         {% endif %}
         {% for img in product.gallery_images.all %}
         <img src="{{ img.image.url }}" alt="{{ product.name }}"
              class="detail-gallery-thumb"
-             style="width:64px;height:64px;object-fit:cover;border-radius:8px;cursor:pointer;border:2px solid transparent;"
-             onclick="document.getElementById('mainProductImage').src=this.src; document.querySelectorAll('.detail-gallery-thumb').forEach(t=>t.style.borderColor='transparent'); this.style.borderColor='#6366f1';" />
+             style="width:64px;height:64px;object-fit:cover;border-radius:8px;cursor:pointer;border:2px solid transparent;flex-shrink:0;" />
         {% endfor %}
       </div>
       {% endif %}
@@ -155,7 +165,7 @@
     <div class="detail-info">
       <p class="card-tag">{{ product.product_type }}</p>
       <h1 class="detail-title">{{ product.name }}</h1>
-      <p class="detail-price">&#36;{{ product.price }}</p>
+      <p class="detail-price">{{ product.price }}</p>
 
       <div class="detail-meta">
         <div class="meta-row"><span class="meta-label">SKU</span><span>{{ product.product_id }}</span></div>
@@ -251,7 +261,7 @@
         <div class="card-body">
           <p class="card-tag">{{ p.product_type }}</p>
           <h3 class="card-title"><a href="{% url 'product_detail' p.pk %}">{{ p.name }}</a></h3>
-          <p class="card-price">&#36;{{ p.price }}</p>
+          <p class="card-price">{{ p.price }}</p>
         </div>
       </article>
       {% endfor %}
@@ -389,5 +399,31 @@ starBtns.forEach(function(btn) {
     });
   });
 });
+
+/* ── Product image gallery — cycle through main + gallery images one by one ── */
+(function () {
+  var mainImg = document.getElementById('mainProductImage');
+  var thumbs  = Array.from(document.querySelectorAll('.detail-gallery-thumb'));
+  if (!mainImg || !thumbs.length) return;
+
+  var current = 0;
+
+  function showImage(index) {
+    current = (index + thumbs.length) % thumbs.length;
+    mainImg.src = thumbs[current].src;
+    thumbs.forEach(function (t, i) {
+      t.style.borderColor = i === current ? '#6366f1' : 'transparent';
+    });
+  }
+
+  thumbs.forEach(function (thumb, i) {
+    thumb.addEventListener('click', function () { showImage(i); });
+  });
+
+  var prevBtn = document.getElementById('galleryPrevBtn');
+  var nextBtn = document.getElementById('galleryNextBtn');
+  if (prevBtn) prevBtn.addEventListener('click', function () { showImage(current - 1); });
+  if (nextBtn) nextBtn.addEventListener('click', function () { showImage(current + 1); });
+}());
 </script>
 {% endblock %}

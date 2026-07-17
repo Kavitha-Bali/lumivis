@@ -1143,10 +1143,9 @@ function updateUrgentCharge() {
   var diff     = Math.round((selected - today) / 86400000);
   var charge = 0, label = '';
   if (diff <= 1)      { charge = 199; label = 'Next-day delivery — ₹199 extra'; }
-  else if (diff <= 2) { charge = 149; label = '2-day delivery — ₹149 extra'; }
-  else if (diff <= 3) { charge =  99; label = '3-day delivery — ₹99 extra'; }
-  else if (diff <= 7) { charge =  49; label = diff + '-day delivery — ₹49 extra'; }
-  else                { charge =   0; label = 'Standard window — no extra charge'; }
+  else if (diff === 2) { charge = 149; label = '2-day delivery — ₹149 extra'; }
+  else if (diff <= 7) { charge =  99; label = diff + '-day delivery — ₹99 extra'; }
+  else                { charge =   0; label = 'Standard window (beyond 7 days) — free'; }
   document.getElementById('urgentChargeVal').textContent = charge > 0 ? '₹' + charge : 'Free';
   document.getElementById('urgentChargeHidden').value    = charge;
   document.getElementById('udInfoText').textContent = label;

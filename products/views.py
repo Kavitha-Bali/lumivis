@@ -1,5 +1,6 @@
 import re
 import uuid
+from datetime import datetime
 from decimal import Decimal
 from functools import wraps
 
@@ -38,6 +39,31 @@ def staff_required(view_func):
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
+
+def _urgent_delivery_charge(delivery_date_str):
+    """
+    Tiered urgent-delivery surcharge based on how many days out the requested
+    delivery date is from today:
+      next day     -> ₹199
+      2nd day      -> ₹149
+      3rd-7th day  -> ₹99
+      beyond 7 days -> free
+    Computed server-side (not trusting the client-submitted charge) so the
+    amount can't be tampered with before checkout.
+    """
+    try:
+        selected = datetime.strptime(delivery_date_str, '%Y-%m-%d').date()
+    except ValueError:
+        return 0
+    diff = (selected - timezone.now().date()).days
+    if diff <= 1:
+        return 199
+    if diff == 2:
+        return 149
+    if diff <= 7:
+        return 99
+    return 0
+
 
 def _cart_items(request):
     """Return (items list, total) from the session cart."""
@@ -342,15 +368,11 @@ def checkout(request):
                 'form_data': request.POST,
             })
 
-        # Urgent delivery
+        # Urgent delivery — charge is computed server-side from the chosen date,
+        # not trusted from the client, so it can't be tampered with.
         urgent_delivery = request.POST.get('urgent_delivery', 'no') == 'yes'
         delivery_date   = request.POST.get('delivery_date', '').strip()
-        try:
-            urgent_charge = int(request.POST.get('urgent_charge', '0'))
-        except ValueError:
-            urgent_charge = 0
-        if urgent_charge < 0:
-            urgent_charge = 0
+        urgent_charge   = _urgent_delivery_charge(delivery_date) if urgent_delivery and delivery_date else 0
 
         # Delivery zone & charge
         delivery_zone = request.POST.get('delivery_zone', 'inside').strip()
