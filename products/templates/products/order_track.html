@@ -166,6 +166,12 @@
     </div>
     {% endif %}
 
+    <!-- Refund note -->
+    <div class="ot-refund-note">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      Your amount will be refunded within 7 days.
+    </div>
+
     <!-- Support note -->
     <div class="ot-support">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
@@ -347,6 +353,15 @@
   0%, 100% { box-shadow: 0 0 0 0 rgba(99,102,241,.4); }
   50%       { box-shadow: 0 0 0 8px rgba(99,102,241,0); }
 }
+
+/* Refund note */
+.ot-refund-note {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 16px 24px 0;
+  font-size: .8rem; color: #475569; font-weight: 700;
+  text-align: center;
+}
+.ot-refund-note svg { color: #10b981; flex-shrink: 0; }
 
 /* Support */
 .ot-support {

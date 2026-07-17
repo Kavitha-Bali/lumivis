@@ -209,15 +209,7 @@ body { background: #f1f5f9; }
   </div>
 
   <!-- ══ Quick Stats ══ -->
-  <div class="up-stats" style="grid-template-columns:repeat(4,1fr);">
-    <div class="up-stat">
-      <div class="up-stat-val">{{ orders|length }}</div>
-      <div class="up-stat-label">Orders</div>
-    </div>
-    <div class="up-stat">
-      <div class="up-stat-val">₹{{ total_spent }}</div>
-      <div class="up-stat-label">Total Spent</div>
-    </div>
+  <div class="up-stats" style="grid-template-columns:repeat(2,1fr);">
     <div class="up-stat">
       <div class="up-stat-val">{{ wishlist|length }}</div>
       <div class="up-stat-label">Wishlist</div>

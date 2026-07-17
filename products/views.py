@@ -381,11 +381,33 @@ def checkout(request):
         return redirect('cart')
 
     if request.method == 'POST':
-        phone = request.POST.get('phone', '').strip()
+        phone      = request.POST.get('phone', '').strip()
+        full_name  = request.POST.get('full_name', '').strip()
+        email      = request.POST.get('email', '').strip()
+        address    = request.POST.get('address', '').strip()
+        city       = request.POST.get('city', '').strip()
+        pincode    = request.POST.get('pincode', '').strip()
 
-        # Phone must be +91 followed by exactly 10 digits
+        # Shipping details must be fully filled before an order can be placed —
+        # mirrors the client-side check that gates the "Continue to Payment" step,
+        # but enforced here too since the client-side check can be bypassed.
+        shipping_errors = []
+        if len(full_name) < 2:
+            shipping_errors.append('Please enter your full name.')
+        if not re.match(r'^[^\s@]+@[^\s@]+\.[^\s@]+$', email):
+            shipping_errors.append('Please enter a valid email address.')
+        if len(address) < 4:
+            shipping_errors.append('Please enter your full delivery address.')
+        if len(city) < 2:
+            shipping_errors.append('Please enter your city.')
+        if not re.match(r'^[1-9][0-9]{5}$', pincode):
+            shipping_errors.append('Please enter a valid 6-digit PIN code.')
         if not re.match(r'^\+91[6-9][0-9]{9}$', phone):
-            messages.error(request, 'Phone number must start with +91 followed by 10 digits (e.g. +919876543210).')
+            shipping_errors.append('Phone number must start with +91 followed by 10 digits (e.g. +919876543210).')
+
+        if shipping_errors:
+            for err in shipping_errors:
+                messages.error(request, err)
             return render(request, 'products/checkout.html', {
                 'items': items, 'total': total,
                 'form_data': request.POST,
@@ -432,7 +454,7 @@ def checkout(request):
             for i in items
         )
 
-        customer_name = request.POST.get('full_name', '').strip()
+        customer_name = full_name
 
         # Payment screenshot
         screenshot_file = request.FILES.get('payment_screenshot')
@@ -514,8 +536,15 @@ def order_success(request):
     """
     Order confirmation page — reads order details from session and clears them.
     GET /order-success/
+    Session data is consumed on first view, so a refresh (or visiting this URL
+    without just completing checkout) has nothing left to show — redirect to
+    order tracking instead of rendering a page with a dead "Cancel Order" link.
     """
-    order_id              = request.session.pop('order_id',              'LVP-UNKNOWN')
+    if not request.session.get('order_id'):
+        messages.info(request, 'No recent order to show. Enter your Order ID below to track it.')
+        return redirect('order_track')
+
+    order_id              = request.session.pop('order_id')
     order_total           = request.session.pop('order_total',           '0')
     order_customer        = request.session.pop('order_customer',        '')
     order_phone           = request.session.pop('order_phone',           '')
@@ -602,7 +631,10 @@ def order_track(request):
 # ── Order Cancellation ───────────────────────────────────────────────────────
 
 def cancel_order(request, order_id):
-    order = get_object_or_404(Order, order_id=order_id)
+    order = Order.objects.filter(order_id=order_id).first()
+    if not order:
+        messages.error(request, f'No order found with ID "{order_id}". Please check the ID and try again.')
+        return redirect('order_track')
 
     if order.status in ('shipped', 'delivered', 'cancelled'):
         messages.error(request, 'This order cannot be cancelled at this stage.')
@@ -1013,9 +1045,8 @@ def user_panel(request):
             messages.success(request, 'Password changed successfully.')
         return redirect(f"{request.path}?tab=settings")
 
-    wishlist    = Wishlist.objects.filter(user=request.user).select_related('product')
-    orders      = Order.objects.filter(user=request.user).select_related('cancel_request').order_by('-created_at')
-    total_spent = sum(o.total for o in orders)
+    wishlist = Wishlist.objects.filter(user=request.user).select_related('product')
+    orders   = Order.objects.filter(user=request.user).select_related('cancel_request').order_by('-created_at')
 
     # Reviews data
     user_reviews = ratings.objects.filter(user=request.user).select_related('product').order_by('-created_at')
@@ -1035,7 +1066,6 @@ def user_panel(request):
         'tab':                  tab,
         'orders':               orders,
         'wishlist':             wishlist,
-        'total_spent':          total_spent,
         'status_choices':       [],
         'user_reviews':         user_reviews,
         'can_review_products':  can_review_products,
