@@ -249,10 +249,14 @@
   var backdrop = document.getElementById('popupBackdrop');
   if (!backdrop) return;
 
-  /* Show the popup every time the homepage loads (including refresh). It's only
-     ever included on the homepage template, so it never appears on other pages. */
+  /* Show the popup once per visit — not again on refresh or repeat homepage views
+     within the same browser session. sessionStorage clears when the tab/browser
+     is closed, so reopening the site counts as a fresh visit and shows it again. */
+  if (sessionStorage.getItem('lumivisPopupShown')) return;
+
   setTimeout(function () {
     backdrop.classList.add('popup-visible');
+    sessionStorage.setItem('lumivisPopupShown', '1');
   }, 600);
 
   function closePopup() {
