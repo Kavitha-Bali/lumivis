@@ -5,9 +5,9 @@ django-environ==0.14.0
 djangorestframework==3.17.1
 gunicorn==23.0.0
 pillow==12.2.0
-psycopg2==2.9.12
+psycopg2-binary==2.9.12
 requests==2.34.2
+./vendor/samanyastra_messaging-0.1.0-py3-none-any.whl
 sqlparse==0.5.5
 tzdata==2026.2
 whitenoise==6.11.0
-./vendor/samanyastra_messaging-0.1.0-py3-none-any.whl
