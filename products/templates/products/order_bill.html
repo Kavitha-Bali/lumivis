@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Bill — {{ order.order_id }} — Lumivis Pvt. Ltd.</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    color: #1e293b;
+    max-width: 720px;
+    margin: 32px auto;
+    padding: 0 20px;
+  }
+  .bill-actions { display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 20px; }
+  .bill-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: #4f46e5; color: #fff; border: none; border-radius: 8px;
+    padding: 9px 18px; font-size: .85rem; font-weight: 700; cursor: pointer; text-decoration: none;
+  }
+  .bill-btn.secondary { background: #f1f5f9; color: #334155; }
+
+  .bill-header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    border-bottom: 2px solid #1e293b; padding-bottom: 18px; margin-bottom: 24px;
+  }
+  .bill-brand { font-size: 1.4rem; font-weight: 800; }
+  .bill-brand small { display: block; font-size: .75rem; font-weight: 500; color: #64748b; margin-top: 2px; }
+  .bill-title { text-align: right; }
+  .bill-title h1 { margin: 0; font-size: 1.1rem; letter-spacing: .06em; text-transform: uppercase; color: #4f46e5; }
+  .bill-title div { font-size: .8rem; color: #64748b; margin-top: 4px; }
+
+  .bill-meta { display: flex; justify-content: space-between; margin-bottom: 24px; gap: 24px; }
+  .bill-meta-block { font-size: .85rem; }
+  .bill-meta-block h3 { margin: 0 0 6px; font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; color: #94a3b8; }
+  .bill-meta-block div { line-height: 1.5; }
+
+  table.bill-items { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+  table.bill-items th {
+    text-align: left; font-size: .72rem; text-transform: uppercase; letter-spacing: .05em;
+    color: #64748b; border-bottom: 1px solid #e2e8f0; padding: 8px 6px;
+  }
+  table.bill-items td { padding: 10px 6px; border-bottom: 1px solid #f1f5f9; font-size: .88rem; }
+  table.bill-items th:last-child, table.bill-items td:last-child { text-align: right; }
+  table.bill-items th:nth-child(2), table.bill-items td:nth-child(2) { text-align: center; width: 80px; }
+
+  .bill-summary { margin-left: auto; width: 260px; font-size: .88rem; }
+  .bill-summary-row { display: flex; justify-content: space-between; padding: 5px 0; }
+  .bill-summary-row.total {
+    border-top: 2px solid #1e293b; margin-top: 6px; padding-top: 10px;
+    font-weight: 800; font-size: 1.05rem;
+  }
+  .bill-summary-row.discount { color: #16a34a; }
+
+  .bill-payment {
+    margin-top: 28px; padding: 14px 16px; background: #f8fafc; border-radius: 10px;
+    font-size: .82rem; color: #475569;
+  }
+  .bill-payment div { margin-bottom: 4px; }
+  .bill-status {
+    display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: .72rem; font-weight: 700;
+  }
+  .bill-status.delivered, .bill-status.verified { background: #dcfce7; color: #166534; }
+  .bill-status.pending { background: #fef3c7; color: #92400e; }
+  .bill-status.cancelled, .bill-status.rejected { background: #fee2e2; color: #991b1b; }
+
+  .bill-footer { text-align: center; margin-top: 36px; font-size: .78rem; color: #94a3b8; }
+
+  @media print {
+    .bill-actions { display: none; }
+    body { margin: 0; max-width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="bill-actions">
+    <a href="{% url 'admin_panel' %}?s=orders" class="bill-btn secondary">Back to Orders</a>
+    <button type="button" class="bill-btn" onclick="window.print()">Print Bill</button>
+  </div>
+
+  <div class="bill-header">
+    <div class="bill-brand">
+      Lumivis Pvt. Ltd.
+      <small>Visakhapatnam, Andhra Pradesh</small>
+    </div>
+    <div class="bill-title">
+      <h1>Order Bill</h1>
+      <div>{{ order.order_id }}</div>
+      <div>{{ order.created_at|date:"d M Y, h:i A" }}</div>
+    </div>
+  </div>
+
+  <div class="bill-meta">
+    <div class="bill-meta-block">
+      <h3>Billed To</h3>
+      <div><strong>{{ order.customer_name|default:"Guest" }}</strong></div>
+      <div>{{ order.phone|default:"—" }}</div>
+      {% if order.user %}<div>@{{ order.user.username }}</div>{% endif %}
+    </div>
+    <div class="bill-meta-block" style="text-align:right;">
+      <h3>Order Status</h3>
+      <div><span class="bill-status {{ order.status }}">{{ order.get_status_display }}</span></div>
+      <div style="margin-top:4px;"><span class="bill-status {{ order.payment_status }}">{{ order.get_payment_status_display }}</span></div>
+    </div>
+  </div>
+
+  <table class="bill-items">
+    <thead>
+      <tr><th>Product</th><th>Qty</th><th>Subtotal</th></tr>
+    </thead>
+    <tbody>
+      {% for item in line_items %}
+      <tr>
+        <td>{{ item.name }}</td>
+        <td>×{{ item.quantity }}</td>
+        <td>₹{{ item.subtotal }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="3" style="color:#94a3b8;white-space:pre-line;">{{ order.items_text }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="bill-summary">
+    {% if order.urgent and order.urgent_charge > 0 %}
+    <div class="bill-summary-row"><span>Urgent Delivery Charge</span><span>₹{{ order.urgent_charge }}</span></div>
+    {% endif %}
+    <div class="bill-summary-row"><span>Delivery Charge ({% if order.delivery_zone == 'inside' %}Inside Vzm{% else %}Outside Vzm{% endif %})</span><span>₹{{ order.delivery_charge }}</span></div>
+    {% if order.promo_discount > 0 %}
+    <div class="bill-summary-row discount"><span>Promo Discount {% if order.promo_code %}({{ order.promo_code }}){% endif %}</span><span>−₹{{ order.promo_discount }}</span></div>
+    {% endif %}
+    <div class="bill-summary-row total"><span>Total Paid</span><span>₹{{ order.total }}</span></div>
+  </div>
+
+  <div class="bill-payment">
+    {% if order.upi_id %}<div>UPI ID: <strong>{{ order.upi_id }}</strong></div>{% endif %}
+    {% if order.transaction_id %}<div>Transaction / UTR ID: <strong>{{ order.transaction_id }}</strong></div>{% endif %}
+    {% if order.urgent and order.delivery_date %}<div>Requested Delivery Date: <strong>{{ order.delivery_date }}</strong></div>{% endif %}
+  </div>
+
+  <div class="bill-footer">Thank you for shopping with Lumivis Pvt. Ltd.</div>
+
+</body>
+</html>

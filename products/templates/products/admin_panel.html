@@ -433,7 +433,8 @@ body { background: #f1f5f9; }
       <a href="?s=cancellations" class="ap-nav-item {% if section == 'cancellations' %}active{% endif %}">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         Cancellations
-        {% if pending_cancels %}<span class="ap-nav-badge" style="background:#ef4444;">{{ pending_cancels }}</span>{% endif %}
+        {% if pending_cancels %}<span class="ap-nav-badge" style="background:#ef4444;" title="Awaiting approve/reject">{{ pending_cancels }}</span>{% endif %}
+        {% if refunds_pending_count %}<span class="ap-nav-badge" style="background:#f59e0b;margin-left:4px;" title="Approved — refund still due">{{ refunds_pending_count }}</span>{% endif %}
       </a>
     </div>
 
@@ -612,6 +613,48 @@ body { background: #f1f5f9; }
             </td>
           </tr>
           {% endif %}
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+
+    <!-- Refunds Pending widget -->
+    {% if refunds_pending_count %}
+    <div class="ap-section-hd" style="margin-top:28px;">
+      <span class="ap-section-title" style="color:#f59e0b;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-1px;margin-right:4px;"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        {{ refunds_pending_count }} Refund{{ refunds_pending_count|pluralize }} Pending — Cancellation Approved, Money Not Yet Sent
+      </span>
+      <a href="?s=cancellations" class="ap-section-link">View all →</a>
+    </div>
+    <div class="ap-table-wrap" style="margin-bottom:28px;">
+      <table class="ap-table">
+        <thead>
+          <tr><th>Order ID</th><th>Customer</th><th>Total</th><th>Approved</th><th>Action</th></tr>
+        </thead>
+        <tbody>
+          {% for cr in refunds_pending %}
+          <tr style="background:rgba(245,158,11,.04);">
+            <td><strong class="ap-mono" style="color:#f59e0b;">{{ cr.order.order_id }}</strong></td>
+            <td style="font-weight:600;color:#e2e8f0;">{{ cr.order.customer_name|default:"Guest" }}</td>
+            <td><strong style="color:#34d399;">₹{{ cr.order.total }}</strong></td>
+            <td style="color:#64748b;font-size:.78rem;white-space:nowrap;">{{ cr.reviewed_at|date:"d M, H:i" }}</td>
+            <td>
+              <form method="POST" action="{% url 'mark_refund_successful' cr.pk %}" style="display:inline;"
+                onsubmit="window.open('https://wa.me/{{ cr.order.phone|slice:'1:' }}?text={{ 'Hi '|add:cr.order.customer_name|add:'! Your refund for order '|add:cr.order.order_id|add:' has been processed successfully. Thanks for choosing Lumivis! - lumivis.samanyastra.com'|urlencode }}', '_blank'); return confirm('Mark refund as successful for {{ cr.order.order_id }}? This will open WhatsApp with a message to the customer.')">
+                {% csrf_token %}
+                <button type="submit"
+                        style="display:inline-flex;align-items:center;gap:6px;
+                               background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.4);
+                               color:#10b981;border-radius:9px;padding:7px 16px;
+                               font-size:.8rem;font-weight:700;cursor:pointer;">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  Refund Successful
+                </button>
+              </form>
+            </td>
+          </tr>
           {% endfor %}
         </tbody>
       </table>
@@ -842,6 +885,15 @@ body { background: #f1f5f9; }
                           padding:4px 8px;font-size:.7rem;font-weight:700;text-decoration:none;">
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
                   WhatsApp
+                </a>
+                <!-- Print bill -->
+                <a href="{% url 'print_order_bill' o.order_id %}"
+                   target="_blank" rel="noopener"
+                   style="display:inline-flex;align-items:center;gap:4px;background:rgba(99,102,241,.1);
+                          border:1px solid rgba(99,102,241,.3);color:#818cf8;border-radius:7px;
+                          padding:4px 8px;font-size:.7rem;font-weight:700;text-decoration:none;">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                  Print Bill
                 </a>
               </div>
             </td>
@@ -1498,6 +1550,11 @@ body { background: #f1f5f9; }
                 <span class="sb" style="background:rgba(251,191,36,.12);color:#fbbf24;border:1px solid rgba(251,191,36,.3);">Pending</span>
               {% elif cr.status == 'approved' %}
                 <span class="sb" style="background:rgba(239,68,68,.1);color:#f87171;border:1px solid rgba(239,68,68,.3);">Approved</span>
+                {% if cr.refunded %}
+                <div style="margin-top:5px;">
+                  <span class="sb" style="background:rgba(16,185,129,.12);color:#10b981;border:1px solid rgba(16,185,129,.35);">✓ Refunded</span>
+                </div>
+                {% endif %}
               {% else %}
                 <span class="sb" style="background:rgba(100,116,139,.1);color:#94a3b8;border:1px solid #1e2d3d;">Rejected</span>
               {% endif %}
@@ -1540,6 +1597,26 @@ body { background: #f1f5f9; }
                             color:#94a3b8;font-size:.74rem;line-height:1.5;">
                   <span style="color:#64748b;font-weight:700;">Response:</span> {{ cr.admin_response }}
                 </div>
+                {% endif %}
+                {% if cr.status == 'approved' %}
+                  {% if cr.refunded %}
+                  <div style="margin-top:6px;color:#10b981;font-size:.74rem;font-weight:600;">
+                    Refunded {{ cr.refunded_at|date:"d M Y, H:i" }}
+                  </div>
+                  {% else %}
+                  <form method="POST" action="{% url 'mark_refund_successful' cr.pk %}" style="margin-top:8px;min-width:180px;"
+                    onsubmit="window.open('https://wa.me/{{ cr.order.phone|slice:'1:' }}?text={{ 'Hi '|add:cr.order.customer_name|add:'! Your refund for order '|add:cr.order.order_id|add:' has been processed successfully. Thanks for choosing Lumivis! - lumivis.samanyastra.com'|urlencode }}', '_blank'); return confirm('Mark refund as successful for {{ cr.order.order_id }}? This will open WhatsApp with a message to the customer.')">
+                    {% csrf_token %}
+                    <button type="submit"
+                      style="width:100%;display:inline-flex;align-items:center;justify-content:center;gap:4px;
+                             background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.4);
+                             color:#10b981;padding:6px 8px;border-radius:7px;font-size:.74rem;
+                             font-weight:700;cursor:pointer;">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                      Refund Successful
+                    </button>
+                  </form>
+                  {% endif %}
                 {% endif %}
               </div>
               {% endif %}

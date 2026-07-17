@@ -1,0 +1,42 @@
+{% extends 'products/base.html' %}
+{% load static %}
+{% block title %}Refund Policy — Lumivis Pvt. Ltd.{% endblock %}
+
+{% block content %}
+<div class="main" style="max-width:760px;">
+
+  <div style="text-align:center;padding:40px 0 40px;">
+    <h1 style="font-size:2rem;font-weight:900;color:#111827;margin-bottom:12px;">Refund Policy</h1>
+    <p style="font-size:.95rem;color:#6b7280;">Cancellations, refunds, and how the process works.</p>
+  </div>
+
+  <div style="background:#fff;border:1.5px solid #e5e7eb;border-radius:20px;padding:36px 32px;line-height:1.8;color:#374151;font-size:.94rem;">
+
+    <h3 style="margin-top:0;color:#111827;font-size:1.05rem;">When Can I Cancel an Order?</h3>
+    <p>You can request cancellation while your order is still <strong>Pending</strong> or <strong>Confirmed</strong>. Once an order has been <strong>Shipped</strong> or <strong>Delivered</strong>, it can no longer be cancelled through the website.</p>
+
+    <h3 style="margin-top:28px;color:#111827;font-size:1.05rem;">How to Request a Cancellation</h3>
+    <ol style="padding-left:20px;">
+      <li>Go to <a href="{% url 'order_track' %}" style="color:#4f46e5;font-weight:600;">Order Tracking</a> and look up your order using your Order ID.</li>
+      <li>If your order is eligible, you'll see a "Cancel Order" option — submit it along with your reason.</li>
+      <li>Our team reviews the request and approves or rejects it.</li>
+    </ol>
+
+    <h3 style="margin-top:28px;color:#111827;font-size:1.05rem;">Refund Timeline</h3>
+    <p>Once your cancellation is approved, your payment is refunded to the original UPI ID you paid from. <strong>Refunds are processed within 7 days</strong> of approval.</p>
+
+    <h3 style="margin-top:28px;color:#111827;font-size:1.05rem;">How You'll Know</h3>
+    <p>You'll receive a WhatsApp message from our team once your refund has been sent, along with your Order ID for reference. You can also check your cancellation status anytime on the Order Tracking page.</p>
+
+    <h3 style="margin-top:28px;color:#111827;font-size:1.05rem;">Non-Refundable Situations</h3>
+    <ul style="padding-left:20px;">
+      <li>Orders already shipped or delivered cannot be cancelled for a refund through this process.</li>
+      <li>Urgent delivery surcharges are non-refundable once your order has shipped.</li>
+    </ul>
+
+    <h3 style="margin-top:28px;color:#111827;font-size:1.05rem;">Need Help?</h3>
+    <p>Contact us via <a href="{% url 'contact' %}" style="color:#4f46e5;font-weight:600;">our Contact page</a> or WhatsApp at <a href="https://wa.me/919052337409" target="_blank" rel="noopener" style="color:#4f46e5;font-weight:600;">+91 90523 37409</a> with your Order ID.</p>
+
+  </div>
+</div>
+{% endblock %}

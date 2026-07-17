@@ -437,7 +437,7 @@
       <ul class="footer-col-links">
         <li><a href="{% url 'about' %}">About Us</a></li>
         <li><a href="{% url 'contact' %}">Contact Us</a></li>
-        <li><a href="#">Privacy Policy</a></li>
+        <li><a href="{% url 'privacy_policy' %}">Privacy Policy</a></li>
         <li><a href="#">Terms of Service</a></li>
         <li><a href="#">Careers</a></li>
       </ul>
@@ -448,9 +448,9 @@
       <h4 class="footer-col-title">Support</h4>
       <ul class="footer-col-links">
         <li><a href="{% url 'contact' %}">Help Center</a></li>
-        <li><a href="#">Returns &amp; Refunds</a></li>
-        <li><a href="#">Shipping Info</a></li>
-        <li><a href="#">Order Tracking</a></li>
+        <li><a href="{% url 'refund_policy' %}">Returns &amp; Refunds</a></li>
+        <li><a href="{% url 'shipping_policy' %}">Shipping Info</a></li>
+        <li><a href="{% url 'order_track' %}">Order Tracking</a></li>
         <li><a href="#">Size Guide</a></li>
       </ul>
     </div>
@@ -459,13 +459,15 @@
 
   <div class="footer-bottom">
     <div class="footer-bottom-inner">
-      <p class="footer-copy">&copy; 2026 Lumivis Pvt. Ltd. All rights reserved. Made with care for our customers.</p>
+      <p class="footer-copy">&copy; 2026 Lumivis Pvt.Ltd product of Samanyastra.com</p>
       <div class="footer-payment">
+        <p class="footer-copy">&copy; Lumivis Developed By Samanyastra.Pvt.Ltd</p>
+      <!-- <div class="footer-payment">
         <span class="pay-badge">VISA</span>
         <span class="pay-badge">Mastercard</span>
         <span class="pay-badge">PayPal</span>
         <span class="pay-badge">Apple Pay</span>
-      </div>
+      </div> -->
     </div>
   </div>
 </footer>

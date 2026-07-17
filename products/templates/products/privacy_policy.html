@@ -1,0 +1,47 @@
+{% extends 'products/base.html' %}
+{% load static %}
+{% block title %}Privacy Policy — Lumivis Pvt. Ltd.{% endblock %}
+
+{% block content %}
+<div class="main" style="max-width:760px;">
+
+  <div style="text-align:center;padding:40px 0 40px;">
+    <h1 style="font-size:2rem;font-weight:900;color:#111827;margin-bottom:12px;">Privacy Policy</h1>
+    <p style="font-size:.95rem;color:#6b7280;">Last updated: 2026</p>
+  </div>
+
+  <div style="background:#fff;border:1.5px solid #e5e7eb;border-radius:20px;padding:36px 32px;line-height:1.8;color:#374151;font-size:.94rem;">
+
+    <p>Lumivis Pvt. Ltd. ("we", "us", "our") respects your privacy. This policy explains what information we collect when you shop with us, how we use it, and how we protect it.</p>
+
+    <h3 style="margin-top:28px;color:#111827;font-size:1.05rem;">Information We Collect</h3>
+    <ul style="padding-left:20px;">
+      <li>Account details: name, username, email address, and phone number when you register.</li>
+      <li>Order details: shipping address, city, PIN code, and phone number when you check out.</li>
+      <li>Payment details: your UPI ID and transaction/UTR reference number, used only to verify payment — we never see or store your UPI PIN or bank credentials.</li>
+      <li>Usage data: products you view, wishlist, or purchase, used to improve your shopping experience.</li>
+    </ul>
+
+    <h3 style="margin-top:28px;color:#111827;font-size:1.05rem;">How We Use Your Information</h3>
+    <ul style="padding-left:20px;">
+      <li>To process and deliver your orders.</li>
+      <li>To verify payments and send order/refund updates via WhatsApp, SMS, or email.</li>
+      <li>To respond to support requests submitted through our Contact page.</li>
+      <li>To improve our products and website experience.</li>
+    </ul>
+
+    <h3 style="margin-top:28px;color:#111827;font-size:1.05rem;">How We Protect Your Information</h3>
+    <p>Your account is protected by a password only you know. Payment verification is manual and reviewed by our team — we do not store card numbers or bank login details anywhere on our systems.</p>
+
+    <h3 style="margin-top:28px;color:#111827;font-size:1.05rem;">Sharing of Information</h3>
+    <p>We do not sell your personal information. We only share order details (name, phone, address) with our delivery partners to the extent necessary to fulfil your order.</p>
+
+    <h3 style="margin-top:28px;color:#111827;font-size:1.05rem;">Your Choices</h3>
+    <p>You can update your name and email anytime from your account settings, and request account or data deletion by contacting us.</p>
+
+    <h3 style="margin-top:28px;color:#111827;font-size:1.05rem;">Contact Us</h3>
+    <p>Questions about this policy? Reach out via our <a href="{% url 'contact' %}" style="color:#4f46e5;font-weight:600;">Contact page</a> or WhatsApp us at <a href="https://wa.me/919052337409" target="_blank" rel="noopener" style="color:#4f46e5;font-weight:600;">+91 90523 37409</a>.</p>
+
+  </div>
+</div>
+{% endblock %}

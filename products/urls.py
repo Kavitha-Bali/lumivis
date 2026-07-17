@@ -5,6 +5,9 @@ urlpatterns = [
     path('', views.home, name='home'),
     path('products/', views.products_page, name='products'),
     path('about/', views.about, name='about'),
+    path('privacy-policy/', views.privacy_policy, name='privacy_policy'),
+    path('refund-policy/', views.refund_policy, name='refund_policy'),
+    path('shipping-policy/', views.shipping_policy, name='shipping_policy'),
     path('contact/', views.contact, name='contact'),
     path('product/<int:pk>/', views.product_detail, name='product_detail'),
     path('cart/', views.cart_view, name='cart'),
@@ -38,10 +41,14 @@ urlpatterns = [
 
     # Order cancellation
     path('order/cancel/<str:order_id>/', views.cancel_order, name='cancel_order'),
+    path('admin-panel/cancel/<int:pk>/refund/', views.mark_refund_successful, name='mark_refund_successful'),
     path('admin-panel/cancel/<int:pk>/<str:action>/', views.admin_cancel_review, name='admin_cancel_review'),
 
     # Payment approval
     path('admin-panel/payment/<str:order_id>/<str:action>/', views.approve_payment, name='approve_payment'),
+
+    # Printable order bill/invoice (admin only)
+    path('admin-panel/order/<str:order_id>/print/', views.print_order_bill, name='print_order_bill'),
 
     # Live search
     path('search/suggest/', views.search_suggestions, name='search_suggest'),

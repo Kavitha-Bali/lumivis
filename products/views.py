@@ -109,6 +109,15 @@ def _cart_items(request):
 def about(request):
     return render(request, 'products/about.html')
 
+def privacy_policy(request):
+    return render(request, 'products/privacy_policy.html')
+
+def refund_policy(request):
+    return render(request, 'products/refund_policy.html')
+
+def shipping_policy(request):
+    return render(request, 'products/shipping_policy.html')
+
 def contact(request):
     if request.method == 'POST':
         name    = request.POST.get('name', '').strip()
@@ -595,6 +604,19 @@ def approve_payment(request, order_id, action):
     return redirect(request.META.get('HTTP_REFERER', 'admin_panel'))
 
 
+@staff_required
+def print_order_bill(request, order_id):
+    """Printable bill/invoice for an order — every purchased product, with totals."""
+    order = get_object_or_404(Order, order_id=order_id)
+    line_items = []
+    for name, qty, subtotal in re.findall(r'•\s*(.+?)\s*×(\d+)\s*—\s*₹([\d,.]+)', order.items_text):
+        line_items.append({'name': name.strip(), 'quantity': qty, 'subtotal': subtotal})
+    return render(request, 'products/order_bill.html', {
+        'order': order,
+        'line_items': line_items,
+    })
+
+
 # ── Dismiss Order Notification ───────────────────────────────────────────────
 
 @login_required(login_url='/login/')
@@ -677,6 +699,29 @@ def admin_cancel_review(request, pk, action):
         cancel_req.admin_response = admin_response
         cancel_req.save()
         messages.info(request, f'Cancellation request for {cancel_req.order.order_id} rejected.')
+    return redirect('/admin-panel/?s=cancellations')
+
+
+@staff_required
+def mark_refund_successful(request, pk):
+    """
+    Admin confirms a refund has been sent for an approved cancellation.
+    Records the refund on the CancelRequest so its status is visible in the
+    admin panel, and notifies the customer via a pre-filled WhatsApp message
+    (this codebase has no WhatsApp Business API integration — every other
+    "WhatsApp" action here is the same one-click wa.me link pattern).
+    """
+    cancel_req = get_object_or_404(CancelRequest, pk=pk)
+    if request.method != 'POST':
+        return redirect('/admin-panel/?s=cancellations')
+    if cancel_req.status != 'approved':
+        messages.error(request, 'Only approved cancellations can be marked as refunded.')
+        return redirect('/admin-panel/?s=cancellations')
+
+    cancel_req.refunded    = True
+    cancel_req.refunded_at = timezone.now()
+    cancel_req.save(update_fields=['refunded', 'refunded_at'])
+    messages.success(request, f'Refund marked as successful for {cancel_req.order.order_id}.')
     return redirect('/admin-panel/?s=cancellations')
 
 
@@ -963,6 +1008,7 @@ def admin_panel(request):
             edit_product = get_object_or_404(Product, pk=edit_pk)
 
     cancel_requests = CancelRequest.objects.select_related('order').order_by('-requested_at')
+    refunds_pending = cancel_requests.filter(status='approved', refunded=False)
 
     orders_qs = Order.objects.order_by('-created_at')
     if status_filter:
@@ -982,6 +1028,8 @@ def admin_panel(request):
         'edit_product':     edit_product,
         'cancel_requests':  cancel_requests,
         'pending_cancels':  cancel_requests.filter(status='pending').count(),
+        'refunds_pending':  refunds_pending,
+        'refunds_pending_count': refunds_pending.count(),
         'all_ratings':       ratings.objects.select_related('user', 'product').order_by('-created_at'),
         'ratings_count':     ratings.objects.count(),
         'contact_messages':  ContactMessage.objects.order_by('-created_at'),

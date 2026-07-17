@@ -113,6 +113,8 @@ class CancelRequest(models.Model):
     admin_response = models.TextField(blank=True, default='')
     requested_at   = models.DateTimeField(auto_now_add=True)
     reviewed_at    = models.DateTimeField(null=True, blank=True)
+    refunded       = models.BooleanField(default=False)
+    refunded_at    = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return f"Cancel — {self.order.order_id} [{self.status}]"

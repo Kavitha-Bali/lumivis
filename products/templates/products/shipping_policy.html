@@ -1,0 +1,57 @@
+{% extends 'products/base.html' %}
+{% load static %}
+{% block title %}Shipping Policy — Lumivis Pvt. Ltd.{% endblock %}
+
+{% block content %}
+<div class="main" style="max-width:760px;">
+
+  <div style="text-align:center;padding:40px 0 40px;">
+    <h1 style="font-size:2rem;font-weight:900;color:#111827;margin-bottom:12px;">Shipping Policy</h1>
+    <p style="font-size:.95rem;color:#6b7280;">Delivery zones, charges, and timelines.</p>
+  </div>
+
+  <div style="background:#fff;border:1.5px solid #e5e7eb;border-radius:20px;padding:36px 32px;line-height:1.8;color:#374151;font-size:.94rem;">
+
+    <h3 style="margin-top:0;color:#111827;font-size:1.05rem;">Delivery Zones &amp; Charges</h3>
+    <table style="width:100%;border-collapse:collapse;margin-top:12px;">
+      <thead>
+        <tr style="border-bottom:2px solid #e5e7eb;">
+          <th style="text-align:left;padding:8px 0;color:#6b7280;font-size:.82rem;text-transform:uppercase;">Zone</th>
+          <th style="text-align:right;padding:8px 0;color:#6b7280;font-size:.82rem;text-transform:uppercase;">Delivery Charge</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:10px 0;">Inside Visakhapatnam</td><td style="padding:10px 0;text-align:right;font-weight:700;">₹100</td></tr>
+        <tr><td style="padding:10px 0;">Outside Visakhapatnam</td><td style="padding:10px 0;text-align:right;font-weight:700;">₹250</td></tr>
+      </tbody>
+    </table>
+
+    <h3 style="margin-top:28px;color:#111827;font-size:1.05rem;">Urgent Delivery (Optional)</h3>
+    <p>Need it sooner? Choose a preferred delivery date at checkout and pay a small surcharge:</p>
+    <table style="width:100%;border-collapse:collapse;margin-top:12px;">
+      <thead>
+        <tr style="border-bottom:2px solid #e5e7eb;">
+          <th style="text-align:left;padding:8px 0;color:#6b7280;font-size:.82rem;text-transform:uppercase;">Delivery Window</th>
+          <th style="text-align:right;padding:8px 0;color:#6b7280;font-size:.82rem;text-transform:uppercase;">Extra Charge</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:10px 0;">Next day</td><td style="padding:10px 0;text-align:right;font-weight:700;">₹199</td></tr>
+        <tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:10px 0;">2nd day</td><td style="padding:10px 0;text-align:right;font-weight:700;">₹149</td></tr>
+        <tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:10px 0;">3rd – 7th day</td><td style="padding:10px 0;text-align:right;font-weight:700;">₹99</td></tr>
+        <tr><td style="padding:10px 0;">Beyond 7 days</td><td style="padding:10px 0;text-align:right;font-weight:700;color:#16a34a;">Free</td></tr>
+      </tbody>
+    </table>
+
+    <h3 style="margin-top:28px;color:#111827;font-size:1.05rem;">Order Tracking</h3>
+    <p>Once your order is placed, you'll receive an Order ID. Use it anytime on our <a href="{% url 'order_track' %}" style="color:#4f46e5;font-weight:600;">Order Tracking</a> page to check payment verification and delivery status.</p>
+
+    <h3 style="margin-top:28px;color:#111827;font-size:1.05rem;">Delivery Partners</h3>
+    <p>We currently deliver within and around Visakhapatnam, Andhra Pradesh. Delivery times may vary slightly due to weather, local restrictions, or courier availability.</p>
+
+    <h3 style="margin-top:28px;color:#111827;font-size:1.05rem;">Questions?</h3>
+    <p>Reach out via <a href="{% url 'contact' %}" style="color:#4f46e5;font-weight:600;">our Contact page</a> or WhatsApp at <a href="https://wa.me/919052337409" target="_blank" rel="noopener" style="color:#4f46e5;font-weight:600;">+91 90523 37409</a>.</p>
+
+  </div>
+</div>
+{% endblock %}
