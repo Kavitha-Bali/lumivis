@@ -3,6 +3,13 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 
 
+class ForgotPasswordForm(forms.Form):
+    email = forms.EmailField(
+        label='Email Address',
+        widget=forms.EmailInput(attrs={'placeholder': 'you@example.com'}),
+    )
+
+
 class CustomRegisterForm(UserCreationForm):
     email = forms.EmailField(
         required=True,
