@@ -30,7 +30,7 @@ SECRET_KEY = 'django-insecure-98ixpsnk22dbu3u*7c7x(l0+isy13iv6om0!na8q%6wh5i6zv6
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [ '.samanyastra.com', "127.0.0.1"]
 
 
 # Application definition
@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'products',
     'rest_framework',
     'rest_framework.authtoken',
+    'messaging',
 ]
 
 REST_FRAMEWORK = {
@@ -79,6 +80,7 @@ REST_FRAMEWORK = {
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -160,9 +162,29 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'products' / 'static']
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+STORAGES = {
+    "default": {
+        "BACKEND": "products.storage_backends.AzureMediaStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+
+# Azure Blob Storage — media files live here, but a blob URL is never handed
+# to a client. Every file is streamed through our own /media/<path> proxy
+# view (products.views.serve_media) instead — see products/storage_backends.py.
+# The container is shared across Samanyastra apps, so every Lumivis blob is
+# namespaced under AZURE_MEDIA_PREFIX (e.g. samanyastraprod/lumivis/media/...).
+AZURE_CONNECTION_STRING = env('AZURE_CONNECTION_STRING', default='')
+AZURE_ACCOUNT_NAME = env('AZURE_ACCOUNT_NAME', default='')
+AZURE_ACCOUNT_KEY = env('AZURE_ACCOUNT_KEY', default='')
+AZURE_CONTAINER = env('AZURE_CONTAINER', default='samanyastraprod')
+AZURE_MEDIA_PREFIX = env('AZURE_MEDIA_PREFIX', default='lumivis/media')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -177,3 +199,22 @@ LOGOUT_REDIRECT_URL = '/'
 CSRF_COOKIE_HTTPONLY  = False   # must be readable by the browser
 CSRF_COOKIE_SAMESITE  = 'Lax'  # send cookie on same-site navigations (default, explicit)
 CSRF_COOKIE_SECURE    = False   # allow HTTP in development
+
+CSRF_TRUSTED_ORIGINS = ['https://*.samanyastra.com']
+
+# ── Samanyastra messaging (django-messaging) ────────────────────────────────
+# Mail identity
+DEFAULT_FROM_MAIL = env('DEFAULT_FROM_MAIL', default='noreply@samanyastra.com')
+SUPPORT_LINK = env('SUPPORT_LINK', default='https://samanyastra.com/support')
+
+# Used to build absolute URLs (e.g. the reset link, a logo <img> src) in
+# emails, which render outside any request and can't resolve a relative path.
+SITE_BASE_URL = env('SITE_BASE_URL', default='http://localhost:8000')
+
+# Standalone mail-sending REST service (outlook_mailer) — it owns delivery,
+# this app only makes one synchronous POST per recipient.
+MAIL_SERVICE_URL = env('MAIL_SERVER_HOST', default='')
+MAIL_SERVICE_APP_ID = env('MAIL_SERVICE_APP_ID', default='')
+MAIL_SERVICE_APP_SECRET = env('MAIL_SERVICE_APP_SECRET', default='')
+
+PASSWORD_RESET_TIMEOUT = 60 * 60  # 1 hour, in seconds
