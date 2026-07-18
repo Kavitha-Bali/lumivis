@@ -166,11 +166,17 @@
     </div>
     {% endif %}
 
-    <!-- Refund note -->
+    <!-- Refund note — only once the user's cancellation request has actually been approved by admin -->
+    {% if order.cancel_request.status == 'approved' %}
     <div class="ot-refund-note">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-      Your amount will be refund within 7 days.
+      {% if order.cancel_request.refunded %}
+        Your refund has been processed successfully.
+      {% else %}
+        Your amount will be refunded within 7 days.
+      {% endif %}
     </div>
+    {% endif %}
 
     <!-- Support note -->
     <div class="ot-support">

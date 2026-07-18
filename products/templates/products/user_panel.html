@@ -288,6 +288,19 @@ body { background: #f1f5f9; }
                           background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#f87171;">
                 Cancellation Approved
               </div>
+              {% if o.cancel_request.refunded %}
+              <div style="margin-top:5px;display:inline-flex;align-items:center;gap:4px;
+                          padding:3px 9px;border-radius:20px;font-size:.68rem;font-weight:700;
+                          background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);color:#10b981;">
+                ✓ Refunded {{ o.cancel_request.refunded_at|date:"d M Y" }}
+              </div>
+              {% else %}
+              <div style="margin-top:5px;display:inline-flex;align-items:center;gap:4px;
+                          padding:3px 9px;border-radius:20px;font-size:.68rem;font-weight:700;
+                          background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.3);color:#fbbf24;">
+                Refund Pending
+              </div>
+              {% endif %}
               {% elif o.cancel_request.status == 'rejected' %}
               <div style="margin-top:5px;display:inline-flex;align-items:center;gap:4px;
                           padding:3px 9px;border-radius:20px;font-size:.68rem;font-weight:700;

@@ -682,8 +682,11 @@ def cancel_order(request, order_id):
 @staff_required
 def admin_cancel_review(request, pk, action):
     cancel_req = get_object_or_404(CancelRequest, pk=pk)
+    next_url = request.POST.get('next', '').strip() or '/admin-panel/?s=cancellations'
+    if not next_url.startswith('/'):
+        next_url = '/admin-panel/?s=cancellations'
     if request.method != 'POST':
-        return redirect('/admin-panel/?s=cancellations')
+        return redirect(next_url)
     admin_response = request.POST.get('admin_response', '').strip()
     if action == 'approve':
         cancel_req.status        = 'approved'
@@ -699,7 +702,7 @@ def admin_cancel_review(request, pk, action):
         cancel_req.admin_response = admin_response
         cancel_req.save()
         messages.info(request, f'Cancellation request for {cancel_req.order.order_id} rejected.')
-    return redirect('/admin-panel/?s=cancellations')
+    return redirect(next_url)
 
 
 @staff_required
@@ -712,17 +715,20 @@ def mark_refund_successful(request, pk):
     "WhatsApp" action here is the same one-click wa.me link pattern).
     """
     cancel_req = get_object_or_404(CancelRequest, pk=pk)
+    next_url = request.POST.get('next', '').strip() or '/admin-panel/?s=cancellations'
+    if not next_url.startswith('/'):
+        next_url = '/admin-panel/?s=cancellations'
     if request.method != 'POST':
-        return redirect('/admin-panel/?s=cancellations')
+        return redirect(next_url)
     if cancel_req.status != 'approved':
         messages.error(request, 'Only approved cancellations can be marked as refunded.')
-        return redirect('/admin-panel/?s=cancellations')
+        return redirect(next_url)
 
     cancel_req.refunded    = True
     cancel_req.refunded_at = timezone.now()
     cancel_req.save(update_fields=['refunded', 'refunded_at'])
     messages.success(request, f'Refund marked as successful for {cancel_req.order.order_id}.')
-    return redirect('/admin-panel/?s=cancellations')
+    return redirect(next_url)
 
 
 # ── Auth ──────────────────────────────────────────────────────────────────────
@@ -1010,7 +1016,7 @@ def admin_panel(request):
     cancel_requests = CancelRequest.objects.select_related('order').order_by('-requested_at')
     refunds_pending = cancel_requests.filter(status='approved', refunded=False)
 
-    orders_qs = Order.objects.order_by('-created_at')
+    orders_qs = Order.objects.select_related('cancel_request').order_by('-created_at')
     if status_filter:
         orders_qs = orders_qs.filter(status=status_filter)
 

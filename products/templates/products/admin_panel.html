@@ -895,6 +895,57 @@ body { background: #f1f5f9; }
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
                   Print Bill
                 </a>
+
+                <!-- Cancellation request — handle right here in Orders, no need to jump to Cancellations -->
+                {% if o.cancel_request %}
+                  {% if o.cancel_request.status == 'pending' %}
+                  <div style="margin-top:2px;padding:6px 8px;background:rgba(251,191,36,.08);
+                              border:1px solid rgba(251,191,36,.3);border-radius:7px;">
+                    <div style="font-size:.68rem;font-weight:700;color:#fbbf24;margin-bottom:5px;">⚠ Cancellation Requested</div>
+                    <div style="font-size:.68rem;color:#94a3b8;margin-bottom:6px;">{{ o.cancel_request.reason|truncatechars:50 }}</div>
+                    <div style="display:flex;gap:4px;">
+                      <form method="POST" action="{% url 'admin_cancel_review' o.cancel_request.pk 'approve' %}" style="flex:1;"
+                            onsubmit="return confirm('Approve cancellation for {{ o.order_id }}?')">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="/admin-panel/?s=orders{% if status_filter %}&status={{ status_filter }}{% endif %}" />
+                        <button type="submit" style="width:100%;background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.4);
+                                color:#f87171;padding:4px 6px;border-radius:6px;font-size:.68rem;font-weight:700;cursor:pointer;">
+                          Approve
+                        </button>
+                      </form>
+                      <form method="POST" action="{% url 'admin_cancel_review' o.cancel_request.pk 'reject' %}" style="flex:1;"
+                            onsubmit="return confirm('Reject cancellation for {{ o.order_id }}?')">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="/admin-panel/?s=orders{% if status_filter %}&status={{ status_filter }}{% endif %}" />
+                        <button type="submit" style="width:100%;background:#1e2d42;border:1px solid #253347;
+                                color:#94a3b8;padding:4px 6px;border-radius:6px;font-size:.68rem;font-weight:700;cursor:pointer;">
+                          Reject
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+                  {% elif o.cancel_request.status == 'approved' %}
+                    {% if o.cancel_request.refunded %}
+                    <div style="margin-top:2px;display:inline-flex;align-items:center;gap:4px;
+                                background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.35);
+                                color:#10b981;border-radius:7px;padding:4px 8px;font-size:.7rem;font-weight:700;">
+                      ✓ Refunded
+                    </div>
+                    {% else %}
+                    <form method="POST" action="{% url 'mark_refund_successful' o.cancel_request.pk %}" style="margin-top:2px;"
+                          onsubmit="window.open('https://wa.me/{{ o.phone|slice:'1:' }}?text={{ 'Hi '|add:o.customer_name|add:'! Your refund for order '|add:o.order_id|add:' has been processed successfully. Thanks for choosing Lumivis! - lumivis.samanyastra.com'|urlencode }}', '_blank'); return confirm('Mark refund as successful for {{ o.order_id }}? This will open WhatsApp with a message to the customer.')">
+                      {% csrf_token %}
+                      <input type="hidden" name="next" value="/admin-panel/?s=orders{% if status_filter %}&status={{ status_filter }}{% endif %}" />
+                      <button type="submit" style="width:100%;display:inline-flex;align-items:center;justify-content:center;gap:4px;
+                              background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.4);
+                              color:#10b981;padding:5px 8px;border-radius:7px;font-size:.7rem;font-weight:700;cursor:pointer;">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                        Refund Successful
+                      </button>
+                    </form>
+                    {% endif %}
+                  {% endif %}
+                {% endif %}
               </div>
             </td>
           </tr>
