@@ -45,6 +45,18 @@ def serve_media(request, path):
         raise Http404
 
 
+@login_not_required
+def serve_static(request, path):
+    """Proxy /static/* — streams from Azure, never exposes the blob URL."""
+    try:
+        download = _blob_client(path, prefix=settings.AZURE_STATIC_PREFIX).download_blob()
+        props = download.properties
+        content_type = (props.get('content_settings') or {}).get('content_type') or 'application/octet-stream'
+        return StreamingHttpResponse(download.chunks(), content_type=content_type)
+    except Exception:
+        raise Http404
+
+
 # ── Access-control decorators ─────────────────────────────────────────────────
 
 def staff_required(view_func):

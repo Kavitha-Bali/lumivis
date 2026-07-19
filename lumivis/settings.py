@@ -28,7 +28,7 @@ environ.Env.read_env(BASE_DIR / '.env')
 SECRET_KEY = 'django-insecure-98ixpsnk22dbu3u*7c7x(l0+isy13iv6om0!na8q%6wh5i6zv6'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = [ '.samanyastra.com', "127.0.0.1"]
 
@@ -80,7 +80,6 @@ REST_FRAMEWORK = {
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -169,22 +168,26 @@ STORAGES = {
         "BACKEND": "products.storage_backends.AzureMediaStorage",
     },
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        "BACKEND": "products.storage_backends.AzureStaticStorage",
     },
 }
 
 MEDIA_URL = '/media/'
 
-# Azure Blob Storage — media files live here, but a blob URL is never handed
-# to a client. Every file is streamed through our own /media/<path> proxy
-# view (products.views.serve_media) instead — see products/storage_backends.py.
-# The container is shared across Samanyastra apps, so every Lumivis blob is
-# namespaced under AZURE_MEDIA_PREFIX (e.g. samanyastraprod/lumivis/media/...).
+# Azure Blob Storage — media and static files both live here, but a blob URL
+# is never handed to a client. Every file is streamed through our own proxy
+# views instead (products.views.serve_media / serve_static) — see
+# products/storage_backends.py. Nothing is ever written to local/pod disk,
+# so replicas and restarts stay stateless.
+# Container 'lumivis', with blobs namespaced under 'media/' and 'static/'
+# virtual dirs respectively.
 AZURE_CONNECTION_STRING = env('AZURE_CONNECTION_STRING', default='')
 AZURE_ACCOUNT_NAME = env('AZURE_ACCOUNT_NAME', default='')
 AZURE_ACCOUNT_KEY = env('AZURE_ACCOUNT_KEY', default='')
-AZURE_CONTAINER = env('AZURE_CONTAINER', default='samanyastraprod')
-AZURE_MEDIA_PREFIX = env('AZURE_MEDIA_PREFIX', default='lumivis/media')
+AZURE_CONTAINER = env('AZURE_CONTAINER', default='lumivis')
+AZURE_MEDIA_PREFIX = env('AZURE_MEDIA_PREFIX', default='media')
+AZURE_STATIC_PREFIX = env('AZURE_STATIC_PREFIX', default='static')
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

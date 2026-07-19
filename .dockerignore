@@ -16,6 +16,12 @@ db.sqlite3
 media/
 staticfiles/
 
+# Static source assets (logos, product images, video.mp4/video3.mp4, etc.)
+# are only needed to run `collectstatic`, which now happens as a separate
+# deploy step against Azure Blob Storage — not inside the image. Excluding
+# them keeps the build context/image small.
+products/static/
+
 .vscode/
 .idea/
 .DS_Store
