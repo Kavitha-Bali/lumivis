@@ -32,7 +32,9 @@
     <div class="card">
       <a href="{% url 'product_detail' product.pk %}" class="card-img-link">
         <div class="card-img">
-          {% if product.image %}
+          {% if product.thumbnail %}
+            <img src="{{ product.thumbnail.url }}" alt="{{ product.name }}" loading="lazy" />
+          {% elif product.image %}
             <img src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy" />
           {% else %}
             <div class="card-placeholder">

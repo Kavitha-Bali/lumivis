@@ -245,7 +245,9 @@
       <article class="card">
         <a href="{% url 'product_detail' p.pk %}" class="card-img-link">
           <div class="card-img">
-            {% if p.image %}
+            {% if p.thumbnail %}
+              <img src="{{ p.thumbnail.url }}" alt="{{ p.name }}" loading="lazy" />
+            {% elif p.image %}
               <img src="{{ p.image.url }}" alt="{{ p.name }}" loading="lazy" />
             {% else %}
               <div class="card-placeholder">

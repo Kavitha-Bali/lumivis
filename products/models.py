@@ -54,6 +54,15 @@ class Product(models.Model):
     image       = models.ImageField(upload_to='products/', null=True, blank=True)
 
     def save(self, *args, **kwargs):
+        # Auto-generate a thumbnail from the main image if the admin didn't upload
+        # one — otherwise listing pages (homepage, All Products, related products)
+        # fall back to serving the full-size photo for any product without an
+        # explicit thumbnail, which is exactly the slow-loading grid this avoids.
+        if _is_fresh_upload(self.image) and not self.thumbnail:
+            self.image.seek(0)
+            thumb = _compress_image(self.image, max_dimension=500)
+            self.thumbnail.save(thumb.name, thumb, save=False)
+            self.image.seek(0)
         _compress_field(self.image, max_dimension=1600)
         _compress_field(self.thumbnail, max_dimension=500)
         _compress_field(self.cover_image, max_dimension=1920)
