@@ -35,12 +35,27 @@ from .models import CancelRequest, ContactMessage, Order, PopupOffer, Product, P
 
 @login_not_required
 def serve_media(request, path):
-    """Proxy /media/* — streams from Azure, never exposes the blob URL."""
+    """
+    Proxy /media/* — streams from Azure, never exposes the blob URL.
+    Cached aggressively: a new/replaced upload always gets a distinct storage path
+    (Django's storage backend appends a suffix on any name collision), so a given
+    URL's content never changes — safe to tell browsers to keep it for a year.
+    Without this, every browser re-downloads every product image through this proxy
+    on every single page view, which is the single biggest drag on page speed here.
+    """
     try:
         download = _blob_client(path).download_blob()
         props = download.properties
         content_type = (props.get('content_settings') or {}).get('content_type') or 'application/octet-stream'
-        return StreamingHttpResponse(download.chunks(), content_type=content_type)
+        response = StreamingHttpResponse(download.chunks(), content_type=content_type)
+        response['Cache-Control'] = 'public, max-age=31536000, immutable'
+        etag = props.get('etag')
+        if etag:
+            response['ETag'] = etag
+        last_modified = props.get('last_modified')
+        if last_modified:
+            response['Last-Modified'] = last_modified.strftime('%a, %d %b %Y %H:%M:%S GMT')
+        return response
     except Exception:
         raise Http404
 

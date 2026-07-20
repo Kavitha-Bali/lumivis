@@ -1,5 +1,45 @@
+import io
+import os
+
+from PIL import Image
+
+from django.core.files.base import ContentFile
 from django.db import models
 from django.contrib.auth.models import User
+
+
+def _is_fresh_upload(field_file):
+    """
+    True for a just-picked file straight off the upload form — not one already in storage.
+    Checked via Django's own `_committed` flag (set False only on a freshly-assigned,
+    not-yet-saved file). Must NOT touch `field_file.file` here: for an already-committed
+    field that property lazily downloads the file from storage (Azure, in this project) —
+    which means every edit to a product with an existing image would re-download it, and
+    fail the whole save if that download ever errors.
+    """
+    return bool(field_file) and not field_file._committed
+
+
+def _compress_image(field_file, max_dimension, quality=82):
+    """Downscale + re-encode as JPEG so product photos don't slow the homepage down."""
+    image = Image.open(field_file)
+    if image.mode not in ('RGB', 'L'):
+        # Covers RGBA/P/LA (needs flattening) and CMYK (Pillow's CMYK JPEGs render
+        # with wrong colors in browsers, which expect YCbCr) — always normalize to RGB.
+        image = image.convert('RGB')
+    image.thumbnail((max_dimension, max_dimension), Image.LANCZOS)
+    buffer = io.BytesIO()
+    image.save(buffer, format='JPEG', quality=quality, optimize=True)
+    buffer.seek(0)
+    base_name = os.path.splitext(os.path.basename(field_file.name))[0]
+    return ContentFile(buffer.read(), name=f'{base_name}.jpg')
+
+
+def _compress_field(field_file, max_dimension, quality=82):
+    """Replace a freshly-uploaded ImageField's content with a compressed version, in place."""
+    if _is_fresh_upload(field_file):
+        compressed = _compress_image(field_file, max_dimension, quality)
+        field_file.save(compressed.name, compressed, save=False)
 
 
 class Product(models.Model):
@@ -13,6 +53,12 @@ class Product(models.Model):
     price       = models.DecimalField(max_digits=10, decimal_places=2)
     image       = models.ImageField(upload_to='products/', null=True, blank=True)
 
+    def save(self, *args, **kwargs):
+        _compress_field(self.image, max_dimension=1600)
+        _compress_field(self.thumbnail, max_dimension=500)
+        _compress_field(self.cover_image, max_dimension=1920)
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return self.name
 
@@ -25,6 +71,10 @@ class ProductImage(models.Model):
 
     class Meta:
         ordering = ['order', 'created_at']
+
+    def save(self, *args, **kwargs):
+        _compress_field(self.image, max_dimension=1600)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.product.name} — gallery image {self.pk}"
@@ -141,6 +191,10 @@ class PopupOffer(models.Model):
     product       = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True, blank=True, related_name='popup_offers')
     is_active     = models.BooleanField(default=True)
     created_at    = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        _compress_field(self.image, max_dimension=1000)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.title
