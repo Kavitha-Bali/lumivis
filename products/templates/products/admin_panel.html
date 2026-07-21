@@ -656,7 +656,7 @@ body { background: #f1f5f9; }
             <td style="color:#64748b;font-size:.78rem;white-space:nowrap;">{{ cr.reviewed_at|date:"d M, H:i" }}</td>
             <td>
               <form method="POST" action="{% url 'mark_refund_successful' cr.pk %}" style="display:inline;"
-                onsubmit="window.open('https://wa.me/{{ cr.order.phone|slice:'1:' }}?text={{ 'Hi '|add:cr.order.customer_name|add:'! Your refund for order '|add:cr.order.order_id|add:' has been processed successfully. Thanks for choosing Lumivis! - lumivis.samanyastra.com'|urlencode }}', '_blank'); return confirm('Mark refund as successful for {{ cr.order.order_id }}? This will open WhatsApp with a message to the customer.')">
+                onsubmit="if (!confirm('Mark refund as successful for {{ cr.order.order_id }}? This will open WhatsApp with a message to the customer.')) return false; window.open('https://wa.me/{{ cr.order.phone|slice:'1:' }}?text={{ 'Hi '|add:cr.order.customer_name|add:'! Your refund for order '|add:cr.order.order_id|add:' has been processed successfully. Thanks for choosing Lumivis! - lumivis.samanyastra.com'|urlencode }}', '_blank'); return true;">
                 {% csrf_token %}
                 <button type="submit"
                         style="display:inline-flex;align-items:center;gap:6px;
@@ -947,7 +947,7 @@ body { background: #f1f5f9; }
                     </div>
                     {% else %}
                     <form method="POST" action="{% url 'mark_refund_successful' o.cancel_request.pk %}" style="margin-top:2px;"
-                          onsubmit="window.open('https://wa.me/{{ o.phone|slice:'1:' }}?text={{ 'Hi '|add:o.customer_name|add:'! Your refund for order '|add:o.order_id|add:' has been processed successfully. Thanks for choosing Lumivis! - lumivis.samanyastra.com'|urlencode }}', '_blank'); return confirm('Mark refund as successful for {{ o.order_id }}? This will open WhatsApp with a message to the customer.')">
+                          onsubmit="if (!confirm('Mark refund as successful for {{ o.order_id }}? This will open WhatsApp with a message to the customer.')) return false; window.open('https://wa.me/{{ o.phone|slice:'1:' }}?text={{ 'Hi '|add:o.customer_name|add:'! Your refund for order '|add:o.order_id|add:' has been processed successfully. Thanks for choosing Lumivis! - lumivis.samanyastra.com'|urlencode }}', '_blank'); return true;">
                       {% csrf_token %}
                       <input type="hidden" name="next" value="/admin-panel/?s=orders{% if status_filter %}&status={{ status_filter }}{% endif %}" />
                       <button type="submit" style="width:100%;display:inline-flex;align-items:center;justify-content:center;gap:4px;
@@ -1665,7 +1665,7 @@ body { background: #f1f5f9; }
                   </div>
                   {% else %}
                   <form method="POST" action="{% url 'mark_refund_successful' cr.pk %}" style="margin-top:8px;min-width:180px;"
-                    onsubmit="window.open('https://wa.me/{{ cr.order.phone|slice:'1:' }}?text={{ 'Hi '|add:cr.order.customer_name|add:'! Your refund for order '|add:cr.order.order_id|add:' has been processed successfully. Thanks for choosing Lumivis! - lumivis.samanyastra.com'|urlencode }}', '_blank'); return confirm('Mark refund as successful for {{ cr.order.order_id }}? This will open WhatsApp with a message to the customer.')">
+                    onsubmit="if (!confirm('Mark refund as successful for {{ cr.order.order_id }}? This will open WhatsApp with a message to the customer.')) return false; window.open('https://wa.me/{{ cr.order.phone|slice:'1:' }}?text={{ 'Hi '|add:cr.order.customer_name|add:'! Your refund for order '|add:cr.order.order_id|add:' has been processed successfully. Thanks for choosing Lumivis! - lumivis.samanyastra.com'|urlencode }}', '_blank'); return true;">
                     {% csrf_token %}
                     <button type="submit"
                       style="width:100%;display:inline-flex;align-items:center;justify-content:center;gap:4px;
@@ -1673,7 +1673,7 @@ body { background: #f1f5f9; }
                              color:#10b981;padding:6px 8px;border-radius:7px;font-size:.74rem;
                              font-weight:700;cursor:pointer;">
                       <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                      Refund Successful
+                      Refund 
                     </button>
                   </form>
                   {% endif %}
