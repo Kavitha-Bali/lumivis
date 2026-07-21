@@ -377,6 +377,20 @@ body { background: #f1f5f9; }
   }
   .ap-main { padding: 20px 16px; }
 }
+
+/* Product form validation */
+.pf-input.pf-invalid, .pf-textarea.pf-invalid {
+  border-color: #ef4444 !important;
+  background: rgba(239,68,68,.05);
+}
+.pf-error-msg {
+  display: none;
+  color: #ef4444;
+  font-size: .74rem;
+  font-weight: 600;
+  margin-top: 5px;
+}
+.pf-error-msg.show { display: block; }
 </style>
 {% endblock %}
 
@@ -929,7 +943,7 @@ body { background: #f1f5f9; }
                     <div style="margin-top:2px;display:inline-flex;align-items:center;gap:4px;
                                 background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.35);
                                 color:#10b981;border-radius:7px;padding:4px 8px;font-size:.7rem;font-weight:700;">
-                      ✓ Refunded
+                      ✓ Refund Successful
                     </div>
                     {% else %}
                     <form method="POST" action="{% url 'mark_refund_successful' o.cancel_request.pk %}" style="margin-top:2px;"
@@ -1204,7 +1218,7 @@ body { background: #f1f5f9; }
     </div>
 
     <div style="max-width:700px;">
-      <form method="POST" action="?s=add_product" enctype="multipart/form-data">
+      <form method="POST" action="?s=add_product" enctype="multipart/form-data" novalidate onsubmit="return validateProductForm(this)">
         {% csrf_token %}
         <input type="hidden" name="action" value="add_product" />
 
@@ -1328,7 +1342,7 @@ body { background: #f1f5f9; }
     </div>
 
     <div style="max-width:700px;">
-      <form method="POST" action="?s=edit_product&pk={{ edit_product.pk }}" enctype="multipart/form-data">
+      <form method="POST" action="?s=edit_product&pk={{ edit_product.pk }}" enctype="multipart/form-data" novalidate onsubmit="return validateProductForm(this)">
         {% csrf_token %}
         <input type="hidden" name="action" value="edit_product" />
         <input type="hidden" name="pk" value="{{ edit_product.pk }}" />
@@ -1447,14 +1461,9 @@ body { background: #f1f5f9; }
               <div style="position:relative;">
                 <img src="{{ img.image.url }}" alt="{{ edit_product.name }} gallery"
                      style="width:80px;height:80px;object-fit:cover;border-radius:8px;border:1px solid #e2e8f0;" />
-                <form method="POST" action="?s=edit_product&pk={{ edit_product.pk }}" style="position:absolute;top:-8px;right:-8px;"
-                      onsubmit="return confirm('Remove this image?')">
-                  {% csrf_token %}
-                  <input type="hidden" name="action" value="delete_product_image" />
-                  <input type="hidden" name="image_pk" value="{{ img.pk }}" />
-                  <button type="submit" title="Remove image"
-                          style="width:22px;height:22px;border-radius:50%;background:#ef4444;color:#fff;border:2px solid #fff;font-size:0.75rem;line-height:1;cursor:pointer;">×</button>
-                </form>
+                <button type="button" title="Remove image"
+                        onclick="deleteGalleryImage({{ img.pk }}, {{ edit_product.pk }})"
+                        style="position:absolute;top:-8px;right:-8px;width:22px;height:22px;border-radius:50%;background:#ef4444;color:#fff;border:2px solid #fff;font-size:0.75rem;line-height:1;cursor:pointer;">×</button>
               </div>
               {% endfor %}
             </div>
@@ -1603,7 +1612,7 @@ body { background: #f1f5f9; }
                 <span class="sb" style="background:rgba(239,68,68,.1);color:#f87171;border:1px solid rgba(239,68,68,.3);">Approved</span>
                 {% if cr.refunded %}
                 <div style="margin-top:5px;">
-                  <span class="sb" style="background:rgba(16,185,129,.12);color:#10b981;border:1px solid rgba(16,185,129,.35);">✓ Refunded</span>
+                  <span class="sb" style="background:rgba(16,185,129,.12);color:#10b981;border:1px solid rgba(16,185,129,.35);">✓ Refund Successful</span>
                 </div>
                 {% endif %}
               {% else %}
@@ -1652,7 +1661,7 @@ body { background: #f1f5f9; }
                 {% if cr.status == 'approved' %}
                   {% if cr.refunded %}
                   <div style="margin-top:6px;color:#10b981;font-size:.74rem;font-weight:600;">
-                    Refunded {{ cr.refunded_at|date:"d M Y, H:i" }}
+                    Refund Successful — {{ cr.refunded_at|date:"d M Y, H:i" }}
                   </div>
                   {% else %}
                   <form method="POST" action="{% url 'mark_refund_successful' cr.pk %}" style="margin-top:8px;min-width:180px;"
@@ -1832,6 +1841,66 @@ body { background: #f1f5f9; }
 </button>
 
 <script>
+/*
+ * Add/Edit Product forms use novalidate + this function instead of relying on
+ * native HTML5 validation tooltips, which are easy to miss (especially if the
+ * invalid field is scrolled out of view) and give no visible indication that
+ * the "Save"/"Update" button silently did nothing. This makes a blocked
+ * submission impossible to miss: red border + inline error text, and scrolls
+ * to the first problem field.
+ */
+function validateProductForm(form) {
+  let firstInvalid = null;
+
+  form.querySelectorAll('[required]').forEach(function (field) {
+    field.classList.remove('pf-invalid');
+    let errorEl = field.nextElementSibling;
+    if (!errorEl || !errorEl.classList.contains('pf-error-msg')) {
+      errorEl = document.createElement('div');
+      errorEl.className = 'pf-error-msg';
+      field.insertAdjacentElement('afterend', errorEl);
+    }
+
+    if (!field.checkValidity()) {
+      field.classList.add('pf-invalid');
+      errorEl.textContent = field.validationMessage || 'This field is required.';
+      errorEl.classList.add('show');
+      if (!firstInvalid) firstInvalid = field;
+    } else {
+      errorEl.classList.remove('show');
+    }
+  });
+
+  if (firstInvalid) {
+    firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    firstInvalid.focus();
+    return false;
+  }
+  return true;
+}
+
+/*
+ * Submits the gallery-image delete action via a form built and appended to
+ * document.body at click time, rather than a static <form> nested in the
+ * template. Browsers do not allow nested <form> elements — a nested one
+ * silently force-closes the outer form early, which was breaking every
+ * field (and the Update Product button) that came after it in the DOM.
+ */
+function deleteGalleryImage(imagePk, productPk) {
+  if (!confirm('Remove this image?')) return;
+  var csrfToken = document.querySelector('input[name=csrfmiddlewaretoken]').value;
+  var form = document.createElement('form');
+  form.method = 'POST';
+  form.action = '?s=edit_product&pk=' + productPk;
+  form.style.display = 'none';
+  form.innerHTML =
+    '<input type="hidden" name="csrfmiddlewaretoken" value="' + csrfToken + '">' +
+    '<input type="hidden" name="action" value="delete_product_image">' +
+    '<input type="hidden" name="image_pk" value="' + imagePk + '">';
+  document.body.appendChild(form);
+  form.submit();
+}
+
 function previewImage(input, previewId) {
   const preview = document.getElementById(previewId);
   if (input.files && input.files[0]) {
