@@ -750,9 +750,7 @@ def mark_refund_successful(request, pk):
     """
     Admin confirms a refund has been sent for an approved cancellation.
     Records the refund on the CancelRequest so its status is visible in the
-    admin panel, and notifies the customer via a pre-filled WhatsApp message
-    (this codebase has no WhatsApp Business API integration — every other
-    "WhatsApp" action here is the same one-click wa.me link pattern).
+    admin panel and in the customer's order history.
     """
     cancel_req = get_object_or_404(CancelRequest, pk=pk)
     next_url = request.POST.get('next', '').strip() or '/admin-panel/?s=cancellations'
