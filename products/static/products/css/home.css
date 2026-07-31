@@ -387,6 +387,35 @@ h1, h2, h3, .hero-title, .section-title {
   display: block;
 }
 
+/* ─── Video Banner (legacy) ───────────────────────────────────
+   Static assets and app code deploy separately here (static files upload
+   straight to Azure Blob Storage on collectstatic; templates/views only
+   update when the app itself redeploys). Keeping these rules means the
+   homepage still looks correct even during the window where this CSS
+   is live but the old <video>-based template markup hasn't caught up yet. */
+.video-banner {
+  position: relative;
+  width: 100%;
+  height: min(56.25vw, 90vh);
+  background: #000;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  line-height: 0;
+}
+.video-banner-el {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+  display: block;
+}
+.video-banner-secondary {
+  margin-top: 0;
+}
+
 /* ─── Promo Banner + Countdown ───────────────────────────────── */
 .promo-banner {
   background: linear-gradient(90deg, #0a0f1e 0%, #1e1b4b 60%, #312e81 100%);
