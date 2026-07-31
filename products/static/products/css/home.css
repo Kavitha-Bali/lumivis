@@ -373,7 +373,7 @@ h1, h2, h3, .hero-title, .section-title {
   /* Desktop: capped width so it doesn't stretch edge-to-edge on ultra-wide
      monitors, and a capped height so it stays compact instead of scaling
      to the image's full 851:315 ratio. */
-  max-width: 1600px;
+  max-width: 100%;
   margin: 0 auto;
   height: clamp(140px, 18vw, 240px);
   background: #000;
