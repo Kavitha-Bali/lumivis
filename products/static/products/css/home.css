@@ -370,7 +370,10 @@ h1, h2, h3, .hero-title, .section-title {
 /* ─── Homepage Banner (LUMIVISPVTLTD.png) ────────────────────── */
 .homepage-banner {
   width: 100%;
-  aspect-ratio: 851 / 315;    /* matches the banner image's natural proportions */
+  /* Capped, responsive height — scales with viewport width but stays
+     compact instead of the image's full 851:315 ratio, which grew too
+     tall on wide screens. */
+  height: clamp(100px, 18vw, 240px);
   background: #000;
   overflow: hidden;
   margin: 0;
