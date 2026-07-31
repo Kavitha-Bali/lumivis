@@ -380,17 +380,15 @@ h1, h2, h3, .hero-title, .section-title {
   height: clamp(140px, 18vw, 240px);
   background: #0e0e0e;
   overflow: hidden;
-  object-fit: contain;
-  object-position: center;
   padding: 0;
   line-height: 0;
-
 }
 .homepage-banner-img {
-  max-width: 100%;
-  height: auto;
   width: 100%;
   height: 100%;
+  /* Shows the whole image at its correct aspect ratio, never cropped or
+     stretched -- any leftover space in the box is filled by the dark
+     background instead. */
   object-fit: contain;
   object-position: center;
   display: block;
