@@ -367,31 +367,21 @@ h1, h2, h3, .hero-title, .section-title {
 }
 
 
-/* ─── Video Banner ───────────────────────────────────────────── */
-.video-banner {
-  position: relative;         /* anchor for the absolute video */
+/* ─── Homepage Banner (LUMIVISPVTLTD.png) ────────────────────── */
+.homepage-banner {
   width: 100%;
-  /* 56.25 vw = exactly 16 : 9 of the viewport width; cap at 90 vh */
-  height: min(56.25vw, 90vh);
+  aspect-ratio: 851 / 315;    /* matches the banner image's natural proportions */
   background: #000;
   overflow: hidden;
   margin: 0;
   padding: 0;
   line-height: 0;
 }
-.video-banner-el {
-  position: absolute;
-  inset: 0;                   /* top:0 right:0 bottom:0 left:0  */
+.homepage-banner-img {
   width: 100%;
   height: 100%;
-  object-fit: cover;          /* fills every pixel, zero black bars */
-  object-position: center center;
+  object-fit: cover;
   display: block;
-}
-
-/* ─── Secondary video banner (video3.mp4) ────────────────────── */
-.video-banner-secondary {
-  margin-top: 0;
 }
 
 /* ─── Promo Banner + Countdown ───────────────────────────────── */
