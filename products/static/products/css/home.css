@@ -391,9 +391,13 @@ h1, h2, h3, .hero-title, .section-title {
 .homepage-banner-img {
   width: 100%;
   height: 100%;
-  /* Shows the whole image at its correct aspect ratio, never cropped or
-     stretched -- any leftover space in the box is filled by the dark
-     background instead. */
+  /* object-fit is required here -- without it the image defaults to
+     "fill", stretching/distorting it to the box instead of preserving its
+     real aspect ratio. "contain" shows the whole image undistorted, with
+     any leftover space filled by the dark background. Do NOT add padding
+     to this element -- percentage padding is based on the container's
+     width, so padding: 100% here nearly collapses the visible image to
+     nothing while adding huge invisible space around it. */
   object-fit: contain;
   object-position: center;
   display: block;
