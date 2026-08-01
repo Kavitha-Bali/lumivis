@@ -370,46 +370,16 @@ h1, h2, h3, .hero-title, .section-title {
 /* ─── Homepage Banner (LUMIVISPVTLTD.png) ────────────────────── */
 .homepage-banner {
   width: 100%;
-  /* Desktop: matches the page's own content width (same max-width used by
-     the product-grid sections right below it) instead of an arbitrary
-     value, so the banner's side margins line up with the rest of the page.
-     Capped height keeps it compact instead of scaling to the image's full
-     851:315 ratio. */
-  max-width: 1280px;
-  margin: 0 auto;
-  height: clamp(140px, 18vw, 240px);
-  background: #0e0e0e;
-  overflow: hidden;
-  /* box-sizing: border-box keeps padding inside the specified height above,
-     instead of adding to it -- padding: 100% here previously blew the
-     section up to an enormous size (percentage padding is calculated from
-     the container's width, not a fixed amount). */
-  box-sizing: border-box;
-  padding: 12px 24px;
   line-height: 0;
 }
 .homepage-banner-img {
+  /* No fixed height/object-fit/pillarboxing -- the image renders at its own
+     native aspect ratio, scaled to the full page width. That guarantees the
+     whole image is always visible with no cropping and no letterbox bars,
+     at every screen size, without needing per-breakpoint variants. */
   width: 100%;
-  height: 100%;
-  /* object-fit is required here -- without it the image defaults to
-     "fill", stretching/distorting it to the box instead of preserving its
-     real aspect ratio. "cover" fills the box completely (full width and
-     height) while keeping the image's proportions correct, cropping any
-     overflow instead of stretching -- same behavior as a CSS background-
-     image with size:cover. Do NOT add padding to this element --
-     percentage padding is based on the container's width, so
-     padding: 100% here nearly collapses the visible image to nothing
-     while adding huge invisible space around it. */
-  object-fit: cover;
-  object-position: center;
+  height: auto;
   display: block;
-}
-@media (max-width: 868px) {
-  /* Mobile/tablet: full-bleed edge-to-edge instead of the desktop max-width. */
-  .homepage-banner { max-width: 100%; height: clamp(90px, 26vw, 160px); padding: 8px 16px; }
-}
-@media (max-width: 540px) {
-  .homepage-banner { height: clamp(70px, 30vw, 120px); padding: 6px 12px; }
 }
 
 
