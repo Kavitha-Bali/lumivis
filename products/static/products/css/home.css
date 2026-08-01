@@ -393,12 +393,14 @@ h1, h2, h3, .hero-title, .section-title {
   height: 100%;
   /* object-fit is required here -- without it the image defaults to
      "fill", stretching/distorting it to the box instead of preserving its
-     real aspect ratio. "contain" shows the whole image undistorted, with
-     any leftover space filled by the dark background. Do NOT add padding
-     to this element -- percentage padding is based on the container's
-     width, so padding: 100% here nearly collapses the visible image to
-     nothing while adding huge invisible space around it. */
-  object-fit: contain;
+     real aspect ratio. "cover" fills the box completely (full width and
+     height) while keeping the image's proportions correct, cropping any
+     overflow instead of stretching -- same behavior as a CSS background-
+     image with size:cover. Do NOT add padding to this element --
+     percentage padding is based on the container's width, so
+     padding: 100% here nearly collapses the visible image to nothing
+     while adding huge invisible space around it. */
+  object-fit: cover;
   object-position: center;
   display: block;
 }
@@ -409,8 +411,6 @@ h1, h2, h3, .hero-title, .section-title {
 @media (max-width: 540px) {
   .homepage-banner { height: clamp(70px, 30vw, 120px); padding: 6px 12px; }
 }
-
-
 
 
 /* ─── Promo Banner + Countdown ───────────────────────────────── */
